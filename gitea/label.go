@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// AddLabel adds a label to Gitea.
 func (accessor *Accessor) AddLabel(label string, color string) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO label(repo_id,name,color)

@@ -2,6 +2,7 @@ package gitea
 
 import "log"
 
+// AddMilestone adds a milestone to Gitea.
 func (accessor *Accessor) AddMilestone(name string, content string, closed bool, deadlineTS int64, closedTS int64) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO

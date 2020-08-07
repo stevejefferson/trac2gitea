@@ -1,4 +1,4 @@
-package gitea
+package wiki
 
 import (
 	"fmt"
@@ -31,15 +31,15 @@ func copyFile(src, dst string) error {
 	return cerr
 }
 
-// CopyFile copies an external file into Gitea.
-func (accessor *Accessor) CopyFile(externalFilePath string, giteaRelPath string) {
+// CopyFile copies an internal file into the Gitea Wiki.
+func (accessor *Accessor) CopyFile(externalFilePath string, giteaWikiRelPath string) {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "Warning: cannot copy non-existant file: \"%s\"\n", externalFilePath)
 		return
 	}
 
-	giteaPath := filepath.Join(accessor.rootDir, giteaRelPath)
+	giteaPath := filepath.Join(accessor.wikiRepoDir, giteaWikiRelPath)
 	err = os.MkdirAll(path.Dir(giteaPath), 0775)
 	if err != nil {
 		log.Fatal(err)

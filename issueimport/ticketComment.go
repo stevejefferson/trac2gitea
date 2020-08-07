@@ -1,4 +1,4 @@
-package issue
+package issueimport
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 	var header []string
 
 	prefix := fmt.Sprintf("ticket:%d", ticketID)
-	comment = importer.trac2MarkdownConverter.ConvertLink(comment, prefix)
+	comment = importer.trac2MarkdownConverter.Convert(comment, prefix)
 
 	// find users first, and tweak description to add missing users
 	authorID := importer.giteaAccessor.FindUserID(author)

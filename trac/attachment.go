@@ -14,12 +14,13 @@ func encodeSha1(str string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (accessor *Accessor) AttachmentPath(ticketID int64, fname string) string {
+// AttachmentPath retrieves the path to a named attachment to a Trac ticket.
+func (accessor *Accessor) AttachmentPath(ticketID int64, name string) string {
 	ticketDir := encodeSha1(fmt.Sprintf("%d", ticketID))
 	ticketSub := ticketDir[0:3]
 
-	pathFile := encodeSha1(fname)
-	pathExt := path.Ext(fname)
+	pathFile := encodeSha1(name)
+	pathExt := path.Ext(name)
 
-	return fmt.Sprintf("%s/attachments/ticket/%s/%s/%s%s", accessor.rootDir, ticketSub, ticketDir, pathFile, pathExt)
+	return fmt.Sprintf("%s/attachments/ticket/%s/%s/%s%s", accessor.RootDir, ticketSub, ticketDir, pathFile, pathExt)
 }

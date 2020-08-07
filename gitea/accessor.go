@@ -7,8 +7,10 @@ import (
 	"os"
 
 	"github.com/go-ini/ini"
+	_ "github.com/mattn/go-sqlite3" // sqlite database driver
 )
 
+// Accessor provides acess (retire and update) to Gitea (non-Wiki) data.
 type Accessor struct {
 	rootDir           string
 	mainConfig        *ini.File
@@ -33,7 +35,8 @@ func fetchConfig(configPath string) *ini.File {
 	return config
 }
 
-func FindGitea(giteaRootDir string, userName string, repoName string, defaultAssignee string, defaultAuthor string) *Accessor {
+// CreateAccessor returns a new Gitea accessor.
+func CreateAccessor(giteaRootDir string, userName string, repoName string, defaultAssignee string, defaultAuthor string) *Accessor {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
 		log.Fatal(err)

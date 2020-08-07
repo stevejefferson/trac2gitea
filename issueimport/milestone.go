@@ -1,10 +1,11 @@
-package issue
+package issueimport
 
 import (
 	"fmt"
 	"log"
 )
 
+// ImportMilestones imports Trac milestones as Gitea milestones.
 func (importer *Importer) ImportMilestones() {
 	// NOTE: trac timestamps are to the microseconds, we just need seconds
 	rows := importer.tracAccessor.Query(`

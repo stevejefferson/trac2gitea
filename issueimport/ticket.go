@@ -1,4 +1,4 @@
-package issue
+package issueimport
 
 import (
 	"database/sql"
@@ -16,7 +16,7 @@ func (importer *Importer) importTicket(
 	closed bool,
 	summary string,
 	description string) int64 {
-	description = importer.trac2MarkdownConverter.Convert(description) // in Trac format
+	description = importer.trac2MarkdownConverter.Convert(description, "") // in Trac format
 
 	var header []string
 
@@ -49,6 +49,7 @@ func (importer *Importer) importTicket(
 	return issueID
 }
 
+// ImportTickets imports Trac tickets as Gitea issues.
 func (importer *Importer) ImportTickets() {
 	// NOTE: trac timestamps are to the microseconds, we just need seconds
 	rows := importer.tracAccessor.Query(`

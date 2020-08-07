@@ -2,6 +2,7 @@ package gitea
 
 import "log"
 
+// AddComment adds a comment to Gitea
 func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment string, time int64) int64 {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(

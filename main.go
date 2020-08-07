@@ -6,11 +6,12 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
-
 	"stevejefferson.co.uk/trac2gitea/gitea"
-	"stevejefferson.co.uk/trac2gitea/issue"
+	"stevejefferson.co.uk/trac2gitea/issueimport"
 	"stevejefferson.co.uk/trac2gitea/markdown"
 	"stevejefferson.co.uk/trac2gitea/trac"
+	"stevejefferson.co.uk/trac2gitea/wiki"
+	"stevejefferson.co.uk/trac2gitea/wikiimport"
 )
 
 var dbOnly bool
@@ -64,29 +65,21 @@ func parseArgs() {
 	defaultAuthor = *defaultAuthorParam
 }
 
-/*
-func validateArgs() {
-	if !dbOnly {
-		stat, err = os.Stat(giteaWikiRepoDir)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if stat.IsDir() != true {
-			log.Fatal("Gitea wiki repo directory is not a directory: ", giteaWikiRepoDir)
-		}
-	}
-}
-*/
-
 func main() {
 	parseArgs()
 
-	tracAccessor := trac.FindTrac(tracRootDir)
-	giteaAccessor := gitea.FindGitea(giteaRootDir, giteaUserName, giteaRepoName, defaultAssignee, defaultAuthor)
-	trac2MarkdownConverter := markdown.CreateConverter()
+	// low-level accessors
+	tracAccessor := trac.CreateAccessor(tracRootDir)
+	giteaAccessor := gitea.CreateAccessor(giteaRootDir, giteaUserName, giteaRepoName, defaultAssignee, defaultAuthor)
+	wikiAccessor := wiki.CreateAccessor(giteaWikiRepoDir)
 
+	// data converters
+	trac2MarkdownConverter := markdown.CreateConverter(tracAccessor, giteaAccessor, wikiAccessor)
+
+	// importers
 	if !wikiOnly {
-		issueImporter := issue.CreateImporter(tracAccessor, giteaAccessor)
+		issueImporter := issueimport.CreateImporter(tracAccessor, giteaAccessor, trac2MarkdownConverter)
+
 		issueImporter.ImportComponents()
 		issueImporter.ImportPriorities()
 		issueImporter.ImportSeverities()
@@ -94,11 +87,11 @@ func main() {
 		issueImporter.ImportTypes()
 		issueImporter.ImportResolutions()
 		issueImporter.ImportMilestones()
-		//importTickets()
+		issueImporter.ImportTickets()
 	}
 
-	/*
-		if !dbOnly {
-			importWiki()
-		}*/
+	if !dbOnly {
+		wikiImporter := wikiimport.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, trac2MarkdownConverter)
+		wikiImporter.ImportWiki()
+	}
 }

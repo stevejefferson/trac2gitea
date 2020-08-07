@@ -19,6 +19,7 @@ func (accessor *Accessor) findRepoID(userName string, repoName string) int64 {
 	return id
 }
 
+// UpdateRepoIssueCount updates the count of total and closed issue for a our chosen Gitea repository.
 func (accessor *Accessor) UpdateRepoIssueCount(count int, closedCount int) {
 	// Update issue count for repo
 	if count > 0 {

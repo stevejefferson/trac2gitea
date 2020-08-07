@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// AddIssueLabel adds an issue label to Gitea.
 func (accessor *Accessor) AddIssueLabel(issueID int64, label string) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO issue_label(issue_id, label_id)

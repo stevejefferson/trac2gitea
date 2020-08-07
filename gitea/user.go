@@ -5,13 +5,14 @@ import (
 	"strings"
 )
 
-func (accessor *Accessor) FindUserID(nameOrAddress string) int64 {
-	if strings.Trim(nameOrAddress, " ") == "" {
+// FindUserID retireves the id of a named Gitea user.
+func (accessor *Accessor) FindUserID(name string) int64 {
+	if strings.Trim(name, " ") == "" {
 		return -1
 	}
 
 	var id int64
-	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, nameOrAddress).Scan(&id)
+	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, name).Scan(&id)
 	if err != nil {
 		return -1
 	}
