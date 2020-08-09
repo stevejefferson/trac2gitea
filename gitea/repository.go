@@ -1,6 +1,7 @@
 package gitea
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -41,4 +42,16 @@ func (accessor *Accessor) UpdateRepoIssueCount(count int, closedCount int) {
 			log.Fatal(err)
 		}
 	}
+}
+
+// GetCommitURL retrieves the URL for viewing a given commit in the current repository
+func (accessor *Accessor) GetCommitURL(commitID string) string {
+	repoURL := accessor.getUserRepoURL()
+	return fmt.Sprintf("%s/commit/%s", repoURL, commitID)
+}
+
+// GetSourceURL retrieves the URL for viewing the latest version of a source file on a given branch of the current repository
+func (accessor *Accessor) GetSourceURL(branchPath string, filePath string) string {
+	repoURL := accessor.getUserRepoURL()
+	return fmt.Sprintf("%s/src/branch/%s/%s", repoURL, branchPath, filePath)
 }

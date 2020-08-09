@@ -1,6 +1,9 @@
 package gitea
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 // AddComment adds a comment to Gitea
 func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment string, time int64) int64 {
@@ -20,4 +23,9 @@ func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment stri
 	}
 
 	return commentID
+}
+
+func (accessor *Accessor) GetCommentURL(issueID int64, commentID int64) string {
+	repoURL := accessor.getUserRepoURL()
+	return fmt.Sprintf("%s/issues/%d#issuecomment-%d", repoURL, issueID, commentID)
 }

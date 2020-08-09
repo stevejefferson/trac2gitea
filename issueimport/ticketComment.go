@@ -7,12 +7,10 @@ import (
 )
 
 func (importer *Importer) importTicketComment(issueID int64, ticketID int64, time int64, author, comment string) int64 {
-	var header []string
-
-	prefix := fmt.Sprintf("ticket:%d", ticketID)
-	comment = importer.trac2MarkdownConverter.Convert(comment, prefix)
+	comment = importer.trac2MarkdownConverter.TicketConvert(comment, ticketID)
 
 	// find users first, and tweak description to add missing users
+	var header []string
 	authorID := importer.giteaAccessor.FindUserID(author)
 	if authorID == -1 {
 		header = append(header, fmt.Sprintf("    Original comment by %s", author))

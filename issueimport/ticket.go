@@ -16,7 +16,8 @@ func (importer *Importer) importTicket(
 	closed bool,
 	summary string,
 	description string) int64 {
-	description = importer.trac2MarkdownConverter.Convert(description, "") // in Trac format
+
+	description = importer.trac2MarkdownConverter.TicketConvert(description, ticketID) // in Trac format
 
 	var header []string
 

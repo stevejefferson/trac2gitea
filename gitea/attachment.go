@@ -29,9 +29,9 @@ func (accessor *Accessor) AddAttachment(uuid string, issueID int64, commentID in
 	}
 }
 
-// AttachmentURL retrieves URL for Gitea attachment
-func (accessor *Accessor) AttachmentURL(uuid string) string {
-	baseURL := accessor.GetStringConfig("server", "ROOT_URL")
+// GetAttachmentURL retrieves URL for Gitea attachment
+func (accessor *Accessor) GetAttachmentURL(uuid string) string {
+	baseURL := accessor.getUserRepoURL()
 	return fmt.Sprintf("%s/attachments/%s", baseURL, uuid)
 }
 

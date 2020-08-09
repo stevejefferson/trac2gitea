@@ -2,10 +2,10 @@ package markdown
 
 import "regexp"
 
+var eolRegexp = regexp.MustCompile(`(?m)\r$`)
+
 func (converter *Converter) convertEOL(in string) string {
 	// Wiki lines within Trac database seem to have DOS-style `\r` terminated lines
-	// - convert to Unix-style `\n` otherwise '$'-terminated regexps don't seem to work
-	regexStr := `\r`
-	regex := regexp.MustCompile(regexStr)
-	return regex.ReplaceAllString(in, "")
+	// - convert to Unix-style for consistency and to help some regexp matches
+	return eolRegexp.ReplaceAllString(in, "")
 }

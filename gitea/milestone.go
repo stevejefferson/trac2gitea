@@ -1,6 +1,9 @@
 package gitea
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 // AddMilestone adds a milestone to Gitea.
 func (accessor *Accessor) AddMilestone(name string, content string, closed bool, deadlineTS int64, closedTS int64) {
@@ -13,4 +16,23 @@ func (accessor *Accessor) AddMilestone(name string, content string, closed bool,
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// GetMilestoneID gets the ID of a named milestone
+func (accessor *Accessor) GetMilestoneID(name string) int64 {
+	var milestoneID int64
+	err := accessor.db.QueryRow(`
+		select id from milestone where name = $1
+		`, name).Scan(&milestoneID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return milestoneID
+}
+
+// GetMilestoneURL gets the URL for accessing a given milestone
+func (accessor *Accessor) GetMilestoneURL(milestoneID int64) string {
+	repoURL := accessor.getUserRepoURL()
+	return fmt.Sprintf("%s/milestone/%d", repoURL, milestoneID)
 }

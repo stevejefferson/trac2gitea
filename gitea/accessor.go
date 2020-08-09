@@ -16,6 +16,8 @@ type Accessor struct {
 	mainConfig        *ini.File
 	customConfig      *ini.File
 	db                *sql.DB
+	userName          string
+	repoName          string
 	repoID            int64
 	DefaultAssigneeID int64
 	DefaultAuthorID   int64
@@ -36,7 +38,7 @@ func fetchConfig(configPath string) *ini.File {
 }
 
 // CreateAccessor returns a new Gitea accessor.
-func CreateAccessor(giteaRootDir string, userName string, repoName string, defaultAssignee string, defaultAuthor string) *Accessor {
+func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName string, defaultAssignee string, defaultAuthor string) *Accessor {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
 		log.Fatal(err)
@@ -58,6 +60,8 @@ func CreateAccessor(giteaRootDir string, userName string, repoName string, defau
 		mainConfig:        giteaMainConfig,
 		customConfig:      giteaCustomConfig,
 		db:                nil,
+		userName:          giteaUserName,
+		repoName:          giteaRepoName,
 		repoID:            0,
 		DefaultAssigneeID: 0,
 		DefaultAuthorID:   0}
@@ -72,7 +76,7 @@ func CreateAccessor(giteaRootDir string, userName string, repoName string, defau
 	fmt.Printf("Using Gitea database %s\n", giteaDbPath)
 	giteaAccessor.db = giteaDb
 
-	giteaRepoID := giteaAccessor.findRepoID(userName, repoName)
+	giteaRepoID := giteaAccessor.findRepoID(giteaUserName, giteaRepoName)
 	giteaAccessor.repoID = giteaRepoID
 
 	adminUserID := giteaAccessor.findAdminUserID()
@@ -83,4 +87,9 @@ func CreateAccessor(giteaRootDir string, userName string, repoName string, defau
 	giteaAccessor.DefaultAuthorID = giteaDefaultAuthorID
 
 	return &giteaAccessor
+}
+
+func (accessor *Accessor) getUserRepoURL() string {
+	baseURL := accessor.GetStringConfig("server", "ROOT_URL")
+	return fmt.Sprintf("%s/%s/%s", baseURL, accessor.userName, accessor.repoName)
 }

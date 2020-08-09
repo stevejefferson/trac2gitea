@@ -5,22 +5,22 @@ import (
 	"strings"
 )
 
+var singleLineCodeBlockRegexp = regexp.MustCompile(`{{{([^\n]+?)}}}`)
+var multiLineCodeBlockRegexp = regexp.MustCompile(`(?s){{{(.+?)}}}`)
+
 func (converter *Converter) convertCodeBlock(in string) string {
 	// convert single line {{{...}}} to `...`
-	out := in
-	re := regexp.MustCompile("{{{([^\n]+?)}}}")
-	out = re.ReplaceAllString(out, "`$1`")
+	out := singleLineCodeBlockRegexp.ReplaceAllString(in, "`$1`")
 
 	// convert multi-line {{{...}}} to tab-indented lines
-	re = regexp.MustCompile("(?s){{{(.+?)}}}")
-	out = re.ReplaceAllStringFunc(out, func(m string) string {
-		lines := strings.Split(m, "\n")
+	out = multiLineCodeBlockRegexp.ReplaceAllStringFunc(out, func(match string) string {
+		lines := strings.Split(match, "\n")
 		for i := range lines {
-			l := lines[i]
-			l = strings.Replace(l, "{{{", "", -1)
-			l = strings.Replace(l, "}}}", "", -1)
-			l = "\t" + l
-			lines[i] = l
+			line := lines[i]
+			line = strings.Replace(line, "{{{", "", -1)
+			line = strings.Replace(line, "}}}", "", -1)
+			line = "\t" + line
+			lines[i] = line
 		}
 		return strings.Join(lines, "\n")
 	})

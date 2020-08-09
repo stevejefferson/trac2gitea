@@ -51,7 +51,7 @@ func (importer *Importer) ImportWiki() {
 		if !commentStr.Valid {
 			comment = commentStr.String
 		}
-		markdownText := importer.trac2MarkdownConverter.Convert(text, "")
+		markdownText := importer.trac2MarkdownConverter.Convert(text)
 		importer.wikiAccessor.WritePageVersion(name, markdownText, version, comment, time)
 	}
 }

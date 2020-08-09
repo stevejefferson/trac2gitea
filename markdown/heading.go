@@ -4,25 +4,47 @@ import (
 	"regexp"
 )
 
-func (converter *Converter) convertDelimitedHeadings(in string, tracDelimiter string, markdownDelimiter string) string {
-	if len(tracDelimiter) == 0 {
-		return in
+const maxHeadingLevel = 6
+
+var headingRegexps [maxHeadingLevel]*regexp.Regexp
+var headingReplaceStrs [maxHeadingLevel]string
+
+func compileRegexps(headingLevel int, delimiter string) {
+	if headingLevel >= maxHeadingLevel {
+		return
 	}
 
-	tracDelimiterChar := tracDelimiter[0:1]
+	delimiterChar := delimiter[0:1]
+	headingRegexpStr := `(?m)^` + delimiter + `([^` + delimiterChar + `]+)` + delimiter + `.*$`
+	headingRegexps[headingLevel] = regexp.MustCompile(headingRegexpStr)
+	compileRegexps(headingLevel+1, delimiter+delimiterChar)
+}
 
-	//regexStr := `^` + tracDelimiter + `([^` + tracDelimiterChar + `]+)` + tracDelimiter + `$`
-	regexStr := tracDelimiter + `([^` + tracDelimiterChar + `]+)` + tracDelimiter
-	regex := regexp.MustCompile(regexStr)
+func createHeadingReplaceStrs(headingLevel int, delimiter string) {
+	if headingLevel >= maxHeadingLevel {
+		return
+	}
 
-	replacementStr := markdownDelimiter + `$1`
-	out := regex.ReplaceAllString(in, replacementStr)
+	delimiterChar := delimiter[0:1]
+	headingReplaceStr := delimiter + `$1`
+	headingReplaceStrs[headingLevel] = headingReplaceStr
+	createHeadingReplaceStrs(headingLevel+1, delimiter+delimiterChar)
+}
 
-	// recurse to next level of heading
-	return converter.convertDelimitedHeadings(out, tracDelimiter[1:], markdownDelimiter[1:])
+func init() {
+	// pre-compile array of regexps - one for each level of trac heading
+	compileRegexps(0, `=`)
+
+	// generate markdown replacement strings
+	createHeadingReplaceStrs(0, `#`)
 }
 
 func (converter *Converter) convertHeading(in string) string {
 	// recurse through all heading levels starting from longest (doing shortest first risks premature regexp matches)
-	return converter.convertDelimitedHeadings(in, "=======", "#######")
+	out := in
+	for headingLevel := maxHeadingLevel - 1; headingLevel >= 0; headingLevel-- {
+		out = headingRegexps[headingLevel].ReplaceAllString(out, headingReplaceStrs[headingLevel])
+	}
+
+	return out
 }

@@ -13,18 +13,26 @@ type Converter struct {
 	wikiAccessor  *wiki.Accessor
 }
 
-// CreateConverter returns a new Trac to Gitea markdown converter.
+// CreateConverter returns a general-purpose Trac to Gitea markdown converter.
 func CreateConverter(tAccessor *trac.Accessor, gAccessor *gitea.Accessor, wAccessor *wiki.Accessor) *Converter {
 	converter := Converter{tracAccessor: tAccessor, giteaAccessor: gAccessor, wikiAccessor: wAccessor}
 	return &converter
 }
 
-// Convert a string of Trac markdown to Gitea markdown.
-// linkPrefix is applied to any Trac link - e.g. a linkPrefix of "ticket:1" applied to a Trac link "image.png" will result in a markdown link "ticket:1:image.png"
-func (converter *Converter) Convert(tracText string, linkPrefix string) string {
-	out := converter.convertEOL(tracText)
+// Convert converts a string of Trac markdown to Gitea markdown.unassociated with any ticket
+func (converter *Converter) Convert(in string) string {
+	return converter.TicketConvert(in, 0)
+}
+
+// TicketConvert converts a string of Trac markdown associated with a given Trac ticket to Gitea markdown
+func (converter *Converter) TicketConvert(in string, ticketID int64) string {
+	out := in
+	out = converter.convertEOL(out)
+	out = converter.convertLink(out, ticketID)
+	out = converter.disguiseLinks(out)
 	out = converter.convertCodeBlock(out)
-	out = converter.convertImageReference(out, linkPrefix)
 	out = converter.convertHeading(out)
+	out = converter.convertFontStyle(out)
+	out = converter.undisguiseLinks(out)
 	return out
 }
