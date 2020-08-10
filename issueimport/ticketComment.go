@@ -11,7 +11,7 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 
 	// find users first, and tweak description to add missing users
 	var header []string
-	authorID := importer.giteaAccessor.FindUserID(author)
+	authorID := importer.giteaAccessor.GetUserID(author)
 	if authorID == -1 {
 		header = append(header, fmt.Sprintf("    Original comment by %s", author))
 		authorID = importer.giteaAccessor.DefaultAuthorID

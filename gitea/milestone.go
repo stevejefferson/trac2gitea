@@ -1,6 +1,7 @@
 package gitea
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 )
@@ -18,13 +19,13 @@ func (accessor *Accessor) AddMilestone(name string, content string, closed bool,
 	}
 }
 
-// GetMilestoneID gets the ID of a named milestone
+// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
 func (accessor *Accessor) GetMilestoneID(name string) int64 {
-	var milestoneID int64
+	var milestoneID int64 = -1
 	err := accessor.db.QueryRow(`
-		select id from milestone where name = $1
+		SELECT id FROM milestone WHERE name = $1
 		`, name).Scan(&milestoneID)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		log.Fatal(err)
 	}
 

@@ -1,17 +1,18 @@
 package gitea
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 )
 
-// GetAttachmentUUID returns the UUID for a named attachment of a given issue.
+// GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
 func (accessor *Accessor) GetAttachmentUUID(issueID int64, name string) string {
-	var uuid string
+	var uuid string = ""
 	err := accessor.db.QueryRow(`
 			select uuid from attachment where issue_id = $1 and name = $2
 			`, issueID, name).Scan(&uuid)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		log.Fatal(err)
 	}
 
@@ -29,7 +30,7 @@ func (accessor *Accessor) AddAttachment(uuid string, issueID int64, commentID in
 	}
 }
 
-// GetAttachmentURL retrieves URL for Gitea attachment
+// GetAttachmentURL retrieves the URL for viewing a Gitea attachment
 func (accessor *Accessor) GetAttachmentURL(uuid string) string {
 	baseURL := accessor.getUserRepoURL()
 	return fmt.Sprintf("%s/attachments/%s", baseURL, uuid)

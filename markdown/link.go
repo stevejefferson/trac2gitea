@@ -82,6 +82,10 @@ func (converter *Converter) resolveTicketCommentLink(link string) string {
 	}
 
 	issueID := converter.giteaAccessor.GetIssueID(ticketID)
+	if issueID == -1 {
+		log.Printf("Warning: cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		return link
+	}
 	commentURL := converter.giteaAccessor.GetCommentURL(issueID, commentID)
 
 	return commentURL
@@ -90,20 +94,38 @@ func (converter *Converter) resolveTicketCommentLink(link string) string {
 func (converter *Converter) resolveMilestoneLink(link string) string {
 	milestoneName := milestoneLinkRegexp.ReplaceAllString(link, `$1`)
 	milestoneID := converter.giteaAccessor.GetMilestoneID(milestoneName)
+	if milestoneID == -1 {
+		log.Printf("Warning: cannot find milestone \"%s\" referenced by Trac link \"%s\"\n", milestoneName, link)
+		return link
+	}
+
 	milestoneURL := converter.giteaAccessor.GetMilestoneURL(milestoneID)
 	return milestoneURL
 }
 
-func (converter *Converter) resolveAttachmentLink(link string, ticketID int64) string {
+func (converter *Converter) resolveNamedAttachmentLink(link string, ticketID int64, attachmentName string) string {
 	issueID := converter.giteaAccessor.GetIssueID(ticketID)
-	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
+	if issueID == -1 {
+		log.Printf("Warning: cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		return link
+	}
+
 	uuid := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
+	if uuid == "" {
+		log.Printf("Warning: cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"\n", attachmentName, issueID, link)
+		return link
+	}
+
 	return converter.giteaAccessor.GetAttachmentURL(uuid)
+}
+
+func (converter *Converter) resolveAttachmentLink(link string, ticketID int64) string {
+	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
+	return converter.resolveNamedAttachmentLink(link, ticketID, attachmentName)
 }
 
 func (converter *Converter) resolveTicketAttachmentLink(link string) string {
 	attachmentName := ticketAttachmentLinkRegexp.ReplaceAllString(link, `$1`)
-
 	ticketIDStr := ticketAttachmentLinkRegexp.ReplaceAllString(link, `$2`)
 	var ticketID int64
 	ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
@@ -111,9 +133,7 @@ func (converter *Converter) resolveTicketAttachmentLink(link string) string {
 		log.Fatal(err)
 	}
 
-	issueID := converter.giteaAccessor.GetIssueID(ticketID)
-	uuid := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
-	return converter.giteaAccessor.GetAttachmentURL(uuid)
+	return converter.resolveNamedAttachmentLink(link, ticketID, attachmentName)
 }
 
 func (converter *Converter) resolveChangesetLink(link string) string {

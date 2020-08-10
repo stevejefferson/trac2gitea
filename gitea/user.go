@@ -1,26 +1,27 @@
 package gitea
 
 import (
+	"database/sql"
 	"log"
 	"strings"
 )
 
-// FindUserID retireves the id of a named Gitea user.
-func (accessor *Accessor) FindUserID(name string) int64 {
+// GetUserID retireves the id of a named Gitea user - returns -1 if no such user.
+func (accessor *Accessor) GetUserID(name string) int64 {
 	if strings.Trim(name, " ") == "" {
 		return -1
 	}
 
-	var id int64
+	var id int64 = -1
 	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, name).Scan(&id)
-	if err != nil {
-		return -1
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatal(err)
 	}
 
 	return id
 }
 
-func (accessor *Accessor) findAdminUserID() int64 {
+func (accessor *Accessor) getAdminUserID() int64 {
 	row := accessor.db.QueryRow(`
 		SELECT id FROM user WHERE is_admin ORDER BY id LIMIT 1;
 		`)
@@ -34,10 +35,10 @@ func (accessor *Accessor) findAdminUserID() int64 {
 	return adminID
 }
 
-func (accessor *Accessor) findAdminDefaultingUserID(userName string, adminUserID int64) int64 {
+func (accessor *Accessor) getAdminDefaultingUserID(userName string, adminUserID int64) int64 {
 	userID := adminUserID
 	if userName != "" {
-		userID = accessor.FindUserID(userName)
+		userID = accessor.GetUserID(userName)
 		if userID == -1 {
 			log.Fatal("Cannot find gitea user ", userName)
 		}

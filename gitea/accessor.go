@@ -76,14 +76,17 @@ func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName str
 	fmt.Printf("Using Gitea database %s\n", giteaDbPath)
 	giteaAccessor.db = giteaDb
 
-	giteaRepoID := giteaAccessor.findRepoID(giteaUserName, giteaRepoName)
+	giteaRepoID := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
+	if giteaRepoID == -1 {
+		log.Fatalf("Cannot find repository %s for user %s", giteaRepoName, giteaUserName)
+	}
 	giteaAccessor.repoID = giteaRepoID
 
-	adminUserID := giteaAccessor.findAdminUserID()
-	giteaDefaultAssigneeID := giteaAccessor.findAdminDefaultingUserID(defaultAssignee, adminUserID)
+	adminUserID := giteaAccessor.getAdminUserID()
+	giteaDefaultAssigneeID := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
 	giteaAccessor.DefaultAssigneeID = giteaDefaultAssigneeID
 
-	giteaDefaultAuthorID := giteaAccessor.findAdminDefaultingUserID(defaultAuthor, adminUserID)
+	giteaDefaultAuthorID := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
 	giteaAccessor.DefaultAuthorID = giteaDefaultAuthorID
 
 	return &giteaAccessor

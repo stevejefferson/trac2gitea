@@ -14,6 +14,12 @@ import (
 	"stevejefferson.co.uk/trac2gitea/wikiimport"
 )
 
+func setLogFormat() {
+	log.SetFlags(log.Ldate)
+	log.SetFlags(log.Ltime)
+	log.SetFlags(log.Lshortfile)
+}
+
 var dbOnly bool
 var wikiOnly bool
 var tracRootDir string
@@ -62,10 +68,19 @@ func parseArgs() {
 	giteaWikiRepoDir = pflag.Arg(4)
 
 	defaultAssignee = *defaultAssigneeParam
+	if defaultAssignee == "" {
+		defaultAssignee = giteaUserName
+	}
 	defaultAuthor = *defaultAuthorParam
+	if defaultAuthor == "" {
+		defaultAuthor = giteaUserName
+	}
+
 }
 
 func main() {
+	setLogFormat()
+
 	parseArgs()
 
 	// low-level accessors

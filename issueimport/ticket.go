@@ -22,14 +22,14 @@ func (importer *Importer) importTicket(
 	var header []string
 
 	// find users first, and tweak description to add missing users
-	reporterID := importer.giteaAccessor.FindUserID(reporter)
+	reporterID := importer.giteaAccessor.GetUserID(reporter)
 	if reporterID == -1 {
 		header = append(header, fmt.Sprintf("    Originally reported by %s", reporter))
 		reporterID = importer.giteaAccessor.DefaultAuthorID
 	}
 	var ownerID sql.NullString
 	if owner != "" {
-		tmp := importer.giteaAccessor.FindUserID(owner)
+		tmp := importer.giteaAccessor.GetUserID(owner)
 		if tmp == -1 {
 			header = append(header, fmt.Sprintf("    Originally assigned to %s", owner))
 			ownerID.String = fmt.Sprintf("%d", importer.giteaAccessor.DefaultAssigneeID)

@@ -1,20 +1,21 @@
 package gitea
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 )
 
-func (accessor *Accessor) findRepoID(userName string, repoName string) int64 {
+func (accessor *Accessor) getRepoID(userName string, repoName string) int64 {
 	row := accessor.db.QueryRow(`
 		SELECT r.id FROM repository r, user u WHERE r.owner_id =
 			u.id AND u.name = $1 AND r.name = $2
 		`, userName, repoName)
 
-	var id int64
+	var id int64 = -1
 	err := row.Scan(&id)
-	if err != nil {
-		log.Fatal("No Gitea repository " + repoName + " found for user " + userName)
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatal(err)
 	}
 
 	return id
