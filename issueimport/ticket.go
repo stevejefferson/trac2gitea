@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"stevejefferson.co.uk/trac2gitea/markdown"
 )
 
 func (importer *Importer) importTicket(
@@ -16,8 +18,8 @@ func (importer *Importer) importTicket(
 	closed bool,
 	summary string,
 	description string) int64 {
-
-	description = importer.trac2MarkdownConverter.TicketConvert(description, ticketID) // in Trac format
+	t2mConverter := markdown.CreateTicketConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
+	description = t2mConverter.Convert(description)
 
 	var header []string
 

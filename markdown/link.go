@@ -119,9 +119,9 @@ func (converter *Converter) resolveNamedAttachmentLink(link string, ticketID int
 	return converter.giteaAccessor.GetAttachmentURL(uuid)
 }
 
-func (converter *Converter) resolveAttachmentLink(link string, ticketID int64) string {
+func (converter *Converter) resolveAttachmentLink(link string) string {
 	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
-	return converter.resolveNamedAttachmentLink(link, ticketID, attachmentName)
+	return converter.resolveNamedAttachmentLink(link, converter.ticketID, attachmentName)
 }
 
 func (converter *Converter) resolveTicketAttachmentLink(link string) string {
@@ -148,7 +148,7 @@ func (converter *Converter) resolveSourceLink(link string) string {
 
 // resolveLink resolves a Trac-style link into a Gitea link suitable for embedding in Markdown
 // returns "" if provided link is not recognised as a Trac link
-func (converter *Converter) resolveLink(in string, ticketID int64) string {
+func (converter *Converter) resolveLink(in string) string {
 	if httpLinkRegexp.MatchString(in) {
 		return converter.resolveHTTPLink(in)
 	}
@@ -178,7 +178,7 @@ func (converter *Converter) resolveLink(in string, ticketID int64) string {
 	}
 
 	if attachmentLinkRegexp.MatchString(in) {
-		return converter.resolveAttachmentLink(in, ticketID)
+		return converter.resolveAttachmentLink(in)
 	}
 
 	if ticketAttachmentLinkRegexp.MatchString(in) {
@@ -196,12 +196,12 @@ func (converter *Converter) resolveLink(in string, ticketID int64) string {
 	return ""
 }
 
-func (converter *Converter) convertLink(in string, ticketID int64) string {
+func (converter *Converter) convertLinks(in string) string {
 	out := in
 
 	out = doubleBracketImageLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		link := doubleBracketImageLinkRegexp.ReplaceAllString(match, "$1")
-		resolvedLink := converter.resolveLink(link, ticketID)
+		resolvedLink := converter.resolveLink(link)
 		if resolvedLink == "" {
 			return match
 		}
@@ -212,7 +212,7 @@ func (converter *Converter) convertLink(in string, ticketID int64) string {
 	out = doubleBracketLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		link := doubleBracketLinkRegexp.ReplaceAllString(match, "$1")
 		text := doubleBracketLinkRegexp.ReplaceAllString(match, "$2")
-		resolvedLink := converter.resolveLink(link, ticketID)
+		resolvedLink := converter.resolveLink(link)
 		if resolvedLink == "" {
 			return match
 		}
@@ -222,7 +222,7 @@ func (converter *Converter) convertLink(in string, ticketID int64) string {
 	out = singleBracketLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		link := singleBracketLinkRegexp.ReplaceAllString(match, "$1")
 		text := singleBracketLinkRegexp.ReplaceAllString(match, "$2")
-		resolvedLink := converter.resolveLink(link, ticketID)
+		resolvedLink := converter.resolveLink(link)
 		if resolvedLink == "" {
 			return match
 		}
@@ -231,7 +231,7 @@ func (converter *Converter) convertLink(in string, ticketID int64) string {
 
 	out = potentialUnbrackettedLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		link := potentialUnbrackettedLinkRegexp.ReplaceAllString(match, "$1")
-		resolvedLink := converter.resolveLink(link, ticketID)
+		resolvedLink := converter.resolveLink(link)
 		if resolvedLink == "" {
 			return match
 		}

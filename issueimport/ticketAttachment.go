@@ -7,12 +7,11 @@ import (
 	"strings"
 )
 
-func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, time int64, size int64, author string, fname string, desc string) string {
-	comment := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s",
-		fname, size, desc)
+func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, time int64, size int64, author string, attachmentName string, desc string) string {
+	comment := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s", attachmentName, size, desc)
 	commentID := importer.importTicketComment(issueID, ticketID, time, author, comment)
 
-	tracPath := importer.tracAccessor.AttachmentPath(ticketID, fname)
+	tracPath := importer.tracAccessor.AttachmentPath(ticketID, attachmentName)
 	_, err := os.Stat(tracPath)
 	if err != nil {
 		log.Fatal(err)
@@ -28,10 +27,7 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 
 	// TODO: use a different uuid if file exists ?
 	// TODO: avoid inserting record if uuid exist !
-	importer.giteaAccessor.AddAttachment(uuid, issueID, commentID, fname, time)
-
-	giteaRelPath := importer.giteaAccessor.AttachmentRelativePath(uuid)
-	importer.giteaAccessor.CopyFile(tracPath, giteaRelPath)
+	importer.giteaAccessor.AddAttachment(uuid, issueID, commentID, attachmentName, tracPath, time)
 
 	return uuid
 }

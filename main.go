@@ -83,17 +83,11 @@ func main() {
 
 	parseArgs()
 
-	// low-level accessors
 	tracAccessor := trac.CreateAccessor(tracRootDir)
 	giteaAccessor := gitea.CreateAccessor(giteaRootDir, giteaUserName, giteaRepoName, defaultAssignee, defaultAuthor)
-	wikiAccessor := wiki.CreateAccessor(giteaWikiRepoDir)
 
-	// data converters
-	trac2MarkdownConverter := markdown.CreateConverter(tracAccessor, giteaAccessor, wikiAccessor)
-
-	// importers
 	if !wikiOnly {
-		issueImporter := issueimport.CreateImporter(tracAccessor, giteaAccessor, trac2MarkdownConverter)
+		issueImporter := issueimport.CreateImporter(tracAccessor, giteaAccessor)
 
 		issueImporter.ImportComponents()
 		issueImporter.ImportPriorities()
@@ -106,7 +100,9 @@ func main() {
 	}
 
 	if !dbOnly {
-		wikiImporter := wikiimport.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, trac2MarkdownConverter)
+		wikiAccessor := wiki.CreateAccessor(giteaWikiRepoDir)
+		wikiMarkdownConverter := markdown.CreateWikiConverter(tracAccessor, giteaAccessor, wikiAccessor)
+		wikiImporter := wikiimport.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter)
 		wikiImporter.ImportWiki()
 	}
 }
