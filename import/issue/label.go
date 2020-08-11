@@ -1,21 +1,5 @@
 package issue
 
-import (
-	"log"
-)
-
-func (importer *Importer) importLabels(tracQuery string, labelPrefix string, labelColor string) {
-	rows := importer.tracAccessor.Query(tracQuery)
-	for rows.Next() {
-		var val string
-		if err := rows.Scan(&val); err != nil {
-			log.Fatal(err)
-		}
-		lbl := labelPrefix + " / " + val
-		importer.giteaAccessor.AddLabel(lbl, labelColor)
-	}
-}
-
 // ImportComponents imports Trac components as Gitea labels.
 func (importer *Importer) ImportComponents() {
 	importer.tracAccessor.GetComponentNames(func(cmptName string) {

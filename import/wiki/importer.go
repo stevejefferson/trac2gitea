@@ -1,9 +1,7 @@
 package wiki
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
@@ -35,35 +33,15 @@ func (importer *Importer) ImportWiki() {
 	repoOwnerEmailAddress := importer.giteaAccessor.GetEMailAddress()
 	importer.wikiAccessor.RepoClone()
 
-	rows := importer.tracAccessor.Query(`
-		SELECT w1.name, w1.text, w1.author, w1.comment, w1.version, CAST(w1.time*1e-6 AS int8)
-			FROM wiki w1
-			WHERE w1.version = (SELECT MAX(w2.version) FROM wiki w2 WHERE w1.name = w2.name)`)
-
-	for rows.Next() {
-		var name string
-		var text string
-		var author string
-		var commentStr sql.NullString
-		var version int64
-		var updateTime int64
-		if err := rows.Scan(&name, &text, &author, &commentStr, &version, &updateTime); err != nil {
-			log.Fatal(err)
-		}
-
-		markdownText := importer.trac2MarkdownConverter.Convert(text)
-		translatedPageName := importer.wikiAccessor.TranslatePageName(name)
+	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) {
+		markdownText := importer.trac2MarkdownConverter.Convert(pageText)
+		translatedPageName := importer.wikiAccessor.TranslatePageName(pageName)
 		importer.wikiAccessor.WritePage(translatedPageName, markdownText)
-
-		comment := ""
-		if !commentStr.Valid {
-			comment = commentStr.String
-		}
 
 		updateTimeStr := time.Unix(updateTime, 0)
 		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s]\n", comment, translatedPageName, version, updateTimeStr)
 		importer.wikiAccessor.RepoStageAndCommit(author, repoOwnerEmailAddress, comment)
-	}
+	})
 
 	importer.wikiAccessor.RepoComplete()
 }
