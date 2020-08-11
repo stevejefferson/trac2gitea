@@ -29,7 +29,6 @@ var giteaUser string
 var giteaRepo string
 var giteaWikiRepoURL string
 var giteaWikiRepoDir string
-var gitieaPushWiki bool
 var giteaDefaultAssignee string
 var giteaDefaultAuthor string
 
@@ -38,8 +37,6 @@ func parseArgs() {
 		"`username` to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>")
 	defaultAuthorParam := pflag.String("default-author", "",
 		"`username` to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>")
-	pushWikiParam := pflag.Bool("push-wiki", false,
-		"Push wiki updates back to remote")
 	wikiURLParam := pflag.String("wiki-url", "",
 		"URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git")
 	wikiDirParam := pflag.String("wiki-dir", "",
@@ -84,7 +81,6 @@ func parseArgs() {
 	if giteaDefaultAuthor == "" {
 		giteaDefaultAuthor = giteaUser
 	}
-	gitieaPushWiki = *pushWikiParam
 	giteaWikiRepoURL = *wikiURLParam
 	giteaWikiRepoDir = *wikiDirParam
 }
@@ -128,6 +124,6 @@ func main() {
 		wikiAccessor := wiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
 		wikiMarkdownConverter := markdown.CreateWikiConverter(tracAccessor, giteaAccessor, wikiAccessor)
 		wikiImporter := wikiimport.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter)
-		wikiImporter.ImportWiki(gitieaPushWiki)
+		wikiImporter.ImportWiki()
 	}
 }

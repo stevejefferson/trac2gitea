@@ -30,8 +30,8 @@ func CreateImporter(
 	return &importer
 }
 
-// ImportWiki imports a Trac wiki into a Gitea wiki repository, optionally pushing the resultant updates back to the remote.
-func (importer *Importer) ImportWiki(pushRepo bool) {
+// ImportWiki imports a Trac wiki into a Gitea wiki repository.
+func (importer *Importer) ImportWiki() {
 	repoOwnerEmailAddress := importer.giteaAccessor.GetEMailAddress()
 	importer.wikiAccessor.RepoClone()
 
@@ -52,7 +52,8 @@ func (importer *Importer) ImportWiki(pushRepo bool) {
 		}
 
 		markdownText := importer.trac2MarkdownConverter.Convert(text)
-		importer.wikiAccessor.WritePage(name, markdownText)
+		translatedPageName := importer.wikiAccessor.TranslatePageName(name)
+		importer.wikiAccessor.WritePage(translatedPageName, markdownText)
 
 		comment := ""
 		if !commentStr.Valid {
@@ -60,11 +61,9 @@ func (importer *Importer) ImportWiki(pushRepo bool) {
 		}
 
 		updateTimeStr := time.Unix(updateTime, 0)
-		comment = fmt.Sprintf("%s\n[Imported from trac: original page (version %d) updated at %s]\n", comment, version, updateTimeStr)
+		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s]\n", comment, translatedPageName, version, updateTimeStr)
 		importer.wikiAccessor.RepoStageAndCommit(author, repoOwnerEmailAddress, comment)
 	}
 
-	if pushRepo {
-		importer.wikiAccessor.RepoPush()
-	}
+	importer.wikiAccessor.RepoComplete()
 }

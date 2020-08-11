@@ -48,7 +48,7 @@ func (accessor *Accessor) RepoStageAndCommit(author string, authorEMail string, 
 
 	_, err = worktree.Commit(message, &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  author + "[trac]",
+			Name:  author + "[trac user]",
 			Email: authorEMail,
 			When:  time.Now(),
 		},
@@ -59,11 +59,10 @@ func (accessor *Accessor) RepoStageAndCommit(author string, authorEMail string, 
 	}
 }
 
-// RepoPush pushes our cloned wiki repo back to the remote repo
-func (accessor *Accessor) RepoPush() {
-	err := accessor.repo.Push(&git.PushOptions{})
-
-	if err != nil {
-		log.Fatal(err)
-	}
+// RepoComplete indicates that changes to the local wiki repository are complete.
+// In an ideal world we would push back to the remote here
+// however, as I haven't worked out how to do the authentication for that yet, we just output a message telling the user to do it.
+func (accessor *Accessor) RepoComplete() {
+	fmt.Printf("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
+		accessor.repoDir)
 }

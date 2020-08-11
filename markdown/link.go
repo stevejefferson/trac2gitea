@@ -16,13 +16,13 @@ func markdownImageLink(link string) string {
 }
 
 func markdownLink(link string, text string) string {
-	return "(" + text + ")[" + link + "]"
+	return "[" + text + "](" + link + ")"
 }
 
 // regexps for bracketted trac links
 var doubleBracketImageLinkRegexp = regexp.MustCompile(`\[\[Image\(([^,\)]+)[^\]]*\]\]`)
 var doubleBracketLinkRegexp = regexp.MustCompile(`\[\[([[:alpha:]][^|]*)\|([^\]]+\])\]`)
-var singleBracketLinkRegexp = regexp.MustCompile(`[^\[]\[([[:alpha:]][^ \]]*) +([^\]\n]+)\]`) // exclude '[' before initial '[' to avoid picking up '[[Image...'
+var singleBracketLinkRegexp = regexp.MustCompile(`([^\[])\[([[:alpha:]][^ \]]*) +([^\]\n]+)\]`) // exclude '[' before initial '[' to avoid picking up '[[Image...'
 
 // regexp for text which might be an unbracketted trac link
 var potentialUnbrackettedLinkRegexp = regexp.MustCompile(`[[:space:]]([[:alpha:]][^[:space:]\]]*)[[:space:]]`)
@@ -31,7 +31,7 @@ var potentialUnbrackettedLinkRegexp = regexp.MustCompile(`[[:space:]]([[:alpha:]
 var httpLinkRegexp = regexp.MustCompile(`^https?://[^[:space:]]+`)
 var htdocsLinkRegexp = regexp.MustCompile(`^htdocs:([^[:space:]]+)`)
 var wikiCamelCaseLinkRegexp = regexp.MustCompile(`^((?:[[:upper:]][[:lower:]]+){2,})`)
-var wikiLinkRegexp = regexp.MustCompile(`^wiki:((?:[[:upper:]][[:lower:]]*){2,})`) // 'wiki:' prefix allows camel case to be more lax than above
+var wikiLinkRegexp = regexp.MustCompile(`^wiki:((?:[[:upper:]][[:lower:]]*)+)`) // 'wiki:' prefix allows camel case to be more lax than above
 
 var ticketLinkRegexp = regexp.MustCompile(`^ticket:([[:digit:]]+)`)
 var ticketCommentLinkRegexp = regexp.MustCompile(`^comment:([[:digit:]]+):ticket:([[:digit:]]+)`)
@@ -49,17 +49,21 @@ func (converter *Converter) resolveHtdocsLink(link string) string {
 	// any htdocs file needs copying from trac htdocs directory to an equivalent wiki subdirectory
 	htdocsPath := htdocsLinkRegexp.ReplaceAllString(link, `$1`)
 	tracHtdocsPath := filepath.Join(converter.tracAccessor.RootDir, "htdocs", htdocsPath)
-	wikiHtdocsRelPath := filepath.Join("htdocs", htdocsPath)
+	wikiHtdocsRelPath := "../raw/htdocs/" + htdocsPath // htodcs directory should be referenceable via Gitea "raw" repo path...
 	converter.wikiAccessor.CopyFile(tracHtdocsPath, wikiHtdocsRelPath)
 	return wikiHtdocsRelPath
 }
 
 func (converter *Converter) resolveWikiCamelCaseLink(link string) string {
-	return wikiCamelCaseLinkRegexp.ReplaceAllString(link, `/$1`)
+	wikiPageName := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$1`)
+	translatedPageName := converter.wikiAccessor.TranslatePageName(wikiPageName)
+	return translatedPageName
 }
 
 func (converter *Converter) resolveWikiLink(link string) string {
-	return wikiLinkRegexp.ReplaceAllString(link, `/$1`)
+	wikiPageName := wikiLinkRegexp.ReplaceAllString(link, `$1`)
+	translatedPageName := converter.wikiAccessor.TranslatePageName(wikiPageName)
+	return translatedPageName
 }
 
 func (converter *Converter) resolveTicketLink(link string) string {
@@ -205,8 +209,7 @@ func (converter *Converter) convertLinks(in string) string {
 		if resolvedLink == "" {
 			return match
 		}
-		res := markdownImageLink(resolvedLink)
-		return res
+		return markdownImageLink(resolvedLink)
 	})
 
 	out = doubleBracketLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
@@ -220,13 +223,14 @@ func (converter *Converter) convertLinks(in string) string {
 	})
 
 	out = singleBracketLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		link := singleBracketLinkRegexp.ReplaceAllString(match, "$1")
-		text := singleBracketLinkRegexp.ReplaceAllString(match, "$2")
+		leadingChar := singleBracketLinkRegexp.ReplaceAllString(match, "$1")
+		link := singleBracketLinkRegexp.ReplaceAllString(match, "$2")
+		text := singleBracketLinkRegexp.ReplaceAllString(match, "$3")
 		resolvedLink := converter.resolveLink(link)
 		if resolvedLink == "" {
 			return match
 		}
-		return markdownLink(resolvedLink, text)
+		return leadingChar + markdownLink(resolvedLink, text)
 	})
 
 	out = potentialUnbrackettedLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
