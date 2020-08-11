@@ -1,8 +1,8 @@
-package issueimport
+package issue
 
 import (
-	"stevejefferson.co.uk/trac2gitea/gitea"
-	"stevejefferson.co.uk/trac2gitea/trac"
+	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
+	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 )
 
 // Importer of issue data from Trac tickets.

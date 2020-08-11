@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/pflag"
-	"stevejefferson.co.uk/trac2gitea/gitea"
-	"stevejefferson.co.uk/trac2gitea/issueimport"
+	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
+	"stevejefferson.co.uk/trac2gitea/accessor/giteaWiki"
+	"stevejefferson.co.uk/trac2gitea/accessor/trac"
+	"stevejefferson.co.uk/trac2gitea/import/issue"
+	"stevejefferson.co.uk/trac2gitea/import/wiki"
 	"stevejefferson.co.uk/trac2gitea/markdown"
-	"stevejefferson.co.uk/trac2gitea/trac"
-	"stevejefferson.co.uk/trac2gitea/wiki"
-	"stevejefferson.co.uk/trac2gitea/wikiimport"
 )
 
 func setLogFormat() {
@@ -94,7 +94,7 @@ func main() {
 	giteaAccessor := gitea.CreateAccessor(giteaRootDir, giteaUser, giteaRepo, giteaDefaultAssignee, giteaDefaultAuthor)
 
 	if !wikiOnly {
-		issueImporter := issueimport.CreateImporter(tracAccessor, giteaAccessor)
+		issueImporter := issue.CreateImporter(tracAccessor, giteaAccessor)
 
 		issueImporter.ImportComponents()
 		issueImporter.ImportPriorities()
@@ -121,9 +121,9 @@ func main() {
 			giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
 		}
 
-		wikiAccessor := wiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
+		wikiAccessor := giteaWiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
 		wikiMarkdownConverter := markdown.CreateWikiConverter(tracAccessor, giteaAccessor, wikiAccessor)
-		wikiImporter := wikiimport.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter)
+		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter)
 		wikiImporter.ImportWiki()
 	}
 }

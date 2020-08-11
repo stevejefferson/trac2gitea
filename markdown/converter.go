@@ -1,9 +1,9 @@
 package markdown
 
 import (
-	"stevejefferson.co.uk/trac2gitea/gitea"
-	"stevejefferson.co.uk/trac2gitea/trac"
-	"stevejefferson.co.uk/trac2gitea/wiki"
+	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
+	"stevejefferson.co.uk/trac2gitea/accessor/giteaWiki"
+	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 )
 
 // Converter of Trac markdown to Gitea markdown
@@ -13,12 +13,12 @@ import (
 type Converter struct {
 	tracAccessor  *trac.Accessor
 	giteaAccessor *gitea.Accessor
-	wikiAccessor  *wiki.Accessor
+	wikiAccessor  *giteaWiki.Accessor
 	ticketID      int64
 }
 
 // CreateWikiConverter returns a Trac to Gitea markdown converter for converting wiki texts.
-func CreateWikiConverter(tAccessor *trac.Accessor, gAccessor *gitea.Accessor, wAccessor *wiki.Accessor) *Converter {
+func CreateWikiConverter(tAccessor *trac.Accessor, gAccessor *gitea.Accessor, wAccessor *giteaWiki.Accessor) *Converter {
 	converter := Converter{tracAccessor: tAccessor, giteaAccessor: gAccessor, wikiAccessor: wAccessor, ticketID: -1}
 	return &converter
 }

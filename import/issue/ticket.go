@@ -1,4 +1,4 @@
-package issueimport
+package issue
 
 import (
 	"database/sql"

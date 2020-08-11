@@ -1,4 +1,4 @@
-package wiki
+package giteaWiki
 
 import (
 	"gopkg.in/src-d/go-git.v4"

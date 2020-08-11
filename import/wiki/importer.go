@@ -1,4 +1,4 @@
-package wikiimport
+package wiki
 
 import (
 	"database/sql"
@@ -6,17 +6,17 @@ import (
 	"log"
 	"time"
 
-	"stevejefferson.co.uk/trac2gitea/gitea"
+	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
+	"stevejefferson.co.uk/trac2gitea/accessor/giteaWiki"
+	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 	"stevejefferson.co.uk/trac2gitea/markdown"
-	"stevejefferson.co.uk/trac2gitea/trac"
-	"stevejefferson.co.uk/trac2gitea/wiki"
 )
 
 // Importer imports Trac Wiki data into a Gitea wiki repository.
 type Importer struct {
 	tracAccessor           *trac.Accessor
 	giteaAccessor          *gitea.Accessor
-	wikiAccessor           *wiki.Accessor
+	wikiAccessor           *giteaWiki.Accessor
 	trac2MarkdownConverter *markdown.Converter
 }
 
@@ -24,7 +24,7 @@ type Importer struct {
 func CreateImporter(
 	tAccessor *trac.Accessor,
 	gAccessor *gitea.Accessor,
-	wAccessor *wiki.Accessor,
+	wAccessor *giteaWiki.Accessor,
 	t2mConverter *markdown.Converter) *Importer {
 	importer := Importer{wikiAccessor: wAccessor, tracAccessor: tAccessor, giteaAccessor: gAccessor, trac2MarkdownConverter: t2mConverter}
 	return &importer

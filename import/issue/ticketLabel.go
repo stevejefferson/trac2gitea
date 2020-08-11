@@ -1,4 +1,4 @@
-package issueimport
+package issue
 
 func (importer *Importer) importTicketLabels(issueID int64, component string, severity string, priority string, version string, resolution string, typ string) {
 	var lbl string
