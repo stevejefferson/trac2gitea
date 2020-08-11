@@ -49,9 +49,9 @@ func (converter *Converter) resolveHtdocsLink(link string) string {
 	// any htdocs file needs copying from trac htdocs directory to an equivalent wiki subdirectory
 	htdocsPath := htdocsLinkRegexp.ReplaceAllString(link, `$1`)
 	tracHtdocsPath := filepath.Join(converter.tracAccessor.RootDir, "htdocs", htdocsPath)
-	wikiHtdocsRelPath := "../raw/htdocs/" + htdocsPath // htodcs directory should be referenceable via Gitea "raw" repo path...
+	wikiHtdocsRelPath := "htdocs/" + htdocsPath
 	converter.wikiAccessor.CopyFile(tracHtdocsPath, wikiHtdocsRelPath)
-	return wikiHtdocsRelPath
+	return "../raw/" + wikiHtdocsRelPath // htodcs subdirectory should be referenceable via Gitea "raw" repo path...
 }
 
 func (converter *Converter) resolveWikiCamelCaseLink(link string) string {

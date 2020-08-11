@@ -2,7 +2,6 @@ package markdown
 
 import (
 	"regexp"
-	"strings"
 )
 
 var singleLineCodeBlockRegexp = regexp.MustCompile(`{{{([^\n]+?)}}}`)
@@ -13,18 +12,13 @@ func (converter *Converter) convertCodeBlocks(in string) string {
 	// convert single line {{{...}}} to `...`
 	out := singleLineCodeBlockRegexp.ReplaceAllString(in, "`$1`")
 
-	// convert multi-line {{{...}}} to tab-indented lines
+	// convert multi-line {{{...}}} to ```-delimited lines
 	// - we leave in place any Trac '#!...' sequences following the opening '{{{'
 	//   since we have no easy way of dealing with these and they are best left in place
 	//   as a reminder to review them in the Gitea world
 	out = multiLineCodeBlockRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		text := multiLineCodeBlockRegexp.ReplaceAllString(match, `$1`)
-
-		lines := strings.Split(text, "\n")
-		for i := range lines {
-			lines[i] = "\t" + lines[i]
-		}
-		return strings.Join(lines, "\n")
+		return "```" + text + "```"
 	})
 
 	return out
