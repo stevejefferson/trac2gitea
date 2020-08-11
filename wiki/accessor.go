@@ -1,7 +1,7 @@
 package wiki
 
 import (
-	"github.com/go-git/go-git"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 // Accessor provides access to a Gitea Wiki repository.

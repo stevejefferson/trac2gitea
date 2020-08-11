@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-git/go-git"
-	"github.com/go-git/go-git/plumbing/object"
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 // RepoClone clones our wiki repo to the provided directory.
