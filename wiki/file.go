@@ -38,7 +38,7 @@ func (accessor *Accessor) CopyFile(externalFilePath string, giteaWikiRelPath str
 		return
 	}
 
-	giteaPath := filepath.Join(accessor.wikiRepoDir, giteaWikiRelPath)
+	giteaPath := filepath.Join(accessor.repoDir, giteaWikiRelPath)
 	err = os.MkdirAll(path.Dir(giteaPath), 0775)
 	if err != nil {
 		log.Fatal(err)

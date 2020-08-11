@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"stevejefferson.co.uk/trac2gitea/gitea"
 	"stevejefferson.co.uk/trac2gitea/markdown"
@@ -29,29 +30,41 @@ func CreateImporter(
 	return &importer
 }
 
-// ImportWiki imports a Trac wiki into a Gitea wiki repository.
-func (importer *Importer) ImportWiki() {
+// ImportWiki imports a Trac wiki into a Gitea wiki repository, optionally pushing the resultant updates back to the remote.
+func (importer *Importer) ImportWiki(pushRepo bool) {
+	repoOwnerEmailAddress := importer.giteaAccessor.GetEMailAddress()
+	importer.wikiAccessor.RepoClone()
+
 	rows := importer.tracAccessor.Query(`
-		SELECT w1.name, w1.text, w1.comment, w1.version, w1.time
+		SELECT w1.name, w1.text, w1.author, w1.comment, w1.version, CAST(w1.time*1e-6 AS int8)
 			FROM wiki w1
 			WHERE w1.version = (SELECT MAX(w2.version) FROM wiki w2 WHERE w1.name = w2.name)`)
 
 	for rows.Next() {
 		var name string
 		var text string
+		var author string
 		var commentStr sql.NullString
 		var version int64
-		var time int64
-		if err := rows.Scan(&name, &text, &commentStr, &version, &time); err != nil {
+		var updateTime int64
+		if err := rows.Scan(&name, &text, &author, &commentStr, &version, &updateTime); err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Converting Wiki page %s, version %d\n", name, version)
+		markdownText := importer.trac2MarkdownConverter.Convert(text)
+		importer.wikiAccessor.WritePage(name, markdownText)
+
 		comment := ""
 		if !commentStr.Valid {
 			comment = commentStr.String
 		}
-		markdownText := importer.trac2MarkdownConverter.Convert(text)
-		importer.wikiAccessor.WritePageVersion(name, markdownText, version, comment, time)
+
+		updateTimeStr := time.Unix(updateTime, 0)
+		comment = fmt.Sprintf("%s\n[Imported from trac: original page (version %d) updated at %s]\n", comment, version, updateTimeStr)
+		importer.wikiAccessor.RepoStageAndCommit(author, repoOwnerEmailAddress, comment)
+	}
+
+	if pushRepo {
+		importer.wikiAccessor.RepoPush()
 	}
 }

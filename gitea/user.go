@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// GetUserID retireves the id of a named Gitea user - returns -1 if no such user.
+// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
 func (accessor *Accessor) GetUserID(name string) int64 {
 	if strings.Trim(name, " ") == "" {
 		return -1
@@ -45,4 +45,15 @@ func (accessor *Accessor) getAdminDefaultingUserID(userName string, adminUserID 
 	}
 
 	return userID
+}
+
+// GetEMailAddress retrieves the email address of the current repository owner
+func (accessor *Accessor) GetEMailAddress() string {
+	var emailAddress string = ""
+	err := accessor.db.QueryRow(`SELECT email FROM user WHERE lower_name = $1`, accessor.userName).Scan(&emailAddress)
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatal(err)
+	}
+
+	return emailAddress
 }
