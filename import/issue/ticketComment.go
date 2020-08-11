@@ -2,7 +2,6 @@ package issue
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"stevejefferson.co.uk/trac2gitea/markdown"
@@ -27,23 +26,12 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 }
 
 func (importer *Importer) importTicketComments(ticketID int64, issueID int64, lastUpdate int64) {
-	rows := importer.tracAccessor.Query(`
-		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, COALESCE(newvalue, '') newval
-			FROM ticket_change where ticket = $1 AND field = 'comment' AND trim(COALESCE(newvalue, ''), ' ') != ''
-			ORDER BY time asc`, ticketID)
-
-	for rows.Next() {
-		var time int64
-		var author, comment string
-		if err := rows.Scan(&time, &author, &comment); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(" adding comment by", author)
+	importer.tracAccessor.GetComments(ticketID, func(ticketID int64, time int64, author string, comment string) {
 		if lastUpdate > time {
 			lastUpdate = time
 		}
 		importer.importTicketComment(issueID, ticketID, time, author, comment)
-	}
+	})
 
 	// Update issue modification time
 	importer.giteaAccessor.SetIssueUpdateTime(issueID, lastUpdate)

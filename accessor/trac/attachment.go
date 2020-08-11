@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"path"
 )
 
@@ -14,8 +15,8 @@ func encodeSha1(str string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// AttachmentPath retrieves the path to a named attachment to a Trac ticket.
-func (accessor *Accessor) AttachmentPath(ticketID int64, name string) string {
+// GetAttachmentPath retrieves the path to a named attachment to a Trac ticket.
+func (accessor *Accessor) GetAttachmentPath(ticketID int64, name string) string {
 	ticketDir := encodeSha1(fmt.Sprintf("%d", ticketID))
 	ticketSub := ticketDir[0:3]
 
@@ -23,4 +24,26 @@ func (accessor *Accessor) AttachmentPath(ticketID int64, name string) string {
 	pathExt := path.Ext(name)
 
 	return fmt.Sprintf("%s/attachments/ticket/%s/%s/%s%s", accessor.RootDir, ticketSub, ticketDir, pathFile, pathExt)
+}
+
+// GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
+func (accessor *Accessor) GetAttachments(ticketID int64, handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string)) {
+	rows, err := accessor.db.Query(`
+		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, filename, description, size
+			FROM attachment
+			WHERE type = 'ticket' AND id = $1
+			ORDER BY time asc`, ticketID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for rows.Next() {
+		var time, size int64
+		var author, filename, description string
+		if err := rows.Scan(&time, &author, &filename, &description, &size); err != nil {
+			log.Fatal(err)
+		}
+
+		handlerFn(ticketID, time, size, author, filename, description)
+	}
 }

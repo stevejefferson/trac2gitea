@@ -11,7 +11,7 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 	comment := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s", attachmentName, size, desc)
 	commentID := importer.importTicketComment(issueID, ticketID, time, author, comment)
 
-	tracPath := importer.tracAccessor.AttachmentPath(ticketID, attachmentName)
+	tracPath := importer.tracAccessor.GetAttachmentPath(ticketID, attachmentName)
 	_, err := os.Stat(tracPath)
 	if err != nil {
 		log.Fatal(err)
@@ -32,27 +32,15 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 	return uuid
 }
 
-func (importer *Importer) importTicketAttachments(id int64, issueID int64, created int64) int64 {
-	rows := importer.tracAccessor.Query(`
-		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, filename, description, size
-			FROM attachment
-  			WHERE type = 'ticket' AND id = $1
-			ORDER BY time asc`, id)
-
+func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64, created int64) int64 {
 	lastUpdate := created
-	for rows.Next() {
-		var time, size int64
-		var author, fname, desc string
-		if err := rows.Scan(&time, &author, &fname, &desc, &size); err != nil {
-			log.Fatal(err)
-		}
 
-		fmt.Println(" adding attachment by", author)
+	importer.tracAccessor.GetAttachments(ticketID, func(ticketID int64, time int64, size int64, author string, filename string, description string) {
 		if lastUpdate > time {
 			lastUpdate = time
 		}
-		importer.importTicketAttachment(issueID, id, time, size, author, fname, desc)
-	}
+		importer.importTicketAttachment(issueID, ticketID, time, size, author, filename, description)
+	})
 
 	return lastUpdate
 }

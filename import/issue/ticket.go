@@ -3,7 +3,6 @@ package issue
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 
 	"stevejefferson.co.uk/trac2gitea/markdown"
@@ -54,35 +53,15 @@ func (importer *Importer) importTicket(
 
 // ImportTickets imports Trac tickets as Gitea issues.
 func (importer *Importer) ImportTickets() {
-	// NOTE: trac timestamps are to the microseconds, we just need seconds
-	rows := importer.tracAccessor.Query(`
-		SELECT
-			t.id,
-			t.type,
-			CAST(t.time*1e-6 AS int8),
-			COALESCE(t.component, ''),
-			COALESCE(t.severity,''),
-			COALESCE(t.priority,''),
-			COALESCE(t.owner,''),
-			t.reporter,
-			COALESCE(t.version,''),
-			COALESCE(t.milestone,''),
-			lower(COALESCE(t.status, '')),
-			COALESCE(t.resolution,''),
-			COALESCE(t.summary, ''),
-			COALESCE(t.description, '')
-		FROM ticket t ORDER BY id`)
-
 	count := 0
 	closedCount := 0
-	for rows.Next() {
-		var ticketID, created int64
-		var component, ticketType, severity, priority, owner, reporter, version, milestone, status, resolution, summary, description string
-		if err := rows.Scan(&ticketID, &ticketType, &created, &component, &severity, &priority, &owner, &reporter,
-			&version, &milestone, &status, &resolution, &summary, &description); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Adding ticket", ticketID, " - ", summary)
+
+	importer.tracAccessor.GetTickets(func(
+		ticketID int64, ticketType string, created int64,
+		component string, severity string, priority string,
+		owner string, reporter string, version string,
+		milestone string, status string, resolution string,
+		summary string, description string) {
 		count++
 		closed := status == "closed"
 		if closed {
@@ -93,7 +72,7 @@ func (importer *Importer) ImportTickets() {
 		importer.importTicketLabels(issueID, component, severity, priority, version, resolution, ticketType)
 		lastUpdate := importer.importTicketAttachments(ticketID, issueID, created)
 		importer.importTicketComments(ticketID, issueID, lastUpdate)
-	}
+	})
 
 	importer.giteaAccessor.UpdateRepoIssueCount(count, closedCount)
 
