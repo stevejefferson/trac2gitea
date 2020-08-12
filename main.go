@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/pflag"
 	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/giteaWiki"
+	"stevejefferson.co.uk/trac2gitea/accessor/giteawiki"
 	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 	"stevejefferson.co.uk/trac2gitea/import/issue"
 	"stevejefferson.co.uk/trac2gitea/import/wiki"
@@ -31,12 +31,16 @@ var giteaWikiRepoURL string
 var giteaWikiRepoDir string
 var giteaDefaultAssignee string
 var giteaDefaultAuthor string
+var giteaDefaultWikiAuthor string
 
 func parseArgs() {
 	defaultAssigneeParam := pflag.String("default-assignee", "",
 		"`username` to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>")
 	defaultAuthorParam := pflag.String("default-author", "",
 		"`username` to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>")
+	defaultWikiAuthorParam := pflag.String("default-wiki-author", "",
+		"`username` to attribute Wiki content to when trac author is not found in Gitea - defaults to <gitea-user>")
+
 	wikiURLParam := pflag.String("wiki-url", "",
 		"URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git")
 	wikiDirParam := pflag.String("wiki-dir", "",
@@ -81,6 +85,10 @@ func parseArgs() {
 	if giteaDefaultAuthor == "" {
 		giteaDefaultAuthor = giteaUser
 	}
+	giteaDefaultWikiAuthor = *defaultWikiAuthorParam
+	if giteaDefaultWikiAuthor == "" {
+		giteaDefaultWikiAuthor = giteaUser
+	}
 	giteaWikiRepoURL = *wikiURLParam
 	giteaWikiRepoDir = *wikiDirParam
 }
@@ -121,9 +129,9 @@ func main() {
 			giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
 		}
 
-		wikiAccessor := giteaWiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
+		wikiAccessor := giteawiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
 		wikiMarkdownConverter := markdown.CreateWikiConverter(tracAccessor, giteaAccessor, wikiAccessor)
-		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter)
+		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter, giteaDefaultWikiAuthor)
 		wikiImporter.ImportWiki()
 	}
 }

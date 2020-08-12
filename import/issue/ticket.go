@@ -26,14 +26,14 @@ func (importer *Importer) importTicket(
 	reporterID := importer.giteaAccessor.GetUserID(reporter)
 	if reporterID == -1 {
 		header = append(header, fmt.Sprintf("    Originally reported by %s", reporter))
-		reporterID = importer.giteaAccessor.DefaultAuthorID
+		reporterID = importer.giteaAccessor.GetDefaultAuthorID()
 	}
 	var ownerID sql.NullString
 	if owner != "" {
 		tmp := importer.giteaAccessor.GetUserID(owner)
 		if tmp == -1 {
 			header = append(header, fmt.Sprintf("    Originally assigned to %s", owner))
-			ownerID.String = fmt.Sprintf("%d", importer.giteaAccessor.DefaultAssigneeID)
+			ownerID.String = fmt.Sprintf("%d", importer.giteaAccessor.GetDefaultAssigneeID())
 			ownerID.Valid = true
 		} else {
 			ownerID.String = fmt.Sprintf("%d", tmp)

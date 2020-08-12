@@ -1,7 +1,8 @@
 package markdown
 
 import (
-	"log"
+	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -49,7 +50,7 @@ func (converter *Converter) convertHeadings(in string) string {
 			if anchorName != "" {
 				hyphenatedHeading := strings.Replace(headingText, " ", "-", -1)
 				if hyphenatedHeading != anchorName {
-					log.Printf("Warning: anchor \"%s\" on trac heading \"%s\" cannot be used in markdown - hyphenate the heading text and use that to reference the heading\n",
+					fmt.Fprintf(os.Stderr, "Warning: anchor \"%s\" on trac heading \"%s\" cannot be used in markdown - hyphenate the heading text and use that to reference the heading\n",
 						anchorName, headingText)
 				}
 			}

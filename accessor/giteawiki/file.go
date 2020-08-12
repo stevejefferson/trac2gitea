@@ -1,6 +1,7 @@
-package giteaWiki
+package giteawiki
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -34,7 +35,7 @@ func copyFile(src, dst string) error {
 func (accessor *Accessor) CopyFile(externalFilePath string, giteaWikiRelPath string) {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
-		log.Printf("Warning: cannot copy non-existant file: \"%s\"\n", externalFilePath)
+		fmt.Fprintf(os.Stderr, "Warning: cannot copy non-existant file referenced from Wiki: \"%s\"\n", externalFilePath)
 		return
 	}
 

@@ -1,4 +1,4 @@
-package giteaWiki
+package giteawiki
 
 import (
 	"log"

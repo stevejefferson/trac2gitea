@@ -16,7 +16,7 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 	authorID := importer.giteaAccessor.GetUserID(author)
 	if authorID == -1 {
 		header = append(header, fmt.Sprintf("    Original comment by %s", author))
-		authorID = importer.giteaAccessor.DefaultAuthorID
+		authorID = importer.giteaAccessor.GetDefaultAuthorID()
 	}
 	if len(header) > 0 {
 		comment = fmt.Sprintf("%s\n\n%s", strings.Join(header, "\n"), comment)

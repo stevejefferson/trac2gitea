@@ -6,18 +6,19 @@ It requires access to the trac project filestore and requires that a correspondi
 
 Trac project data is accessed directly from the Trac database and filestore. While the current code is written for `sqlite` it should be relatively easy to migrate to other SQL databases. 
 
-Gitea project data is also currently accessed directly via the Gitea database (again written for `sqlite` but hopefully not containing much DB-specific SQL). The Gitea access code is highly modularised so hopefully it should be "reasonably easy" to migrate to using the Gitea API in the future. The Gitea wiki is accessed through the Gitea wiki git repository.
+Gitea project data is also currently accessed directly via the Gitea database (again written for `sqlite` but hopefully not containing much DB-specific SQL). Unfortunately as stands some of the operations it performs are not possible via the Gitea API - e.g. creating an issue with a specific ID (to match the Trac ticket ID which may appear in imported ticket comments and files within the main repository).
 
 ## Usage
 ```
 trac2gitea [options] <trac-root> <gitea-root> <gitea-user> <gitea-repo>
 Options:
-      --db-only                     convert database only
-      --default-assignee username   username to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>
-      --default-author username     username to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>
-      --wiki-dir string             directory into which to checkout (clone) wiki repository - defaults to cwd
-      --wiki-only                   convert wiki only
-      --wiki-url string             URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git
+      --db-only                          convert database only
+      --default-assignee username        username to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>
+      --default-author username          username to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>
+      --default-wiki-author username     username to attribute Wiki content to when trac author is not found in Gitea - defaults to <gitea-user>
+      --wiki-dir string                  directory into which to checkout (clone) wiki repository - defaults to cwd
+      --wiki-only                        convert wiki only
+      --wiki-url string                  URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git
 ```
 
 * `<trac-root>` is the root of the Trac project filestore containing the Trac config file in subdirectory `conf/trac.ini`

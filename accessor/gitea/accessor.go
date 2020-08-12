@@ -10,7 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3" // sqlite database driver
 )
 
-// Accessor provides acess (retire and update) to Gitea (non-Wiki) data.
+// Accessor provides access (retrieval and update) to Gitea (non-Wiki) data.
 type Accessor struct {
 	rootDir           string
 	mainConfig        *ini.File
@@ -19,8 +19,8 @@ type Accessor struct {
 	userName          string
 	repoName          string
 	repoID            int64
-	DefaultAssigneeID int64
-	DefaultAuthorID   int64
+	defaultAssigneeID int64
+	defaultAuthorID   int64
 }
 
 func fetchConfig(configPath string) *ini.File {
@@ -63,8 +63,8 @@ func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName str
 		userName:          giteaUserName,
 		repoName:          giteaRepoName,
 		repoID:            0,
-		DefaultAssigneeID: 0,
-		DefaultAuthorID:   0}
+		defaultAssigneeID: 0,
+		defaultAuthorID:   0}
 
 	// extract path to gitea DB - currently sqlite-specific...
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
@@ -84,10 +84,10 @@ func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName str
 
 	adminUserID := giteaAccessor.getAdminUserID()
 	giteaDefaultAssigneeID := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
-	giteaAccessor.DefaultAssigneeID = giteaDefaultAssigneeID
+	giteaAccessor.defaultAssigneeID = giteaDefaultAssigneeID
 
 	giteaDefaultAuthorID := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
-	giteaAccessor.DefaultAuthorID = giteaDefaultAuthorID
+	giteaAccessor.defaultAuthorID = giteaDefaultAuthorID
 
 	return &giteaAccessor
 }

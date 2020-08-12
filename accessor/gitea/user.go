@@ -21,6 +21,17 @@ func (accessor *Accessor) GetUserID(name string) int64 {
 	return id
 }
 
+// GetDefaultAssigneeID retrieves the id of the user to which to assign tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
+func (accessor *Accessor) GetDefaultAssigneeID() int64 {
+	return accessor.defaultAssigneeID
+}
+
+// GetDefaultAuthorID retrieves the id of the user to set as the author of tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
+func (accessor *Accessor) GetDefaultAuthorID() int64 {
+	return accessor.defaultAuthorID
+}
+
+// getAdminUserID retrieves the id of the project admin user.
 func (accessor *Accessor) getAdminUserID() int64 {
 	row := accessor.db.QueryRow(`
 		SELECT id FROM user WHERE is_admin ORDER BY id LIMIT 1;
@@ -35,6 +46,7 @@ func (accessor *Accessor) getAdminUserID() int64 {
 	return adminID
 }
 
+// getAdminDefaultingUserID retrieves the id of a named user, defaulting to the admin user if that user does not exist.
 func (accessor *Accessor) getAdminDefaultingUserID(userName string, adminUserID int64) int64 {
 	userID := adminUserID
 	if userName != "" {
@@ -47,10 +59,10 @@ func (accessor *Accessor) getAdminDefaultingUserID(userName string, adminUserID 
 	return userID
 }
 
-// GetEMailAddress retrieves the email address of the current repository owner
-func (accessor *Accessor) GetEMailAddress() string {
+// GetUserEMailAddress retrieves the email address of a given user
+func (accessor *Accessor) GetUserEMailAddress(userID int64) string {
 	var emailAddress string = ""
-	err := accessor.db.QueryRow(`SELECT email FROM user WHERE lower_name = $1`, accessor.userName).Scan(&emailAddress)
+	err := accessor.db.QueryRow(`SELECT email FROM user WHERE id = $1`, userID).Scan(&emailAddress)
 	if err != nil && err != sql.ErrNoRows {
 		log.Fatal(err)
 	}
