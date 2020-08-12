@@ -2,8 +2,9 @@ package gitea
 
 import (
 	"database/sql"
-	"log"
 	"strings"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
@@ -40,7 +41,7 @@ func (accessor *Accessor) getAdminUserID() int64 {
 	var adminID int64
 	err := row.Scan(&adminID)
 	if err != nil {
-		log.Fatal("No admin user found in Gitea")
+		log.Fatal("No admin user found in Gitea\n")
 	}
 
 	return adminID
@@ -52,7 +53,7 @@ func (accessor *Accessor) getAdminDefaultingUserID(userName string, adminUserID 
 	if userName != "" {
 		userID = accessor.GetUserID(userName)
 		if userID == -1 {
-			log.Fatal("Cannot find gitea user ", userName)
+			log.Fatalf("Cannot find gitea user %s\n", userName)
 		}
 	}
 

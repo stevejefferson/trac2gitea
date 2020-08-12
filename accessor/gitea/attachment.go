@@ -3,8 +3,9 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"path/filepath"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
@@ -29,6 +30,8 @@ func (accessor *Accessor) AddAttachment(uuid string, issueID int64, commentID in
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Infof("Issue:%d, comment:%d : added attachment %s\n", issueID, commentID, attachmentName)
 
 	giteaAttachmentsRootDir := accessor.GetStringConfig("attachment", "PATH")
 	if giteaAttachmentsRootDir == "" {

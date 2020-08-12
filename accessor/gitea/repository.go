@@ -3,7 +3,8 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
-	"log"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 func (accessor *Accessor) getRepoID(userName string, repoName string) int64 {
@@ -43,6 +44,8 @@ func (accessor *Accessor) UpdateRepoIssueCount(count int, closedCount int) {
 			log.Fatal(err)
 		}
 	}
+
+	log.Infof("Updated repository: total issues=%d, closed issues=%d\n", count, closedCount)
 }
 
 // GetCommitURL retrieves the URL for viewing a given commit in the current repository

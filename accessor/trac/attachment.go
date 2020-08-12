@@ -4,8 +4,9 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"path"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 func encodeSha1(str string) string {

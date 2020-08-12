@@ -5,4 +5,4 @@ These provide the low-level access primitives:
 * `accessor.gitea` provides access to the Gitea project (in particular the database)
 * `accessor.giteawiki` provides access to the Gitea project wiki
 
-There are no dependencies between the inidivudla `accessor` packages.
+There are no dependencies between the individual `accessor` packages.

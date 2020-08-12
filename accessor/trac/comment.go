@@ -1,6 +1,6 @@
 package trac
 
-import "log"
+import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
 func (accessor *Accessor) GetComments(ticketID int64, handlerFn func(ticketID int64, time int64, author string, comment string)) {

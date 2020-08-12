@@ -1,10 +1,9 @@
 package giteawiki
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"time"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -44,11 +43,9 @@ func (accessor *Accessor) RepoStageAndCommit(author string, authorEMail string, 
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "\n")
-
 	_, err = worktree.Commit(message, &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  author + "[trac user]",
+			Name:  author,
 			Email: authorEMail,
 			When:  time.Now(),
 		},
@@ -63,6 +60,6 @@ func (accessor *Accessor) RepoStageAndCommit(author string, authorEMail string, 
 // In an ideal world we would push back to the remote here
 // however, as I haven't worked out how to do the authentication for that yet, we just output a message telling the user to do it.
 func (accessor *Accessor) RepoComplete() {
-	fmt.Printf("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
+	log.Infof("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
 		accessor.repoDir)
 }

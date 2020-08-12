@@ -1,16 +1,16 @@
 package gitea
 
 import (
-	"fmt"
 	"io"
-	"log"
 	"os"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 func (accessor *Accessor) copyFile(externalFilePath string, giteaPath string) {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Warning: cannot copy non-existant attachment file: \"%s\"\n", externalFilePath)
+		log.Warnf("cannot copy non-existant attachment file: \"%s\"\n", externalFilePath)
 		return
 	}
 
@@ -35,4 +35,6 @@ func (accessor *Accessor) copyFile(externalFilePath string, giteaPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Debugf("Copied file %s to %s\n", externalFilePath, giteaPath)
 }

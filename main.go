@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -12,14 +11,9 @@ import (
 	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 	"stevejefferson.co.uk/trac2gitea/import/issue"
 	"stevejefferson.co.uk/trac2gitea/import/wiki"
+	"stevejefferson.co.uk/trac2gitea/log"
 	"stevejefferson.co.uk/trac2gitea/markdown"
 )
-
-func setLogFormat() {
-	log.SetFlags(log.Ldate)
-	log.SetFlags(log.Ltime)
-	log.SetFlags(log.Lshortfile)
-}
 
 var dbOnly bool
 var wikiOnly bool
@@ -94,8 +88,6 @@ func parseArgs() {
 }
 
 func main() {
-	setLogFormat()
-
 	parseArgs()
 
 	tracAccessor := trac.CreateAccessor(tracRootDir)

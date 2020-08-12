@@ -3,10 +3,11 @@ package trac
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 
 	"github.com/go-ini/ini"
 	_ "github.com/mattn/go-sqlite3" // sqlite database driver
@@ -28,7 +29,7 @@ func CreateAccessor(tracRootDir string) *Accessor {
 		log.Fatal(err)
 	}
 	if stat.IsDir() != true {
-		log.Fatal("Trac root directory is not a directory: ", tracRootDir)
+		log.Fatalf("Trac root directory %s is not a directory\n", tracRootDir)
 	}
 
 	tracIniPath := fmt.Sprintf("%s/conf/trac.ini", tracRootDir)
@@ -51,6 +52,8 @@ func CreateAccessor(tracRootDir string) *Accessor {
 	if !filepath.IsAbs(tracDatabasePath) {
 		tracDatabasePath = filepath.Join(tracRootDir, tracDatabasePath)
 	}
+
+	log.Debugf("Using trac database %s\n", tracDatabasePath)
 
 	tracDb, err := sql.Open("sqlite3", tracDatabasePath)
 	if err != nil {

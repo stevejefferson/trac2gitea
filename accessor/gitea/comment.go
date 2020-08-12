@@ -2,7 +2,8 @@ package gitea
 
 import (
 	"fmt"
-	"log"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // AddComment adds a comment to Gitea
@@ -21,6 +22,8 @@ func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment stri
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Infof("Issue:%d : added comment %d\n", issueID, commentID)
 
 	return commentID
 }

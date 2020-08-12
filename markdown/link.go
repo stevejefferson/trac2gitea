@@ -2,11 +2,12 @@ package markdown
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 func markdownAutomaticLink(link string) string {

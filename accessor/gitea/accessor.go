@@ -3,8 +3,9 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 
 	"github.com/go-ini/ini"
 	_ "github.com/mattn/go-sqlite3" // sqlite database driver
@@ -44,7 +45,7 @@ func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName str
 		log.Fatal(err)
 	}
 	if !stat.IsDir() {
-		log.Fatal("Gitea root path is not a directory: ", giteaRootDir)
+		log.Fatalf("Gitea root path %s is not a directory\n", giteaRootDir)
 	}
 
 	giteaMainConfigPath := "/etc/gitea/conf/app.ini"
@@ -52,7 +53,7 @@ func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName str
 	giteaCustomConfigPath := fmt.Sprintf("%s/custom/conf/app.ini", giteaRootDir)
 	giteaCustomConfig := fetchConfig(giteaCustomConfigPath)
 	if giteaMainConfig == nil && giteaCustomConfig == nil {
-		log.Fatal("cannot find Gitea config in " + giteaMainConfigPath + " or " + giteaCustomConfigPath)
+		log.Fatalf("cannot find Gitea config in %s or %s\n", giteaMainConfigPath, giteaCustomConfigPath)
 	}
 
 	giteaAccessor := Accessor{
@@ -73,12 +74,12 @@ func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName str
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Using Gitea database %s\n", giteaDbPath)
+	log.Infof("Using Gitea database %s\n", giteaDbPath)
 	giteaAccessor.db = giteaDb
 
 	giteaRepoID := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
 	if giteaRepoID == -1 {
-		log.Fatalf("Cannot find repository %s for user %s", giteaRepoName, giteaUserName)
+		log.Fatalf("Cannot find repository %s for user %s\n", giteaRepoName, giteaUserName)
 	}
 	giteaAccessor.repoID = giteaRepoID
 

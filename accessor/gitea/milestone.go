@@ -3,7 +3,8 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
-	"log"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // AddMilestone adds a milestone to Gitea.
@@ -17,6 +18,8 @@ func (accessor *Accessor) AddMilestone(name string, content string, closed bool,
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Infof("Added milestone %s\n", name)
 }
 
 // GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone

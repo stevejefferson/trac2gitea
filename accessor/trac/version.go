@@ -1,6 +1,6 @@
 package trac
 
-import "log"
+import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetVersionNames retrieves all version names used in Trac, passing each one to the provided "handler" function.
 func (accessor *Accessor) GetVersionNames(handlerFn func(string)) {

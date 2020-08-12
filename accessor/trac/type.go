@@ -1,6 +1,6 @@
 package trac
 
-import "log"
+import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetTypeNames retrieves all type names used in Trac tickets, passing each one to the provided "handler" function.
 func (accessor *Accessor) GetTypeNames(handlerFn func(string)) {

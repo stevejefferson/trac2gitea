@@ -2,8 +2,9 @@ package wiki
 
 import (
 	"fmt"
-	"log"
 	"time"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 
 	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
 	"stevejefferson.co.uk/trac2gitea/accessor/giteawiki"

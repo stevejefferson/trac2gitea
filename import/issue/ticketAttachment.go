@@ -2,9 +2,10 @@ package issue
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, time int64, size int64, author string, attachmentName string, desc string) string {

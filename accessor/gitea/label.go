@@ -1,8 +1,7 @@
 package gitea
 
 import (
-	"fmt"
-	"log"
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // AddLabel adds a label to Gitea.
@@ -16,5 +15,5 @@ func (accessor *Accessor) AddLabel(label string, color string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Added label", label)
+	log.Infof("Created label %s, color %s\n", label, color)
 }

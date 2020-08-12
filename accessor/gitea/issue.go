@@ -2,7 +2,8 @@ package gitea
 
 import (
 	"database/sql"
-	"log"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // GetIssueID retrieves the id of the Gitea issue corresponding to a given Trac ticket - returns -1 if no such issue.
@@ -37,13 +38,15 @@ func (accessor *Accessor) AddIssue(
 		log.Fatal(err)
 	}
 
-	var gid int64
-	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&gid)
+	var issueID int64
+	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueID)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return gid
+	log.Infof("Created issue %d: summary=%s\n", issueID, summary)
+
+	return issueID
 }
 
 // SetIssueUpdateTime sets the update time on a given Gitea issue.

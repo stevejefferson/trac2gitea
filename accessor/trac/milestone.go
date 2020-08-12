@@ -1,6 +1,6 @@
 package trac
 
-import "log"
+import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetMilestones retrieves all Trac milestones, passing data from each one to the provided "handler" function.
 func (accessor *Accessor) GetMilestones(handlerFn func(name string, description string, due int64, completed int64)) {

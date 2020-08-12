@@ -1,8 +1,7 @@
 package gitea
 
 import (
-	"fmt"
-	"log"
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // AddIssueLabel adds an issue label to Gitea.
@@ -15,5 +14,5 @@ func (accessor *Accessor) AddIssueLabel(issueID int64, label string) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Added label %s for issue %d\n", label, issueID)
+	log.Infof("Issue %d: created label %s\n", issueID, label)
 }

@@ -3,10 +3,11 @@ package giteawiki
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 func copyFile(src, dst string) error {
@@ -54,4 +55,6 @@ func (accessor *Accessor) CopyFile(externalFilePath string, giteaWikiRelPath str
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Infof("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
 }

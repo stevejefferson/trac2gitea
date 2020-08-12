@@ -1,6 +1,9 @@
 package gitea
 
-import "github.com/go-ini/ini"
+import (
+	"github.com/go-ini/ini"
+	"stevejefferson.co.uk/trac2gitea/log"
+)
 
 func getStringConfigValue(config *ini.File, sectionName string, configName string) string {
 	if config == nil {
@@ -19,8 +22,14 @@ func getStringConfigValue(config *ini.File, sectionName string, configName strin
 func (accessor *Accessor) GetStringConfig(sectionName string, configName string) string {
 	mainConfigValue := getStringConfigValue(accessor.mainConfig, sectionName, configName)
 	if mainConfigValue != "" {
+		log.Debugf("Found value in Gitea main config section=%s, name=%s, value=%s\n", sectionName, configName, mainConfigValue)
+
 		return mainConfigValue
 	}
 
-	return getStringConfigValue(accessor.customConfig, sectionName, configName)
+	customConfigValue := getStringConfigValue(accessor.customConfig, sectionName, configName)
+
+	log.Debugf("Found value in Gitea custom config section=%s, name=%s, value=%s\n", sectionName, configName, customConfigValue)
+
+	return customConfigValue
 }

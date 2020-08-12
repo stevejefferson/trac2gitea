@@ -1,9 +1,10 @@
 package giteawiki
 
 import (
-	"log"
 	"os"
 	"path/filepath"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 // WritePage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
@@ -15,6 +16,8 @@ func (accessor *Accessor) WritePage(pageName string, markdownText string) string
 	}
 
 	file.WriteString(markdownText)
+
+	log.Debugf("Wrote version of wiki page %s\n", pageName)
 
 	return pagePath
 }
