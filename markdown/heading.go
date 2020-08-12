@@ -1,10 +1,10 @@
 package markdown
 
 import (
-	"fmt"
-	"os"
 	"regexp"
 	"strings"
+
+	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 const maxHeadingLevel = 6
@@ -50,7 +50,7 @@ func (converter *Converter) convertHeadings(in string) string {
 			if anchorName != "" {
 				hyphenatedHeading := strings.Replace(headingText, " ", "-", -1)
 				if hyphenatedHeading != anchorName {
-					fmt.Fprintf(os.Stderr, "Warning: anchor \"%s\" on trac heading \"%s\" cannot be used in markdown - hyphenate the heading text and use that to reference the heading\n",
+					log.Warnf("anchor \"%s\" on trac heading \"%s\" cannot be used in markdown - hyphenate the heading text and use that to reference the heading\n",
 						anchorName, headingText)
 				}
 			}

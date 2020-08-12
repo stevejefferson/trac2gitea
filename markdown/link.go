@@ -1,8 +1,6 @@
 package markdown
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -90,7 +88,7 @@ func (converter *Converter) resolveTicketCommentLink(link string) string {
 
 	issueID := converter.giteaAccessor.GetIssueID(ticketID)
 	if issueID == -1 {
-		fmt.Fprintf(os.Stderr, "Warning: cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
 		return link
 	}
 	commentURL := converter.giteaAccessor.GetCommentURL(issueID, commentID)
@@ -102,7 +100,7 @@ func (converter *Converter) resolveMilestoneLink(link string) string {
 	milestoneName := milestoneLinkRegexp.ReplaceAllString(link, `$1`)
 	milestoneID := converter.giteaAccessor.GetMilestoneID(milestoneName)
 	if milestoneID == -1 {
-		fmt.Fprintf(os.Stderr, "Warning: cannot find milestone \"%s\" referenced by Trac link \"%s\"\n", milestoneName, link)
+		log.Warnf("Warning: cannot find milestone \"%s\" referenced by Trac link \"%s\"\n", milestoneName, link)
 		return link
 	}
 
@@ -113,13 +111,13 @@ func (converter *Converter) resolveMilestoneLink(link string) string {
 func (converter *Converter) resolveNamedAttachmentLink(link string, ticketID int64, attachmentName string) string {
 	issueID := converter.giteaAccessor.GetIssueID(ticketID)
 	if issueID == -1 {
-		fmt.Fprintf(os.Stderr, "Warning: cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		log.Warnf("Warning: cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
 		return link
 	}
 
 	uuid := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
 	if uuid == "" {
-		fmt.Fprintf(os.Stderr, "Warning: cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"\n", attachmentName, issueID, link)
+		log.Warnf("Warning: cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"\n", attachmentName, issueID, link)
 		return link
 	}
 
