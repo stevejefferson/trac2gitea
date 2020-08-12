@@ -4,6 +4,7 @@ import (
 	"fmt"
 	systemlog "log"
 	"os"
+	"runtime/debug"
 )
 
 // Level is the level of the logger
@@ -33,9 +34,9 @@ const (
 )
 
 func init() {
-	systemlog.SetFlags(systemlog.Ldate)
-	systemlog.SetFlags(systemlog.Ltime)
-	systemlog.SetFlags(systemlog.Lshortfile)
+	// systemlog.SetFlags(systemlog.Ldate)
+	// systemlog.SetFlags(systemlog.Ltime)
+	// systemlog.SetFlags(systemlog.Lshortfile)
 }
 
 var level = ERROR
@@ -50,85 +51,93 @@ func SetLevel(newLevel Level) {
 	level = newLevel
 }
 
-func print(reqdLevel Level, v ...interface{}) {
+func prependArg(arg interface{}, existing []interface{}) []interface{} {
+	var newArgs []interface{}
+	newArgs = append(newArgs, arg)
+	newArgs = append(newArgs, existing)
+	return newArgs
+}
+
+func print(reqdLevel Level, prefix string, v ...interface{}) {
 	if level <= reqdLevel {
-		fmt.Println(v...)
+		fmt.Println(prependArg(prefix, v)...)
 	}
 }
 
-func printf(reqdLevel Level, format string, v ...interface{}) {
+func printf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
-		fmt.Printf(format, v...)
+		fmt.Printf(prefix+format, v...)
 	}
 }
 
-func sysprint(reqdLevel Level, v ...interface{}) {
+func sysprint(reqdLevel Level, prefix string, v ...interface{}) {
 	if level <= reqdLevel {
-		systemlog.Println(v...)
+		systemlog.Println(prependArg(prefix, v)...)
 	}
 }
 
-func sysprintf(reqdLevel Level, format string, v ...interface{}) {
+func sysprintf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
-		systemlog.Printf(format, v...)
+		systemlog.Printf(prefix+format, v...)
 	}
 }
 
 // Trace outputs a tracing message
 func Trace(v ...interface{}) {
-	print(TRACE, v...)
+	print(TRACE, "", v...)
 }
 
 // Tracef outputs a formatted tracing message
 func Tracef(format string, v ...interface{}) {
-	printf(TRACE, format, v...)
+	printf(TRACE, "", format, v...)
 }
 
 // Debug outputs a debugging message
 func Debug(v ...interface{}) {
-	print(DEBUG, v...)
+	print(DEBUG, "", v...)
 }
 
 // Debugf outputs a formatted debugging message
 func Debugf(format string, v ...interface{}) {
-	printf(DEBUG, format, v...)
+	printf(DEBUG, "", format, v...)
 }
 
 // Info outputs an information message
 func Info(v ...interface{}) {
-	print(INFO, v...)
+	print(INFO, "", v...)
 }
 
 // Infof outputs a formatted information message
 func Infof(format string, v ...interface{}) {
-	printf(INFO, format, v...)
+	printf(INFO, "", format, v...)
 }
 
 // Warn outputs a warning message
 func Warn(v ...interface{}) {
-	sysprint(WARN, v...)
+	sysprint(WARN, "Warning: ", v...)
 }
 
 // Warnf outputs a formatted warning message
 func Warnf(format string, v ...interface{}) {
-	sysprintf(WARN, format, v...)
+	sysprintf(WARN, "Warning: ", format, v...)
 }
 
 // Error outputs an error message
 func Error(v ...interface{}) {
-	sysprint(ERROR, v...)
+	sysprint(ERROR, "Error: ", v...)
 }
 
 // Errorf outputs a formatted error message
 func Errorf(format string, v ...interface{}) {
-	sysprintf(ERROR, format, v...)
+	sysprintf(ERROR, "Error: ", format, v...)
 }
 
 // Fatal outputs a fatal error message
 func Fatal(v ...interface{}) {
 	// fatal errors go to the system fatal error handler
 	if level <= FATAL {
-		systemlog.Fatal(v...)
+		debug.PrintStack()
+		systemlog.Fatal(prependArg("Fatal: ", v)...)
 	}
 
 	// if logLevel is NONE (the only level higher than FATAL) we terminate anyway but without a message
@@ -139,7 +148,8 @@ func Fatal(v ...interface{}) {
 func Fatalf(format string, v ...interface{}) {
 	// fatal errors go to the system fatal error handler
 	if level <= FATAL {
-		systemlog.Fatalf(format, v...)
+		debug.PrintStack()
+		systemlog.Fatalf("Fatal: "+format, v...)
 	}
 
 	// if logLevel is NONE (the only level higher than FATAL) we terminate anyway but without a message

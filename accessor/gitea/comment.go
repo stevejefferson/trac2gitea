@@ -23,7 +23,7 @@ func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment stri
 		log.Fatal(err)
 	}
 
-	log.Infof("Issue:%d : added comment %d\n", issueID, commentID)
+	log.Debugf("Issue %d: added comment (id %d)\n", issueID, commentID)
 
 	return commentID
 }

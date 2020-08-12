@@ -246,13 +246,13 @@ func (converter *Converter) convertLinks(in string) string {
 }
 
 var httpLinkDisguiseRegexp = regexp.MustCompile(`(https?)://`)
-var httpLinkUndisguiseRegexp = regexp.MustCompile(`(https?):\|\|`)
+var httpLinkUndisguiseRegexp = regexp.MustCompile(`(https?):\$\$`)
 
 // disguiseLinks temporarily disguises links into a format that doesn't interfere with other Trac -> markdown regexps
 // - in particular the '//' in 'http(s)://...' clashes with Trac's '//' italics marker
 func (converter *Converter) disguiseLinks(in string) string {
 	out := in
-	out = httpLinkDisguiseRegexp.ReplaceAllString(out, `$1:||`)
+	out = httpLinkDisguiseRegexp.ReplaceAllString(out, `$1:$$`)
 	return out
 }
 

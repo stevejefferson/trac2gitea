@@ -14,5 +14,5 @@ func (accessor *Accessor) AddIssueLabel(issueID int64, label string) {
 		log.Fatal(err)
 	}
 
-	log.Infof("Issue %d: created label %s\n", issueID, label)
+	log.Debugf("Issue %d: created label %s\n", issueID, label)
 }

@@ -53,7 +53,7 @@ func CreateAccessor(tracRootDir string) *Accessor {
 		tracDatabasePath = filepath.Join(tracRootDir, tracDatabasePath)
 	}
 
-	log.Debugf("Using trac database %s\n", tracDatabasePath)
+	log.Infof("Using trac database %s\n", tracDatabasePath)
 
 	tracDb, err := sql.Open("sqlite3", tracDatabasePath)
 	if err != nil {

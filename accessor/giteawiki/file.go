@@ -55,5 +55,5 @@ func (accessor *Accessor) CopyFile(externalFilePath string, giteaWikiRelPath str
 		log.Fatal(err)
 	}
 
-	log.Infof("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
+	log.Debugf("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
 }

@@ -17,6 +17,8 @@ import (
 
 var dbOnly bool
 var wikiOnly bool
+var verbose bool
+var wikiConvertPredefineds bool
 var tracRootDir string
 var giteaRootDir string
 var giteaUser string
@@ -39,11 +41,15 @@ func parseArgs() {
 		"URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git")
 	wikiDirParam := pflag.String("wiki-dir", "",
 		"directory into which to checkout (clone) wiki repository - defaults to cwd")
+	wikiConvertPredefinedsParam := pflag.Bool("wiki-convert-predefined", false,
+		"convert Trac predefined wiki pages - by default we skip these")
 
 	dbOnlyParam := pflag.Bool("db-only", false,
 		"convert database only")
 	wikiOnlyParam := pflag.Bool("wiki-only", false,
 		"convert wiki only")
+	verboseParam := pflag.Bool("verbose", false,
+		"verbose output")
 
 	pflag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
@@ -55,11 +61,13 @@ func parseArgs() {
 
 	pflag.Parse()
 
+	verbose = *verboseParam
 	dbOnly = *dbOnlyParam
 	wikiOnly = *wikiOnlyParam
 	if dbOnly && wikiOnly {
 		log.Fatal("Cannot generate only database AND only wiki!")
 	}
+	wikiConvertPredefineds = *wikiConvertPredefinedsParam
 
 	if pflag.NArg() < 4 {
 		pflag.Usage()
@@ -89,6 +97,12 @@ func parseArgs() {
 
 func main() {
 	parseArgs()
+
+	var logLevel = log.INFO
+	if verbose {
+		logLevel = log.TRACE
+	}
+	log.SetLevel(logLevel)
 
 	tracAccessor := trac.CreateAccessor(tracRootDir)
 	giteaAccessor := gitea.CreateAccessor(giteaRootDir, giteaUser, giteaRepo, giteaDefaultAssignee, giteaDefaultAuthor)
@@ -123,7 +137,8 @@ func main() {
 
 		wikiAccessor := giteawiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
 		wikiMarkdownConverter := markdown.CreateWikiConverter(tracAccessor, giteaAccessor, wikiAccessor)
-		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter, giteaDefaultWikiAuthor)
+		wikiImporter := wiki.CreateImporter(
+			tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter, giteaDefaultWikiAuthor, wikiConvertPredefineds)
 		wikiImporter.ImportWiki()
 	}
 }

@@ -20,6 +20,7 @@ type Importer struct {
 	trac2MarkdownConverter *markdown.Converter
 	defaultPageOwner       string
 	defaultPageOwnerEMail  string
+	convertPredefineds     bool
 }
 
 // CreateImporter creates a Trac wiki to Gitea wiki repository importer.
@@ -28,7 +29,8 @@ func CreateImporter(
 	gAccessor *gitea.Accessor,
 	wAccessor *giteawiki.Accessor,
 	t2mConverter *markdown.Converter,
-	dfltPageOwner string) *Importer {
+	dfltPageOwner string,
+	convertPredefs bool) *Importer {
 
 	dfltPageOwnerID := gAccessor.GetUserID(dfltPageOwner)
 	if dfltPageOwnerID == -1 {
@@ -42,7 +44,8 @@ func CreateImporter(
 		giteaAccessor:          gAccessor,
 		trac2MarkdownConverter: t2mConverter,
 		defaultPageOwner:       dfltPageOwner,
-		defaultPageOwnerEMail:  dfltPageOwnerEMail}
+		defaultPageOwnerEMail:  dfltPageOwnerEMail,
+		convertPredefineds:     convertPredefs}
 	return &importer
 }
 
@@ -51,6 +54,12 @@ func (importer *Importer) ImportWiki() {
 	importer.wikiAccessor.RepoClone()
 
 	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) {
+		// skip predefined pages
+		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
+			log.Debugf("Skipping predefined Trac page %s\n", pageName)
+			return
+		}
+
 		// convert and write wiki page
 		markdownText := importer.trac2MarkdownConverter.Convert(pageText)
 		translatedPageName := importer.wikiAccessor.TranslatePageName(pageName)
@@ -70,6 +79,7 @@ func (importer *Importer) ImportWiki() {
 		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s by Trac user %s]\n",
 			comment, translatedPageName, version, updateTimeStr, author)
 		importer.wikiAccessor.RepoStageAndCommit(giteaAuthor, giteaAuthorEMail, comment)
+		log.Infof("Wiki page %s: wrote version %d to repository\n", translatedPageName, version)
 	})
 
 	importer.wikiAccessor.RepoComplete()

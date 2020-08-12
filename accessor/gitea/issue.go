@@ -44,7 +44,7 @@ func (accessor *Accessor) AddIssue(
 		log.Fatal(err)
 	}
 
-	log.Infof("Created issue %d: summary=%s\n", issueID, summary)
+	log.Infof("Created issue %d: %s\n", issueID, summary)
 
 	return issueID
 }

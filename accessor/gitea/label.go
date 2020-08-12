@@ -15,5 +15,5 @@ func (accessor *Accessor) AddLabel(label string, color string) {
 		log.Fatal(err)
 	}
 
-	log.Infof("Created label %s, color %s\n", label, color)
+	log.Debugf("Created label %s, color %s\n", label, color)
 }

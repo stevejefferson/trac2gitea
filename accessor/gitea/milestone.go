@@ -19,7 +19,7 @@ func (accessor *Accessor) AddMilestone(name string, content string, closed bool,
 		log.Fatal(err)
 	}
 
-	log.Infof("Added milestone %s\n", name)
+	log.Debugf("Added milestone %s\n", name)
 }
 
 // GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone

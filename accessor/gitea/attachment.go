@@ -31,7 +31,7 @@ func (accessor *Accessor) AddAttachment(uuid string, issueID int64, commentID in
 		log.Fatal(err)
 	}
 
-	log.Infof("Issue:%d, comment:%d : added attachment %s\n", issueID, commentID, attachmentName)
+	log.Debugf("Issue:%d, comment:%d : added attachment %s\n", issueID, commentID, attachmentName)
 
 	giteaAttachmentsRootDir := accessor.GetStringConfig("attachment", "PATH")
 	if giteaAttachmentsRootDir == "" {

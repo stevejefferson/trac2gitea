@@ -12,13 +12,15 @@ Gitea project data is also currently accessed directly via the Gitea database (a
 ```
 trac2gitea [options] <trac-root> <gitea-root> <gitea-user> <gitea-repo>
 Options:
-      --db-only                          convert database only
-      --default-assignee username        username to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>
-      --default-author username          username to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>
-      --default-wiki-author username     username to attribute Wiki content to when trac author is not found in Gitea - defaults to <gitea-user>
-      --wiki-dir string                  directory into which to checkout (clone) wiki repository - defaults to cwd
-      --wiki-only                        convert wiki only
-      --wiki-url string                  URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git
+      --db-only                        convert database only
+      --default-assignee username      username to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>
+      --default-author username        username to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>
+      --default-wiki-author username   username to attribute Wiki content to when trac author is not found in Gitea - defaults to <gitea-user>
+      --verbose                        verbose output
+      --wiki-convert-predefined        convert Trac predefined wiki pages - by default we skip these
+      --wiki-dir string                directory into which to checkout (clone) wiki repository - defaults to cwd
+      --wiki-only                      convert wiki only
+      --wiki-url string                URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git
 ```
 
 * `<trac-root>` is the root of the Trac project filestore containing the Trac config file in subdirectory `conf/trac.ini`

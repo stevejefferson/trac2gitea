@@ -8,7 +8,7 @@ func (accessor *Accessor) GetMilestones(handlerFn func(name string, description 
 	rows, err := accessor.db.Query(`
 		SELECT COALESCE(name,''), description, CAST(due*1e-6 AS int8), CAST(completed*1e-6 AS int8)
 			FROM milestone UNION
-			SELECT distinct(COALESCE(milestone,'')),0,0,''
+			SELECT distinct(COALESCE(milestone,'')),'',0,0
 				FROM ticket
 				WHERE COALESCE(milestone,'') NOT IN ( select COALESCE(name,'') from milestone )`)
 	if err != nil {
