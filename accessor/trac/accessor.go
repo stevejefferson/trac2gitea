@@ -17,7 +17,7 @@ import (
 // At present, and in contrast to the Gitea accessor, this does not need to abstract away database accesses.
 // This is based on the assumption that we'll only ever be accessing Trac direcftly via its database and not via an API.
 type Accessor struct {
-	RootDir string
+	rootDir string
 	db      *sql.DB
 	config  *ini.File
 }
@@ -43,7 +43,7 @@ func CreateAccessor(tracRootDir string) *Accessor {
 		log.Fatal(err)
 	}
 
-	accessor := Accessor{db: nil, RootDir: tracRootDir, config: tracConfig}
+	accessor := Accessor{db: nil, rootDir: tracRootDir, config: tracConfig}
 
 	// extract path to trac DB - currently sqlite-specific...
 	tracDatabaseString := accessor.GetStringConfig("trac", "database")

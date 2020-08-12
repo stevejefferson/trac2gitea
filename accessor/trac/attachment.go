@@ -24,7 +24,7 @@ func (accessor *Accessor) GetAttachmentPath(ticketID int64, name string) string 
 	pathFile := encodeSha1(name)
 	pathExt := path.Ext(name)
 
-	return fmt.Sprintf("%s/attachments/ticket/%s/%s/%s%s", accessor.RootDir, ticketSub, ticketDir, pathFile, pathExt)
+	return accessor.GetFullPath("attachments", "ticket", ticketSub, ticketDir, pathFile+pathExt)
 }
 
 // GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
