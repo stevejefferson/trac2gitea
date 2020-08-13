@@ -14,10 +14,10 @@ import (
 
 // Importer imports Trac Wiki data into a Gitea wiki repository.
 type Importer struct {
-	tracAccessor           *trac.Accessor
-	giteaAccessor          *gitea.Accessor
-	wikiAccessor           *giteawiki.Accessor
-	trac2MarkdownConverter *markdown.Converter
+	tracAccessor           trac.Accessor
+	giteaAccessor          gitea.Accessor
+	wikiAccessor           giteawiki.Accessor
+	trac2MarkdownConverter markdown.Converter
 	defaultPageOwner       string
 	defaultPageOwnerEMail  string
 	convertPredefineds     bool
@@ -25,10 +25,9 @@ type Importer struct {
 
 // CreateImporter creates a Trac wiki to Gitea wiki repository importer.
 func CreateImporter(
-	tAccessor *trac.Accessor,
-	gAccessor *gitea.Accessor,
-	wAccessor *giteawiki.Accessor,
-	t2mConverter *markdown.Converter,
+	tAccessor trac.Accessor,
+	gAccessor gitea.Accessor,
+	wAccessor giteawiki.Accessor,
 	dfltPageOwner string,
 	convertPredefs bool) *Importer {
 
@@ -37,6 +36,8 @@ func CreateImporter(
 		log.Fatalf("Cannot find default owner %s for wiki pages to be imported from Trac\n", dfltPageOwner)
 	}
 	dfltPageOwnerEMail := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
+
+	t2mConverter := markdown.CreateWikiDefaultConverter(tAccessor, gAccessor, wAccessor)
 
 	importer := Importer{
 		wikiAccessor:           wAccessor,

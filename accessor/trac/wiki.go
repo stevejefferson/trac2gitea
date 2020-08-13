@@ -7,7 +7,7 @@ import (
 )
 
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
-func (accessor *Accessor) GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64)) {
+func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64)) {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
 	// SELECT w1.name, w1.text, w1.author, w1.comment, w1.version, CAST(w1.time*1e-6 AS int8)
 	// 	FROM wiki w1
@@ -99,7 +99,7 @@ var prefinedTracPages = []string{
 }
 
 // IsPredefinedPage returns true if the provided page name is one of Trac's predefined ones - by default we ignore these
-func (accessor *Accessor) IsPredefinedPage(pageName string) bool {
+func (accessor *DefaultAccessor) IsPredefinedPage(pageName string) bool {
 	for _, predefinedTracPage := range prefinedTracPages {
 		if pageName == predefinedTracPage {
 			return true

@@ -10,7 +10,7 @@ import (
 )
 
 // RepoClone clones our wiki repo to the provided directory.
-func (accessor *Accessor) RepoClone() {
+func (accessor *DefaultAccessor) RepoClone() {
 	isBare := false
 	repository, err := git.PlainClone(accessor.repoDir, isBare, &git.CloneOptions{
 		URL:               accessor.repoURL,
@@ -26,7 +26,7 @@ func (accessor *Accessor) RepoClone() {
 // RepoStageAndCommit stages any files added or updated since the last commit then commits them to our cloned wiki repo.
 // We package the staging and commit together here because it is easier than embedding hooks to do the git staging
 // deep into the wiki parsing process where files from the Trac worksapce can get copied over on-the-fly.
-func (accessor *Accessor) RepoStageAndCommit(author string, authorEMail string, message string) {
+func (accessor *DefaultAccessor) RepoStageAndCommit(author string, authorEMail string, message string) {
 	worktree, err := accessor.repo.Worktree()
 	if err != nil {
 		log.Fatal(err)
@@ -59,7 +59,7 @@ func (accessor *Accessor) RepoStageAndCommit(author string, authorEMail string, 
 // RepoComplete indicates that changes to the local wiki repository are complete.
 // In an ideal world we would push back to the remote here
 // however, as I haven't worked out how to do the authentication for that yet, we just output a message telling the user to do it.
-func (accessor *Accessor) RepoComplete() {
+func (accessor *DefaultAccessor) RepoComplete() {
 	log.Infof("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
 		accessor.repoDir)
 }

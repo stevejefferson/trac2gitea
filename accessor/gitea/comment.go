@@ -7,7 +7,7 @@ import (
 )
 
 // AddComment adds a comment to Gitea
-func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment string, time int64) int64 {
+func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comment string, time int64) int64 {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(
 			type, issue_id, poster_id, content, created_unix, updated_unix)
@@ -29,7 +29,7 @@ func (accessor *Accessor) AddComment(issueID int64, authorID int64, comment stri
 }
 
 // GetCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
-func (accessor *Accessor) GetCommentURL(issueID int64, commentID int64) string {
+func (accessor *DefaultAccessor) GetCommentURL(issueID int64, commentID int64) string {
 	repoURL := accessor.getUserRepoURL()
 	return fmt.Sprintf("%s/issues/%d#issuecomment-%d", repoURL, issueID, commentID)
 }

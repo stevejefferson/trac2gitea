@@ -17,7 +17,7 @@ func (importer *Importer) importTicket(
 	closed bool,
 	summary string,
 	description string) int64 {
-	t2mConverter := markdown.CreateTicketConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
+	t2mConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
 	description = t2mConverter.Convert(description)
 
 	var header []string

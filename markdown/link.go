@@ -41,11 +41,11 @@ var ticketAttachmentLinkRegexp = regexp.MustCompile(`^attachment:([^[:space:]]+)
 var changesetLinkRegexp = regexp.MustCompile(`^changeset:"([[:alnum:]]+)/[^["]]+"`)
 var sourceLinkRegexp = regexp.MustCompile(`^source:"[^"/]+/([^"]+)"`)
 
-func (converter *Converter) resolveHTTPLink(link string) string {
+func (converter *DefaultConverter) resolveHTTPLink(link string) string {
 	return link // http* links are returned as is
 }
 
-func (converter *Converter) resolveHtdocsLink(link string) string {
+func (converter *DefaultConverter) resolveHtdocsLink(link string) string {
 	// any htdocs file needs copying from trac htdocs directory to an equivalent wiki subdirectory
 	htdocsPath := htdocsLinkRegexp.ReplaceAllString(link, `$1`)
 	tracHtdocsPath := converter.tracAccessor.GetFullPath("htdocs", htdocsPath)
@@ -54,23 +54,23 @@ func (converter *Converter) resolveHtdocsLink(link string) string {
 	return "../raw/" + wikiHtdocsRelPath // htodcs subdirectory should be referenceable via Gitea "raw" repo path...
 }
 
-func (converter *Converter) resolveWikiCamelCaseLink(link string) string {
+func (converter *DefaultConverter) resolveWikiCamelCaseLink(link string) string {
 	wikiPageName := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$1`)
 	translatedPageName := converter.wikiAccessor.TranslatePageName(wikiPageName)
 	return translatedPageName
 }
 
-func (converter *Converter) resolveWikiLink(link string) string {
+func (converter *DefaultConverter) resolveWikiLink(link string) string {
 	wikiPageName := wikiLinkRegexp.ReplaceAllString(link, `$1`)
 	translatedPageName := converter.wikiAccessor.TranslatePageName(wikiPageName)
 	return translatedPageName
 }
 
-func (converter *Converter) resolveTicketLink(link string) string {
+func (converter *DefaultConverter) resolveTicketLink(link string) string {
 	return ticketLinkRegexp.ReplaceAllString(link, `#$1`) // convert into '#nnn' ticket link
 }
 
-func (converter *Converter) resolveTicketCommentLink(link string) string {
+func (converter *DefaultConverter) resolveTicketCommentLink(link string) string {
 	commentIDStr := ticketCommentLinkRegexp.ReplaceAllString(link, `$1`)
 	var commentID int64
 	commentID, err := strconv.ParseInt(commentIDStr, 10, 64)
@@ -95,7 +95,7 @@ func (converter *Converter) resolveTicketCommentLink(link string) string {
 	return commentURL
 }
 
-func (converter *Converter) resolveMilestoneLink(link string) string {
+func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 	milestoneName := milestoneLinkRegexp.ReplaceAllString(link, `$1`)
 	milestoneID := converter.giteaAccessor.GetMilestoneID(milestoneName)
 	if milestoneID == -1 {
@@ -107,7 +107,7 @@ func (converter *Converter) resolveMilestoneLink(link string) string {
 	return milestoneURL
 }
 
-func (converter *Converter) resolveNamedAttachmentLink(link string, ticketID int64, attachmentName string) string {
+func (converter *DefaultConverter) resolveNamedAttachmentLink(link string, ticketID int64, attachmentName string) string {
 	issueID := converter.giteaAccessor.GetIssueID(ticketID)
 	if issueID == -1 {
 		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
@@ -123,12 +123,12 @@ func (converter *Converter) resolveNamedAttachmentLink(link string, ticketID int
 	return converter.giteaAccessor.GetAttachmentURL(uuid)
 }
 
-func (converter *Converter) resolveAttachmentLink(link string) string {
+func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
 	return converter.resolveNamedAttachmentLink(link, converter.ticketID, attachmentName)
 }
 
-func (converter *Converter) resolveTicketAttachmentLink(link string) string {
+func (converter *DefaultConverter) resolveTicketAttachmentLink(link string) string {
 	attachmentName := ticketAttachmentLinkRegexp.ReplaceAllString(link, `$1`)
 	ticketIDStr := ticketAttachmentLinkRegexp.ReplaceAllString(link, `$2`)
 	var ticketID int64
@@ -140,19 +140,19 @@ func (converter *Converter) resolveTicketAttachmentLink(link string) string {
 	return converter.resolveNamedAttachmentLink(link, ticketID, attachmentName)
 }
 
-func (converter *Converter) resolveChangesetLink(link string) string {
+func (converter *DefaultConverter) resolveChangesetLink(link string) string {
 	changesetID := changesetLinkRegexp.ReplaceAllString(link, `$1`)
 	return converter.giteaAccessor.GetCommitURL(changesetID)
 }
 
-func (converter *Converter) resolveSourceLink(link string) string {
+func (converter *DefaultConverter) resolveSourceLink(link string) string {
 	sourcePath := sourceLinkRegexp.ReplaceAllString(link, `$1`)
 	return converter.giteaAccessor.GetSourceURL("master", sourcePath) // AFAICT Trac source URL does not include the git branch so we'll assume "master"
 }
 
 // resolveLink resolves a Trac-style link into a Gitea link suitable for embedding in Markdown
 // returns "" if provided link is not recognised as a Trac link
-func (converter *Converter) resolveLink(in string) string {
+func (converter *DefaultConverter) resolveLink(in string) string {
 	if httpLinkRegexp.MatchString(in) {
 		return converter.resolveHTTPLink(in)
 	}
@@ -200,7 +200,7 @@ func (converter *Converter) resolveLink(in string) string {
 	return ""
 }
 
-func (converter *Converter) convertLinks(in string) string {
+func (converter *DefaultConverter) convertLinks(in string) string {
 	out := in
 
 	out = doubleBracketImageLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
@@ -250,14 +250,14 @@ var httpLinkUndisguiseRegexp = regexp.MustCompile(`(https?):\$\$`)
 
 // disguiseLinks temporarily disguises links into a format that doesn't interfere with other Trac -> markdown regexps
 // - in particular the '//' in 'http(s)://...' clashes with Trac's '//' italics marker
-func (converter *Converter) disguiseLinks(in string) string {
+func (converter *DefaultConverter) disguiseLinks(in string) string {
 	out := in
 	out = httpLinkDisguiseRegexp.ReplaceAllString(out, `$1:$$`)
 	return out
 }
 
 // undisguiseLink converts temporarily "disguised" links back to their correct format.
-func (converter *Converter) undisguiseLinks(in string) string {
+func (converter *DefaultConverter) undisguiseLinks(in string) string {
 	out := in
 	out = httpLinkUndisguiseRegexp.ReplaceAllString(out, `$1://`)
 	return out

@@ -16,7 +16,7 @@ var romanNumerals = []string{"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "
 var letteredListRegexp = regexp.MustCompile(`[a-h]\. [^\n]+`)
 var romanNumberedListRegexp = regexp.MustCompile(`[ivx]\. ([^\n]+)`)
 
-func (converter *Converter) convertLists(in string) string {
+func (converter *DefaultConverter) convertLists(in string) string {
 	out := in
 
 	out = letteredListRegexp.ReplaceAllStringFunc(out, func(match string) string {

@@ -1,18 +1,31 @@
 package giteawiki
 
-import (
-	"gopkg.in/src-d/go-git.v4"
-)
+// Accessor is the interface for all of our interactions with our Gitea project Wiki.
+type Accessor interface {
+	/*
+	 * Files
+	 */
+	// CopyFile copies an internal file into the Gitea Wiki.
+	CopyFile(externalFilePath string, giteaWikiRelPath string)
 
-// Accessor provides access to a Gitea Wiki repository.
-type Accessor struct {
-	repoURL string
-	repoDir string
-	repo    *git.Repository
-}
+	/*
+	 * Wiki Repository
+	 */
+	// RepoClone clones our wiki repo to the provided directory.
+	RepoClone()
 
-// CreateAccessor retirurns a new Gitea Wiiki accessor.
-func CreateAccessor(wikiRepoURL string, wikiRepoDir string) *Accessor {
-	accessor := Accessor{repoURL: wikiRepoURL, repoDir: wikiRepoDir, repo: nil}
-	return &accessor
+	// RepoStageAndCommit stages any files added or updated since the last commit then commits them to our cloned wiki repo.
+	RepoStageAndCommit(author string, authorEMail string, message string)
+
+	// RepoComplete indicates that changes to the local wiki repository are complete.
+	RepoComplete()
+
+	/*
+	 * Wiki Pages
+	 */
+	// WritePage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
+	WritePage(pageName string, markdownText string) string
+
+	// TranslatePageName translates a Trac wiki page name into a Gitea one
+	TranslatePageName(pageName string) string
 }

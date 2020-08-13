@@ -1,65 +1,93 @@
 package trac
 
-import (
-	"database/sql"
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
+// Accessor is the interface through which we access all Trac data.
+type Accessor interface {
+	/*
+	 * Attachments
+	 */
+	// GetAttachmentPath retrieves the path to a named attachment to a Trac ticket.
+	GetAttachmentPath(ticketID int64, name string) string
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	// GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
+	GetAttachments(ticketID int64, handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string))
 
-	"github.com/go-ini/ini"
-	_ "github.com/mattn/go-sqlite3" // sqlite database driver
-)
+	/*
+	 * Comments
+	 */
+	// GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
+	GetComments(ticketID int64, handlerFn func(ticketID int64, time int64, author string, comment string))
 
-// Accessor provides access to Trac data.
-// At present, and in contrast to the Gitea accessor, this does not need to abstract away database accesses.
-// This is based on the assumption that we'll only ever be accessing Trac direcftly via its database and not via an API.
-type Accessor struct {
-	rootDir string
-	db      *sql.DB
-	config  *ini.File
-}
+	/*
+	 * Components
+	 */
+	// GetComponentNames retrieves all Trac component names, passing each one to the provided "handler" function.
+	GetComponentNames(handlerFn func(cmptName string))
 
-// CreateAccessor creates a new Trac accessor.
-func CreateAccessor(tracRootDir string) *Accessor {
-	stat, err := os.Stat(tracRootDir)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if stat.IsDir() != true {
-		log.Fatalf("Trac root directory %s is not a directory\n", tracRootDir)
-	}
+	/*
+	 * Configuration
+	 */
+	// GetStringConfig retrieves a value from the Trac config as a string.
+	GetStringConfig(sectionName string, configName string) string
 
-	tracIniPath := fmt.Sprintf("%s/conf/trac.ini", tracRootDir)
-	stat, err = os.Stat(tracIniPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	/*
+	 * Milestones
+	 */
+	// GetMilestones retrieves all Trac milestones, passing data from each one to the provided "handler" function.
+	GetMilestones(handlerFn func(name string, description string, due int64, completed int64))
 
-	tracConfig, err := ini.Load(tracIniPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	/*
+	 * Paths
+	 */
+	// GetFullPath retrieves the absolute path of a path relative to the root of the Trac installation.
+	GetFullPath(element ...string) string
 
-	accessor := Accessor{db: nil, rootDir: tracRootDir, config: tracConfig}
+	/*
+	 * Priorities
+	 */
+	// GetPriorityNames retrieves all priority names used in Trac tickets, passing each one to the provided "handler" function.
+	GetPriorityNames(handlerFn func(priorityName string))
 
-	// extract path to trac DB - currently sqlite-specific...
-	tracDatabaseString := accessor.GetStringConfig("trac", "database")
-	tracDatabaseSegments := strings.SplitN(tracDatabaseString, ":", 2)
-	tracDatabasePath := tracDatabaseSegments[1]
-	if !filepath.IsAbs(tracDatabasePath) {
-		tracDatabasePath = filepath.Join(tracRootDir, tracDatabasePath)
-	}
+	/*
+	 * Resolutions
+	 */
+	// GetResolutionNames retrieves all resolution names used in Trac tickets, passing each one to the provided "handler" function.
+	GetResolutionNames(handlerFn func(resolution string))
 
-	log.Infof("Using trac database %s\n", tracDatabasePath)
+	/*
+	 * Severities
+	 */
+	// GetSeverityNames retrieves all severity names used in Trac tickets, passing each one to the provided "handler" function.
+	GetSeverityNames(handlerFn func(severityName string))
 
-	tracDb, err := sql.Open("sqlite3", tracDatabasePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	accessor.db = tracDb
+	/*
+	 * Tickets
+	 */
+	// GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
+	GetTickets(handlerFn func(
+		ticketID int64, ticketType string, created int64,
+		component string, severity string, priority string,
+		owner string, reporter string, version string,
+		milestone string, status string, resolution string,
+		summary string, description string))
 
-	return &accessor
+	/*
+	 * Types
+	 */
+	// GetTypeNames retrieves all type names used in Trac tickets, passing each one to the provided "handler" function.
+	GetTypeNames(handlerFn func(typeName string))
+
+	/*
+	 * Versions
+	 */
+	// GetVersionNames retrieves all version names used in Trac, passing each one to the provided "handler" function.
+	GetVersionNames(handlerFn func(version string))
+
+	/*
+	 * Wiki
+	 */
+	// GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
+	GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64))
+
+	// IsPredefinedPage returns true if the provided page name is one of Trac's predefined ones - by default we ignore these
+	IsPredefinedPage(pageName string) bool
 }

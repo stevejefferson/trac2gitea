@@ -8,7 +8,7 @@ var singleLineCodeBlockRegexp = regexp.MustCompile(`{{{([^\n]+?)}}}`)
 var multiLineCodeBlockRegexp = regexp.MustCompile(`(?m)^{{{(?s)(.+?)^}}}`)
 var nonCodeBlockRegexp = regexp.MustCompile(`(?m)(?:}}}$|\A)(?s)(.+?)(?:^{{{|\z)`)
 
-func (converter *Converter) convertCodeBlocks(in string) string {
+func (converter *DefaultConverter) convertCodeBlocks(in string) string {
 	// convert single line {{{...}}} to `...`
 	out := singleLineCodeBlockRegexp.ReplaceAllString(in, "`$1`")
 
@@ -24,6 +24,6 @@ func (converter *Converter) convertCodeBlocks(in string) string {
 	return out
 }
 
-func (converter *Converter) convertNonCodeBlocks(in string, convertFn func(string) string) string {
+func (converter *DefaultConverter) convertNonCodeBlocks(in string, convertFn func(string) string) string {
 	return nonCodeBlockRegexp.ReplaceAllStringFunc(in, convertFn)
 }

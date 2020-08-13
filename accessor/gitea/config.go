@@ -19,7 +19,7 @@ func getStringConfigValue(config *ini.File, sectionName string, configName strin
 }
 
 // GetStringConfig retrieves a value from the Gitea config as a string.
-func (accessor *Accessor) GetStringConfig(sectionName string, configName string) string {
+func (accessor *DefaultAccessor) GetStringConfig(sectionName string, configName string) string {
 	mainConfigValue := getStringConfigValue(accessor.mainConfig, sectionName, configName)
 	if mainConfigValue != "" {
 		log.Debugf("Found value in Gitea main config section=%s, name=%s, value=%s\n", sectionName, configName, mainConfigValue)

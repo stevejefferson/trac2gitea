@@ -7,7 +7,7 @@ import (
 	"stevejefferson.co.uk/trac2gitea/log"
 )
 
-func (accessor *Accessor) copyFile(externalFilePath string, giteaPath string) {
+func (accessor *DefaultAccessor) copyFile(externalFilePath string, giteaPath string) {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
 		log.Warnf("cannot copy non-existant attachment file: \"%s\"\n", externalFilePath)

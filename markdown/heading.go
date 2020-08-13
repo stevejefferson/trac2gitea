@@ -30,7 +30,7 @@ func init() {
 	compileRegexps()
 }
 
-func (converter *Converter) convertHeadings(in string) string {
+func (converter *DefaultConverter) convertHeadings(in string) string {
 	// recurse through all heading levels starting from longest (doing shortest first risks premature regexp matches)
 	out := in
 	for headingLevel := maxHeadingLevel - 1; headingLevel >= 0; headingLevel-- {

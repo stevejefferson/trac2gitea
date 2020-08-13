@@ -22,7 +22,7 @@ var underlineRegexp = regexp.MustCompile(`__([^\n]+?)__`)
 var emphasisReplacementStr = `*$1*`
 var strongReplacementStr = `**$1**`
 
-func (converter *Converter) convertFontStyles(in string) string {
+func (converter *DefaultConverter) convertFontStyles(in string) string {
 	out := in
 	out = singleQuoteBoldItalicRegexp.ReplaceAllString(out, strongReplacementStr)
 	out = singleQuoteBoldRegexp.ReplaceAllString(out, strongReplacementStr)

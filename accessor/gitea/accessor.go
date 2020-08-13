@@ -1,99 +1,114 @@
 package gitea
 
-import (
-	"database/sql"
-	"fmt"
-	"os"
+import "database/sql"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+// Accessor is the interface to all of our interactions with a Gitea project.
+type Accessor interface {
+	/*
+	 * Attachments
+	 */
+	// GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
+	GetAttachmentUUID(issueID int64, name string) string
 
-	"github.com/go-ini/ini"
-	_ "github.com/mattn/go-sqlite3" // sqlite database driver
-)
+	// AddAttachment adds a new attachment to a given issue with the provided data.
+	AddAttachment(uuid string, issueID int64, commentID int64, attachmentName string, attachmentFile string, time int64)
 
-// Accessor provides access (retrieval and update) to Gitea (non-Wiki) data.
-type Accessor struct {
-	rootDir           string
-	mainConfig        *ini.File
-	customConfig      *ini.File
-	db                *sql.DB
-	userName          string
-	repoName          string
-	repoID            int64
-	defaultAssigneeID int64
-	defaultAuthorID   int64
-}
+	// GetAttachmentURL retrieves the URL for viewing a Gitea attachment
+	GetAttachmentURL(uuid string) string
 
-func fetchConfig(configPath string) *ini.File {
-	_, err := os.Stat(configPath)
-	if err != nil {
-		return nil
-	}
+	/*
+	 * Comments
+	 */
+	// AddComment adds a comment to Gitea
+	AddComment(issueID int64, authorID int64, comment string, time int64) int64
 
-	config, err := ini.Load(configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// GetCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
+	GetCommentURL(issueID int64, commentID int64) string
 
-	return config
-}
+	/*
+	 * Configuration
+	 */
+	// GetStringConfig retrieves a value from the Gitea config as a string.
+	GetStringConfig(sectionName string, configName string) string
 
-// CreateAccessor returns a new Gitea accessor.
-func CreateAccessor(giteaRootDir string, giteaUserName string, giteaRepoName string, defaultAssignee string, defaultAuthor string) *Accessor {
-	stat, err := os.Stat(giteaRootDir)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if !stat.IsDir() {
-		log.Fatalf("Gitea root path %s is not a directory\n", giteaRootDir)
-	}
+	/*
+	 * Issues
+	 */
+	// GetIssueID retrieves the id of the Gitea issue corresponding to a given Trac ticket - returns -1 if no such issue.
+	GetIssueID(ticketID int64) int64
 
-	giteaMainConfigPath := "/etc/gitea/conf/app.ini"
-	giteaMainConfig := fetchConfig(giteaMainConfigPath)
-	giteaCustomConfigPath := fmt.Sprintf("%s/custom/conf/app.ini", giteaRootDir)
-	giteaCustomConfig := fetchConfig(giteaCustomConfigPath)
-	if giteaMainConfig == nil && giteaCustomConfig == nil {
-		log.Fatalf("cannot find Gitea config in %s or %s\n", giteaMainConfigPath, giteaCustomConfigPath)
-	}
+	// AddIssue adds a new issue to Gitea.
+	AddIssue(
+		ticketID int64,
+		summary string,
+		reporterID int64,
+		milestone string,
+		ownerID sql.NullString,
+		owner string,
+		closed bool,
+		description string,
+		created int64) int64
 
-	giteaAccessor := Accessor{
-		rootDir:           giteaRootDir,
-		mainConfig:        giteaMainConfig,
-		customConfig:      giteaCustomConfig,
-		db:                nil,
-		userName:          giteaUserName,
-		repoName:          giteaRepoName,
-		repoID:            0,
-		defaultAssigneeID: 0,
-		defaultAuthorID:   0}
+	// SetIssueUpdateTime sets the update time on a given Gitea issue.
+	SetIssueUpdateTime(issueID int64, updateTime int64)
 
-	// extract path to gitea DB - currently sqlite-specific...
-	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
-	giteaDb, err := sql.Open("sqlite3", giteaDbPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	/*
+	 * Issue Labels
+	 */
+	// AddIssueLabel adds an issue label to Gitea.
+	AddIssueLabel(issueID int64, label string)
 
-	log.Infof("Using Gitea database %s\n", giteaDbPath)
-	giteaAccessor.db = giteaDb
+	/*
+	 * Labels
+	 */
+	// AddLabel adds a label to Gitea.
+	AddLabel(label string, color string)
 
-	giteaRepoID := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
-	if giteaRepoID == -1 {
-		log.Fatalf("Cannot find repository %s for user %s\n", giteaRepoName, giteaUserName)
-	}
-	giteaAccessor.repoID = giteaRepoID
+	/*
+	 * Milestones
+	 */
+	// AddMilestone adds a milestone to Gitea.
+	AddMilestone(name string, content string, closed bool, deadlineTimestamp int64, closedTimestamp int64)
 
-	adminUserID := giteaAccessor.getAdminUserID()
-	giteaDefaultAssigneeID := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
-	giteaAccessor.defaultAssigneeID = giteaDefaultAssigneeID
+	// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
+	GetMilestoneID(name string) int64
 
-	giteaDefaultAuthorID := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
-	giteaAccessor.defaultAuthorID = giteaDefaultAuthorID
+	// GetMilestoneURL gets the URL for accessing a given milestone
+	GetMilestoneURL(milestoneID int64) string
 
-	return &giteaAccessor
-}
+	/*
+	 * Repository
+	 */
+	// UpdateRepoIssueCount updates the count of total and closed issue for a our chosen Gitea repository.
+	UpdateRepoIssueCount(count int, closedCount int)
 
-func (accessor *Accessor) getUserRepoURL() string {
-	baseURL := accessor.GetStringConfig("server", "ROOT_URL")
-	return fmt.Sprintf("%s/%s/%s", baseURL, accessor.userName, accessor.repoName)
+	// GetCommitURL retrieves the URL for viewing a given commit in the current repository
+	GetCommitURL(commitID string) string
+
+	// GetSourceURL retrieves the URL for viewing the latest version of a source file on a given branch of the current repository
+	GetSourceURL(branchPath string, filePath string) string
+
+	/*
+	 * Users
+	 */
+	// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
+	GetUserID(name string) int64
+
+	// GetDefaultAssigneeID retrieves the id of the user to which to assign tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
+	GetDefaultAssigneeID() int64
+
+	// GetDefaultAuthorID retrieves the id of the user to set as the author of tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
+	GetDefaultAuthorID() int64
+
+	// GetUserEMailAddress retrieves the email address of a given user
+	GetUserEMailAddress(userID int64) string
+
+	/*
+	 * Wiki
+	 */
+	// GetWikiRepoName retrieves the name of the wiki repo associated with the current project.
+	GetWikiRepoName() string
+
+	// GetWikiRepoURL retrieves the URL of the wiki repo associated with the current project.
+	GetWikiRepoURL() string
 }

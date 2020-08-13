@@ -3,7 +3,7 @@ package trac
 import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetVersionNames retrieves all version names used in Trac, passing each one to the provided "handler" function.
-func (accessor *Accessor) GetVersionNames(handlerFn func(string)) {
+func (accessor *DefaultAccessor) GetVersionNames(handlerFn func(version string)) {
 	rows, err := accessor.db.Query(`SELECT DISTINCT COALESCE(version,'') FROM ticket UNION SELECT COALESCE(name,'') FROM version`)
 	if err != nil {
 		log.Fatal(err)

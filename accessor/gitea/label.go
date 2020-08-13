@@ -5,7 +5,7 @@ import (
 )
 
 // AddLabel adds a label to Gitea.
-func (accessor *Accessor) AddLabel(label string, color string) {
+func (accessor *DefaultAccessor) AddLabel(label string, color string) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO label(repo_id,name,color)
 			SELECT $1,$2, $3 WHERE

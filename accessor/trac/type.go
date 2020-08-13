@@ -3,7 +3,7 @@ package trac
 import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetTypeNames retrieves all type names used in Trac tickets, passing each one to the provided "handler" function.
-func (accessor *Accessor) GetTypeNames(handlerFn func(string)) {
+func (accessor *DefaultAccessor) GetTypeNames(handlerFn func(typeName string)) {
 	rows, err := accessor.db.Query(`SELECT DISTINCT type FROM ticket`)
 	if err != nil {
 		log.Fatal(err)

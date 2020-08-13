@@ -12,7 +12,6 @@ import (
 	"stevejefferson.co.uk/trac2gitea/import/issue"
 	"stevejefferson.co.uk/trac2gitea/import/wiki"
 	"stevejefferson.co.uk/trac2gitea/log"
-	"stevejefferson.co.uk/trac2gitea/markdown"
 )
 
 var dbOnly bool
@@ -104,8 +103,8 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
-	tracAccessor := trac.CreateAccessor(tracRootDir)
-	giteaAccessor := gitea.CreateAccessor(giteaRootDir, giteaUser, giteaRepo, giteaDefaultAssignee, giteaDefaultAuthor)
+	tracAccessor := trac.CreateDefaultAccessor(tracRootDir)
+	giteaAccessor := gitea.CreateDefaultAccessor(giteaRootDir, giteaUser, giteaRepo, giteaDefaultAssignee, giteaDefaultAuthor)
 
 	if !wikiOnly {
 		issueImporter := issue.CreateImporter(tracAccessor, giteaAccessor)
@@ -135,10 +134,8 @@ func main() {
 			giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
 		}
 
-		wikiAccessor := giteawiki.CreateAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
-		wikiMarkdownConverter := markdown.CreateWikiConverter(tracAccessor, giteaAccessor, wikiAccessor)
-		wikiImporter := wiki.CreateImporter(
-			tracAccessor, giteaAccessor, wikiAccessor, wikiMarkdownConverter, giteaDefaultWikiAuthor, wikiConvertPredefineds)
+		wikiAccessor := giteawiki.CreateDefaultAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
+		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
 		wikiImporter.ImportWiki()
 	}
 }

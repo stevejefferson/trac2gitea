@@ -7,7 +7,7 @@ import (
 
 var tableRegexp = regexp.MustCompile(`(?m)\|\|(.*)\|\|`) // matches entire table row including any intermediate cell separators
 
-func (converter *Converter) convertTables(in string) string {
+func (converter *DefaultConverter) convertTables(in string) string {
 	out := in
 	out = tableRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		// split row into cells

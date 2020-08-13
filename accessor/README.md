@@ -6,3 +6,6 @@ These provide the low-level access primitives:
 * `accessor.giteawiki` provides access to the Gitea project wiki
 
 There are no dependencies between the individual `accessor` packages.
+
+Each accessor is expressed in terms of an interface `Accessor` with a single, default implementation of that interface `DefaultAccessor`.
+This use of interfaces provides a cleaner expression of the accessor functionality and also facilitates testing.

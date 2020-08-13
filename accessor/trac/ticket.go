@@ -3,7 +3,7 @@ package trac
 import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
-func (accessor *Accessor) GetTickets(handlerFn func(
+func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 	ticketID int64, ticketType string, created int64,
 	component string, severity string, priority string,
 	owner string, reporter string, version string,

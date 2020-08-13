@@ -17,7 +17,7 @@ func encodeSha1(str string) string {
 }
 
 // GetAttachmentPath retrieves the path to a named attachment to a Trac ticket.
-func (accessor *Accessor) GetAttachmentPath(ticketID int64, name string) string {
+func (accessor *DefaultAccessor) GetAttachmentPath(ticketID int64, name string) string {
 	ticketDir := encodeSha1(fmt.Sprintf("%d", ticketID))
 	ticketSub := ticketDir[0:3]
 
@@ -28,7 +28,7 @@ func (accessor *Accessor) GetAttachmentPath(ticketID int64, name string) string 
 }
 
 // GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
-func (accessor *Accessor) GetAttachments(ticketID int64, handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string)) {
+func (accessor *DefaultAccessor) GetAttachments(ticketID int64, handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string)) {
 	rows, err := accessor.db.Query(`
 		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, filename, description, size
 			FROM attachment

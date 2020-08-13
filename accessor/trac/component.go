@@ -3,7 +3,7 @@ package trac
 import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetComponentNames retrieves all Trac component names, passing each one to the provided "handler" function.
-func (accessor *Accessor) GetComponentNames(handlerFn func(string)) {
+func (accessor *DefaultAccessor) GetComponentNames(handlerFn func(cmptName string)) {
 	rows, err := accessor.db.Query(`SELECT name FROM component`)
 	if err != nil {
 		log.Fatal(err)

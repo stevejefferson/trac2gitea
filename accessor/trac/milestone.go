@@ -3,7 +3,7 @@ package trac
 import "stevejefferson.co.uk/trac2gitea/log"
 
 // GetMilestones retrieves all Trac milestones, passing data from each one to the provided "handler" function.
-func (accessor *Accessor) GetMilestones(handlerFn func(name string, description string, due int64, completed int64)) {
+func (accessor *DefaultAccessor) GetMilestones(handlerFn func(name string, description string, due int64, completed int64)) {
 	// NOTE: trac timestamps are to the microseconds, we just need seconds
 	rows, err := accessor.db.Query(`
 		SELECT COALESCE(name,''), description, CAST(due*1e-6 AS int8), CAST(completed*1e-6 AS int8)

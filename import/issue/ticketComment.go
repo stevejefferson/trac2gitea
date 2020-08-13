@@ -8,7 +8,7 @@ import (
 )
 
 func (importer *Importer) importTicketComment(issueID int64, ticketID int64, time int64, author, comment string) int64 {
-	t2mConverter := markdown.CreateTicketConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
+	t2mConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
 	comment = t2mConverter.Convert(comment)
 
 	// find users first, and tweak description to add missing users

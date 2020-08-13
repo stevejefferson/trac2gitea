@@ -7,7 +7,7 @@ import (
 )
 
 // GetIssueID retrieves the id of the Gitea issue corresponding to a given Trac ticket - returns -1 if no such issue.
-func (accessor *Accessor) GetIssueID(ticketID int64) int64 {
+func (accessor *DefaultAccessor) GetIssueID(ticketID int64) int64 {
 	var issueID int64 = -1
 	err := accessor.db.QueryRow(`
 		SELECT id FROM issue WHERE repo_id = $1 AND "index" = $2
@@ -20,7 +20,7 @@ func (accessor *Accessor) GetIssueID(ticketID int64) int64 {
 }
 
 // AddIssue adds a new issue to Gitea.
-func (accessor *Accessor) AddIssue(
+func (accessor *DefaultAccessor) AddIssue(
 	ticketID int64,
 	summary string,
 	reporterID int64,
@@ -50,7 +50,7 @@ func (accessor *Accessor) AddIssue(
 }
 
 // SetIssueUpdateTime sets the update time on a given Gitea issue.
-func (accessor *Accessor) SetIssueUpdateTime(issueID int64, updateTime int64) {
+func (accessor *DefaultAccessor) SetIssueUpdateTime(issueID int64, updateTime int64) {
 	_, err := accessor.db.Exec(`UPDATE issue SET updated_unix = MAX(updated_unix,$1) WHERE id = $2`, updateTime, issueID)
 	if err != nil {
 		log.Fatal(err)

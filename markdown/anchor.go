@@ -6,7 +6,7 @@ var anchorRegexp = regexp.MustCompile(`(?m)\[=#([^\]\n ]+?)( +[^\]\n]+)?\]`)
 
 // convertAnchors converts Trac '[=#name...]' anchors
 // additionally Trac supports anchors on headings - these are dealt with in the heading conversion
-func (converter *Converter) convertAnchors(in string) string {
+func (converter *DefaultConverter) convertAnchors(in string) string {
 	out := in
 	out = anchorRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		anchorName := anchorRegexp.ReplaceAllString(match, `$1`)
