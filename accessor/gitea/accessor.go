@@ -25,6 +25,9 @@ type Accessor interface {
 	// GetCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
 	GetCommentURL(issueID int64, commentID int64) string
 
+	// GetCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
+	GetCommentID(issueID int64, commentStr string) int64
+
 	/*
 	 * Configuration
 	 */

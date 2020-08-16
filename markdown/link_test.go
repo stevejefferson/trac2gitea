@@ -127,7 +127,7 @@ func setUpWiki(t *testing.T) {
 		AnyTimes()
 }
 
-func TestWikiCamelCaseLink(t *testing.T) {
+func TestWikiUnprefixedLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
 		setUpWiki,
@@ -136,11 +136,79 @@ func TestWikiCamelCaseLink(t *testing.T) {
 		transformedWikiPageName)
 }
 
-func TestWikiLink(t *testing.T) {
+func TestWikiPrefixedLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
 		setUpWiki,
 		tearDown,
 		"wiki:"+wikiPageName,
 		transformedWikiPageName)
+}
+
+const (
+	ticketID    int64 = 314159
+	ticketIDStr       = "314159"
+	issueID     int64 = 26535
+)
+
+func setUpTicket(t *testing.T) {
+	setUp(t)
+
+	// expect call to lookup gitea issue for trac ticket
+	mockGiteaAccessor.
+		EXPECT().
+		GetIssueID(gomock.Eq(ticketID)).
+		Return(issueID).
+		AnyTimes()
+}
+
+func TestTicketLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpTicket,
+		tearDown,
+		"ticket:"+ticketIDStr,
+		"#"+ticketIDStr)
+}
+
+const (
+	tracCommentNum    int64  = 12
+	tracCommentNumStr        = "12"
+	commentStr               = "this is the text of a comment"
+	commentID         int64  = 54321
+	commentURL        string = "url-of-comment-54321"
+)
+
+func setUpTicketComment(t *testing.T) {
+	setUpTicket(t)
+
+	// expect a call to lookup text of trac comment
+	mockTracAccessor.
+		EXPECT().
+		GetCommentString(gomock.Eq(issueID), gomock.Eq(tracCommentNum)).
+		Return(commentStr).
+		AnyTimes()
+
+	// expect call to lookup gitea ID for trac comment
+	mockGiteaAccessor.
+		EXPECT().
+		GetCommentID(gomock.Eq(issueID), gomock.Eq(commentStr)).
+		Return(commentID).
+		AnyTimes()
+
+	// expect call to lookup URL of gitea comment
+	mockGiteaAccessor.
+		EXPECT().
+		GetCommentURL(gomock.Eq(issueID), gomock.Eq(commentID)).
+		Return(commentURL).
+		AnyTimes()
+}
+
+func TestTicketCommentLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpTicketComment,
+		tearDown,
+		"comment:"+tracCommentNumStr+":ticket:"+ticketIDStr,
+		commentURL)
 }

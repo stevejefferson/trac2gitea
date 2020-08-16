@@ -1,6 +1,10 @@
 package trac
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import (
+	"database/sql"
+
+	"stevejefferson.co.uk/trac2gitea/log"
+)
 
 // GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetComments(ticketID int64, handlerFn func(ticketID int64, time int64, author string, comment string)) {
@@ -21,4 +25,17 @@ func (accessor *DefaultAccessor) GetComments(ticketID int64, handlerFn func(tick
 
 		handlerFn(ticketID, time, author, comment)
 	}
+}
+
+// GetCommentString retrieves a given comment string for a given Trac ticket
+func (accessor *DefaultAccessor) GetCommentString(ticketID int64, commentNum int64) string {
+	var commentStr string
+	err := accessor.db.QueryRow(`
+		SELECT COALESCE(newvalue, '') FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,
+		ticketID, commentNum).Scan(&commentStr)
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatal(err)
+	}
+
+	return commentStr
 }

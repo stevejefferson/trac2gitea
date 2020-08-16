@@ -58,6 +58,20 @@ func (mr *MockAccessorMockRecorder) GetAttachments(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachments", reflect.TypeOf((*MockAccessor)(nil).GetAttachments), arg0, arg1)
 }
 
+// GetCommentString mocks base method
+func (m *MockAccessor) GetCommentString(arg0, arg1 int64) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCommentString", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetCommentString indicates an expected call of GetCommentString
+func (mr *MockAccessorMockRecorder) GetCommentString(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommentString", reflect.TypeOf((*MockAccessor)(nil).GetCommentString), arg0, arg1)
+}
+
 // GetComments mocks base method
 func (m *MockAccessor) GetComments(arg0 int64, arg1 func(int64, int64, string, string)) {
 	m.ctrl.T.Helper()

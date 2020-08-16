@@ -137,6 +137,20 @@ func (mr *MockAccessorMockRecorder) GetAttachmentUUID(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentUUID", reflect.TypeOf((*MockAccessor)(nil).GetAttachmentUUID), arg0, arg1)
 }
 
+// GetCommentID mocks base method
+func (m *MockAccessor) GetCommentID(arg0 int64, arg1 string) int64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCommentID", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// GetCommentID indicates an expected call of GetCommentID
+func (mr *MockAccessorMockRecorder) GetCommentID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommentID", reflect.TypeOf((*MockAccessor)(nil).GetCommentID), arg0, arg1)
+}
+
 // GetCommentURL mocks base method
 func (m *MockAccessor) GetCommentURL(arg0, arg1 int64) string {
 	m.ctrl.T.Helper()

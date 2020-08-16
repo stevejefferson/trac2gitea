@@ -1,6 +1,7 @@
 package gitea
 
 import (
+	"database/sql"
 	"fmt"
 
 	"stevejefferson.co.uk/trac2gitea/log"
@@ -24,6 +25,19 @@ func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comme
 	}
 
 	log.Debugf("Issue %d: added comment (id %d)\n", issueID, commentID)
+
+	return commentID
+}
+
+// GetCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
+func (accessor *DefaultAccessor) GetCommentID(issueID int64, commentStr string) int64 {
+	var commentID int64 = -1
+	err := accessor.db.QueryRow(`
+		SELECT id FROM comment WHERE issue_id = $1 AND content = $2
+		`, issueID, commentStr).Scan(&commentID)
+	if err != nil && err != sql.ErrNoRows {
+		log.Fatal(err)
+	}
 
 	return commentID
 }
