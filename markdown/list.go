@@ -14,7 +14,7 @@ var romanNumerals = []string{"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "
 // since 'i.' clashes with the roman-numbered case and is more likely to be the latter.
 // For roman lists we do not police the actual numerals in the regexp - too painful.
 var letteredListRegexp = regexp.MustCompile(`[a-h]\. [^\n]+`)
-var romanNumberedListRegexp = regexp.MustCompile(`[ivx]\. ([^\n]+)`)
+var romanNumberedListRegexp = regexp.MustCompile(`[ivx]+\. ([^\n]+)`)
 
 func (converter *DefaultConverter) convertLists(in string) string {
 	out := in

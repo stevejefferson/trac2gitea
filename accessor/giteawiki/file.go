@@ -31,12 +31,12 @@ func copyFile(src, dst string) error {
 	return cerr
 }
 
-// CopyFile copies an internal file into the Gitea Wiki.
-func (accessor *DefaultAccessor) CopyFile(externalFilePath string, giteaWikiRelPath string) {
+// CopyFile copies an internal file into the Gitea Wiki, returning a URL through which the file can be viewed/
+func (accessor *DefaultAccessor) CopyFile(externalFilePath string, giteaWikiRelPath string) string {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
 		log.Warnf("cannot copy non-existant file referenced from Wiki: \"%s\"\n", externalFilePath)
-		return
+		return ""
 	}
 
 	giteaPath := filepath.Join(accessor.repoDir, giteaWikiRelPath)
@@ -45,15 +45,16 @@ func (accessor *DefaultAccessor) CopyFile(externalFilePath string, giteaWikiRelP
 		log.Fatal(err)
 	}
 
+	// determine whether file already exists - if it does we'll just assume we've already copied it earlier in the conversion
 	_, err = os.Stat(giteaPath)
-	if os.IsExist(err) {
-		return // if gitea path exists we'll just assume we've already created it as part of this run
+	if !os.IsExist(err) {
+		err = copyFile(externalFilePath, giteaPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Debugf("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
 	}
 
-	err = copyFile(externalFilePath, giteaPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Debugf("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
+	return "../raw/" + giteaWikiRelPath
 }

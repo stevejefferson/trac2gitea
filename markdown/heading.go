@@ -10,6 +10,7 @@ import (
 const maxHeadingLevel = 6
 
 var headingRegexps [maxHeadingLevel]*regexp.Regexp
+var headingAnchorRegexp = regexp.MustCompile(`(?m)^ +#([^[:space:]]+)`)
 
 func compileRegexps() {
 	tracHeadingDelimiter := ""
@@ -19,8 +20,9 @@ func compileRegexps() {
 		// construct regexp for trac heading - this captures:
 		// $1 = heading level delimiter (which we transform into the equivalent markdown delimiter)
 		// $2 = heading text
-		// $3 = optional Trac heading anchor (which we will typically have to warn about because markdown is not quote the same here)
-		headingRegexpStr := `(?m)^(` + tracHeadingDelimiter + `) *([^=\n]+)` + tracHeadingDelimiter + `(?: +#([^[:space:]]+))?.*$`
+		// $3 = any trailing text on line which may contain an optional Trac heading anchor
+		//      (we have to warn about because markdown heading anchors are not the same)
+		headingRegexpStr := `(?m)^(` + tracHeadingDelimiter + `) *([^=\n]+)` + tracHeadingDelimiter + `(.*)$`
 		headingRegexps[headingLevel] = regexp.MustCompile(headingRegexpStr)
 	}
 }
@@ -31,7 +33,7 @@ func init() {
 }
 
 func (converter *DefaultConverter) convertHeadings(in string) string {
-	// recurse through all heading levels starting from longest (doing shortest first risks premature regexp matches)
+	// iterate through all heading levels starting from longest (doing shortest first risks premature regexp matches)
 	out := in
 	for headingLevel := maxHeadingLevel - 1; headingLevel >= 0; headingLevel-- {
 		headingRegexp := headingRegexps[headingLevel]
@@ -44,10 +46,12 @@ func (converter *DefaultConverter) convertHeadings(in string) string {
 			headingText := headingRegexp.ReplaceAllString(match, `$2`)
 			headingText = strings.Trim(headingText, " ")
 
-			// if any Trac anchor is given this must be the same as the heading after hyphenation
-			// (markdown heading anchors are formed from the heading text and can't be arbitrary strings as in Trac)
-			anchorName := headingRegexp.ReplaceAllString(match, `$3`)
-			if anchorName != "" {
+			// examine any trailing text for presence of a Trac heading anchor
+			trailingText := headingRegexp.ReplaceAllString(match, `$3`)
+			if headingAnchorRegexp.MatchString(trailingText) {
+				// any Trac anchor must be the same as the heading after hyphenation
+				// (markdown heading anchors are formed from the heading text and can't be arbitrary strings as in Trac)
+				anchorName := headingAnchorRegexp.ReplaceAllString(trailingText, `$1`)
 				hyphenatedHeading := strings.Replace(headingText, " ", "-", -1)
 				if hyphenatedHeading != anchorName {
 					log.Warnf("anchor \"%s\" on trac heading \"%s\" cannot be used in markdown - hyphenate the heading text and use that to reference the heading\n",

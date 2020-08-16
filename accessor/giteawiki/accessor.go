@@ -5,8 +5,8 @@ type Accessor interface {
 	/*
 	 * Files
 	 */
-	// CopyFile copies an internal file into the Gitea Wiki.
-	CopyFile(externalFilePath string, giteaWikiRelPath string)
+	// CopyFile copies an internal file into the Gitea Wiki, returning a URL through which the file can be viewed/
+	CopyFile(externalFilePath string, giteaWikiRelPath string) string
 
 	/*
 	 * Wiki Repository

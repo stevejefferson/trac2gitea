@@ -2,7 +2,7 @@ package markdown
 
 import "regexp"
 
-var anchorRegexp = regexp.MustCompile(`(?m)\[=#([^\]\n ]+?)( +[^\]\n]+)?\]`)
+var anchorRegexp = regexp.MustCompile(`(?m)\[=#([^\]\n ]+?)(?: +([^\]\n]+))?\]`)
 
 // convertAnchors converts Trac '[=#name...]' anchors
 // additionally Trac supports anchors on headings - these are dealt with in the heading conversion

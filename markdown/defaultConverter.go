@@ -31,18 +31,28 @@ func CreateTicketDefaultConverter(tAccessor trac.Accessor, gAccessor gitea.Acces
 
 func (converter *DefaultConverter) convertNonCodeBlockText(in string) string {
 	out := in
+
+	// do simple one-line constructs first
 	out = converter.convertLinks(out)
 	out = converter.convertAnchors(out)
 	out = converter.convertEscapes(out)
-	out = converter.convertParagraphs(out)
 	out = converter.convertLists(out)
 	out = converter.convertDefinitionLists(out)
-	out = converter.disguiseLinks(out)
-	out = converter.convertBlockQuotes(out)
 	out = converter.convertHeadings(out)
+
+	// font styles require links to be disguised
+	out = converter.disguiseLinks(out)
 	out = converter.convertFontStyles(out)
-	out = converter.convertTables(out)
 	out = converter.undisguiseLinks(out)
+
+	// now do potentially more complex constructs
+	out = converter.convertBlockQuotes(out)
+	out = converter.convertTables(out)
+
+	// do paragraphs last because this results in the insertion of newlines
+	// - this can upset other regexps which assume everything on a single line
+	out = converter.convertParagraphs(out)
+
 	return out
 }
 
@@ -53,11 +63,13 @@ func (converter *DefaultConverter) Convert(in string) string {
 	// ensure we have Unix EOLs
 	out = converter.convertEOL(out)
 
-	// convert any code blocks
-	out = converter.convertCodeBlocks(out)
-
-	// perform all other conversions only on text not in a code block
+	// perform conversions on text not in a code block
 	out = converter.convertNonCodeBlocks(out, converter.convertNonCodeBlockText)
+
+	// finally, convert any code blocks
+	// - this must be done after the non-code block conversions otherwise code blocks would get converted
+	// and we wouldn't be able to recognise the code block boundaries
+	out = converter.convertCodeBlocks(out)
 
 	return out
 }
