@@ -5,8 +5,11 @@ type Accessor interface {
 	/*
 	 * Attachments
 	 */
-	// GetAttachmentPath retrieves the path to a named attachment to a Trac ticket.
-	GetAttachmentPath(ticketID int64, name string) string
+	// GetTicketAttachmentPath retrieves the path to a named attachment to a Trac ticket.
+	GetTicketAttachmentPath(ticketID int64, attachmentName string) string
+
+	// GetWikiAttachmentPath retrieves the path to a named attachment to a Trac wiki page.
+	GetWikiAttachmentPath(wikiPage string, attachmentName string) string
 
 	// GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
 	GetAttachments(ticketID int64, handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string))
@@ -90,6 +93,9 @@ type Accessor interface {
 	 */
 	// GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
 	GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64))
+
+	// GetWikiAttachments retrieves all Trac wiki page attachments, passing data from each one to the provided "handler" function.
+	GetWikiAttachments(handlerFn func(wikiPage string, filename string))
 
 	// IsPredefinedPage returns true if the provided page name is one of Trac's predefined ones - by default we ignore these
 	IsPredefinedPage(pageName string) bool

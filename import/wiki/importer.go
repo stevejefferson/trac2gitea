@@ -14,13 +14,12 @@ import (
 
 // Importer imports Trac Wiki data into a Gitea wiki repository.
 type Importer struct {
-	tracAccessor           trac.Accessor
-	giteaAccessor          gitea.Accessor
-	wikiAccessor           giteawiki.Accessor
-	trac2MarkdownConverter markdown.Converter
-	defaultPageOwner       string
-	defaultPageOwnerEMail  string
-	convertPredefineds     bool
+	tracAccessor          trac.Accessor
+	giteaAccessor         gitea.Accessor
+	wikiAccessor          giteawiki.Accessor
+	defaultPageOwner      string
+	defaultPageOwnerEMail string
+	convertPredefineds    bool
 }
 
 // CreateImporter creates a Trac wiki to Gitea wiki repository importer.
@@ -37,16 +36,13 @@ func CreateImporter(
 	}
 	dfltPageOwnerEMail := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
 
-	t2mConverter := markdown.CreateWikiDefaultConverter(tAccessor, gAccessor, wAccessor)
-
 	importer := Importer{
-		wikiAccessor:           wAccessor,
-		tracAccessor:           tAccessor,
-		giteaAccessor:          gAccessor,
-		trac2MarkdownConverter: t2mConverter,
-		defaultPageOwner:       dfltPageOwner,
-		defaultPageOwnerEMail:  dfltPageOwnerEMail,
-		convertPredefineds:     convertPredefs}
+		wikiAccessor:          wAccessor,
+		tracAccessor:          tAccessor,
+		giteaAccessor:         gAccessor,
+		defaultPageOwner:      dfltPageOwner,
+		defaultPageOwnerEMail: dfltPageOwnerEMail,
+		convertPredefineds:    convertPredefs}
 	return &importer
 }
 
@@ -54,6 +50,21 @@ func CreateImporter(
 func (importer *Importer) ImportWiki() {
 	importer.wikiAccessor.RepoClone()
 
+	importer.importWikiAttachments()
+	importer.importWikiPages()
+
+	importer.wikiAccessor.RepoComplete()
+}
+
+func (importer *Importer) importWikiAttachments() {
+	importer.tracAccessor.GetWikiAttachments(func(pageName string, filename string) {
+		tracAttachmentPath := importer.tracAccessor.GetWikiAttachmentPath(pageName, filename)
+		giteaAttachmentPath := importer.wikiAccessor.GetAttachmentRelPath(pageName, filename)
+		importer.wikiAccessor.CopyFile(tracAttachmentPath, giteaAttachmentPath)
+	})
+}
+
+func (importer *Importer) importWikiPages() {
 	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
@@ -61,8 +72,11 @@ func (importer *Importer) ImportWiki() {
 			return
 		}
 
+		tracToMarkdownConverter := markdown.CreateWikiDefaultConverter(
+			importer.tracAccessor, importer.giteaAccessor, importer.wikiAccessor, pageName)
+
 		// convert and write wiki page
-		markdownText := importer.trac2MarkdownConverter.Convert(pageText)
+		markdownText := tracToMarkdownConverter.Convert(pageText)
 		translatedPageName := importer.wikiAccessor.TranslatePageName(pageName)
 		importer.wikiAccessor.WritePage(translatedPageName, markdownText)
 

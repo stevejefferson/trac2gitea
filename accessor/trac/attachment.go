@@ -16,15 +16,25 @@ func encodeSha1(str string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// GetAttachmentPath retrieves the path to a named attachment to a Trac ticket.
-func (accessor *DefaultAccessor) GetAttachmentPath(ticketID int64, name string) string {
-	ticketDir := encodeSha1(fmt.Sprintf("%d", ticketID))
-	ticketSub := ticketDir[0:3]
+func (accessor *DefaultAccessor) getAttachmentPath(idStr string, attachmentName string, attachmentType string) string {
+	idHash := encodeSha1(idStr)
+	idHashSub := idHash[0:3]
 
-	pathFile := encodeSha1(name)
-	pathExt := path.Ext(name)
+	pathFile := encodeSha1(attachmentName)
+	pathExt := path.Ext(attachmentName)
 
-	return accessor.GetFullPath("attachments", "ticket", ticketSub, ticketDir, pathFile+pathExt)
+	return accessor.GetFullPath("files", "attachments", attachmentType, idHashSub, idHash, pathFile+pathExt)
+}
+
+// GetTicketAttachmentPath retrieves the path to a named attachment to a Trac ticket.
+func (accessor *DefaultAccessor) GetTicketAttachmentPath(ticketID int64, attachmentName string) string {
+	ticketIDStr := fmt.Sprintf("%d", ticketID)
+	return accessor.getAttachmentPath(ticketIDStr, attachmentName, "ticket")
+}
+
+// GetWikiAttachmentPath retrieves the path to a named attachment to a Trac wiki page.
+func (accessor *DefaultAccessor) GetWikiAttachmentPath(wikiPage string, attachmentName string) string {
+	return accessor.getAttachmentPath(wikiPage, attachmentName, "wiki")
 }
 
 // GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.

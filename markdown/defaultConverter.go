@@ -14,18 +14,19 @@ type DefaultConverter struct {
 	tracAccessor  trac.Accessor
 	giteaAccessor gitea.Accessor
 	wikiAccessor  giteawiki.Accessor
+	wikiPage      string
 	ticketID      int64
 }
 
 // CreateWikiDefaultConverter returns a Trac to Gitea markdown converter for converting wiki texts.
-func CreateWikiDefaultConverter(tAccessor trac.Accessor, gAccessor gitea.Accessor, wAccessor giteawiki.Accessor) *DefaultConverter {
-	converter := DefaultConverter{tracAccessor: tAccessor, giteaAccessor: gAccessor, wikiAccessor: wAccessor, ticketID: -1}
+func CreateWikiDefaultConverter(tAccessor trac.Accessor, gAccessor gitea.Accessor, wAccessor giteawiki.Accessor, wikiPageName string) *DefaultConverter {
+	converter := DefaultConverter{tracAccessor: tAccessor, giteaAccessor: gAccessor, wikiAccessor: wAccessor, wikiPage: wikiPageName, ticketID: -1}
 	return &converter
 }
 
 // CreateTicketDefaultConverter returns a Trac to Gitea markdown converter for converting trac ticket descriptions and comments.
 func CreateTicketDefaultConverter(tAccessor trac.Accessor, gAccessor gitea.Accessor, tracTicketID int64) *DefaultConverter {
-	converter := DefaultConverter{tracAccessor: tAccessor, giteaAccessor: gAccessor, wikiAccessor: nil, ticketID: tracTicketID}
+	converter := DefaultConverter{tracAccessor: tAccessor, giteaAccessor: gAccessor, wikiAccessor: nil, wikiPage: "", ticketID: tracTicketID}
 	return &converter
 }
 

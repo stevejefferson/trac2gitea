@@ -5,8 +5,22 @@ type Accessor interface {
 	/*
 	 * Files
 	 */
-	// CopyFile copies an internal file into the Gitea Wiki, returning a URL through which the file can be viewed/
-	CopyFile(externalFilePath string, giteaWikiRelPath string) string
+	// CopyFile copies an internal file into the Gitea Wiki
+	CopyFile(externalFilePath string, giteaWikiRelPath string)
+
+	/*
+	 * Repository paths
+	 */
+	// GetAttachmentRelPath returns the location of an attachment to Trac a wiki page when stored in the Gitea wiki repository.
+	// The returned path is relative to the root of the Gitea wiki repository.
+	GetAttachmentRelPath(pageName string, filename string) string
+
+	// GetHtdocRelPath returns the location of a given Trac 'htdocs' file when stored in the Gitea wiki repository.
+	// The returned path is relative to the root of the Gitea wiki repository.
+	GetHtdocRelPath(filename string) string
+
+	// GetFileURL returns a URL for viewing a file stored in the Gitea wiki repository.
+	GetFileURL(relpath string) string
 
 	/*
 	 * Wiki Repository

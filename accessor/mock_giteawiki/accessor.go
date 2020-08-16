@@ -33,17 +33,57 @@ func (m *MockAccessor) EXPECT() *MockAccessorMockRecorder {
 }
 
 // CopyFile mocks base method
-func (m *MockAccessor) CopyFile(arg0, arg1 string) string {
+func (m *MockAccessor) CopyFile(arg0, arg1 string) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CopyFile", arg0, arg1)
-	ret0, _ := ret[0].(string)
-	return ret0
+	m.ctrl.Call(m, "CopyFile", arg0, arg1)
 }
 
 // CopyFile indicates an expected call of CopyFile
 func (mr *MockAccessorMockRecorder) CopyFile(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyFile", reflect.TypeOf((*MockAccessor)(nil).CopyFile), arg0, arg1)
+}
+
+// GetAttachmentRelPath mocks base method
+func (m *MockAccessor) GetAttachmentRelPath(arg0, arg1 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAttachmentRelPath", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetAttachmentRelPath indicates an expected call of GetAttachmentRelPath
+func (mr *MockAccessorMockRecorder) GetAttachmentRelPath(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentRelPath", reflect.TypeOf((*MockAccessor)(nil).GetAttachmentRelPath), arg0, arg1)
+}
+
+// GetFileURL mocks base method
+func (m *MockAccessor) GetFileURL(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFileURL", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetFileURL indicates an expected call of GetFileURL
+func (mr *MockAccessorMockRecorder) GetFileURL(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileURL", reflect.TypeOf((*MockAccessor)(nil).GetFileURL), arg0)
+}
+
+// GetHtdocRelPath mocks base method
+func (m *MockAccessor) GetHtdocRelPath(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHtdocRelPath", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetHtdocRelPath indicates an expected call of GetHtdocRelPath
+func (mr *MockAccessorMockRecorder) GetHtdocRelPath(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHtdocRelPath", reflect.TypeOf((*MockAccessor)(nil).GetHtdocRelPath), arg0)
 }
 
 // RepoClone mocks base method

@@ -77,28 +77,41 @@ func TestHttpsLink(t *testing.T) {
 }
 
 const (
-	htdocsFile        = "somefile.jpg"
-	tracHtdocsLink    = "htdocs:" + htdocsFile
-	markdownHtdocsURL = "./somedir/" + htdocsFile
+	htdocFile      = "somefile.jpg"
+	tracHtdocLink  = "htdocs:" + htdocFile
+	giteaHtdocFile = "htdocs/" + htdocFile
+	giteaHtdocURL  = "./somedir/" + htdocFile
 )
 
 func setUpHtdocs(t *testing.T) {
 	setUp(t)
 
-	// expect to have to retrieve full path to htdocs file within Trac workspace
-	tracHtdocsPath := filepath.Join("dir", "trac", "htdocs", htdocsFile)
+	// expect to have to retrieve full path to htdoc file within Trac workspace
+	tracHtdocPath := filepath.Join("dir", "trac", "htdocs", htdocFile)
 	mockTracAccessor.
 		EXPECT().
-		GetFullPath(gomock.Eq("htdocs"), gomock.Eq(htdocsFile)).
-		Return(tracHtdocsPath).
+		GetFullPath(gomock.Eq("htdocs"), gomock.Eq(htdocFile)).
+		Return(tracHtdocPath).
+		AnyTimes()
+
+	// expect to retrieve path where trac "htdocs" file will be stored in the Wiki repo
+	mockGiteaWikiAccessor.
+		EXPECT().
+		GetHtdocRelPath(gomock.Eq(htdocFile)).
+		Return(giteaHtdocFile).
 		AnyTimes()
 
 	// expect to copy file into "htdocs" subdirectory of Wiki repo
-	giteaWikiHtdocsPath := filepath.Join("htdocs", htdocsFile)
 	mockGiteaWikiAccessor.
 		EXPECT().
-		CopyFile(gomock.Eq(tracHtdocsPath), gomock.Eq(giteaWikiHtdocsPath)).
-		Return(markdownHtdocsURL).
+		CopyFile(gomock.Eq(tracHtdocPath), gomock.Eq(giteaHtdocFile)).
+		AnyTimes()
+
+	// expect to retrieve URL for viewing htdocs file in wiki repo
+	mockGiteaWikiAccessor.
+		EXPECT().
+		GetFileURL(gomock.Eq(giteaHtdocFile)).
+		Return(giteaHtdocURL).
 		AnyTimes()
 }
 
@@ -107,8 +120,8 @@ func TestHtdocsLink(t *testing.T) {
 		t,
 		setUpHtdocs,
 		tearDown,
-		tracHtdocsLink,
-		markdownHtdocsURL)
+		tracHtdocLink,
+		giteaHtdocURL)
 }
 
 const (
@@ -116,7 +129,7 @@ const (
 	transformedWikiPageName = "TransformedWikiPage"
 )
 
-func setUpWiki(t *testing.T) {
+func setUpWikiLink(t *testing.T) {
 	setUp(t)
 
 	// expect call to translate name of wiki page
@@ -130,7 +143,7 @@ func setUpWiki(t *testing.T) {
 func TestWikiUnprefixedLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpWiki,
+		setUpWikiLink,
 		tearDown,
 		wikiPageName,
 		transformedWikiPageName)
@@ -139,7 +152,7 @@ func TestWikiUnprefixedLink(t *testing.T) {
 func TestWikiPrefixedLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpWiki,
+		setUpWikiLink,
 		tearDown,
 		"wiki:"+wikiPageName,
 		transformedWikiPageName)
@@ -149,9 +162,10 @@ const (
 	ticketID    int64 = 314159
 	ticketIDStr       = "314159"
 	issueID     int64 = 26535
+	issueURL          = "url-for-viewing-issue=26535"
 )
 
-func setUpTicket(t *testing.T) {
+func setUpAnyTicketLink(t *testing.T) {
 	setUp(t)
 
 	// expect call to lookup gitea issue for trac ticket
@@ -162,13 +176,24 @@ func setUpTicket(t *testing.T) {
 		AnyTimes()
 }
 
+func setUpTicketOnlyLink(t *testing.T) {
+	setUpAnyTicketLink(t)
+
+	// expect call to lookup gitea issue URL
+	mockGiteaAccessor.
+		EXPECT().
+		GetIssueURL(gomock.Eq(issueID)).
+		Return(issueURL).
+		AnyTimes()
+}
+
 func TestTicketLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpTicket,
+		setUpTicketOnlyLink,
 		tearDown,
 		"ticket:"+ticketIDStr,
-		"#"+ticketIDStr)
+		issueURL)
 }
 
 const (
@@ -179,13 +204,13 @@ const (
 	commentURL        string = "url-of-comment-54321"
 )
 
-func setUpTicketComment(t *testing.T) {
-	setUpTicket(t)
+func setUpTicketCommentLink(t *testing.T) {
+	setUpAnyTicketLink(t)
 
 	// expect a call to lookup text of trac comment
 	mockTracAccessor.
 		EXPECT().
-		GetCommentString(gomock.Eq(issueID), gomock.Eq(tracCommentNum)).
+		GetCommentString(gomock.Eq(ticketID), gomock.Eq(tracCommentNum)).
 		Return(commentStr).
 		AnyTimes()
 
@@ -207,8 +232,187 @@ func setUpTicketComment(t *testing.T) {
 func TestTicketCommentLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpTicketComment,
+		setUpMilestoneLink,
+		tearDown,
+		"milestone:"+milestoneName,
+		milestoneURL)
+}
+
+const (
+	milestoneID   int64 = 678
+	milestoneName       = "some-milestone"
+	milestoneURL        = "url-for-viewing-milestone-678"
+)
+
+func setUpMilestoneLink(t *testing.T) {
+	setUp(t)
+
+	// expect call to lookup gitea milestone ID
+	mockGiteaAccessor.
+		EXPECT().
+		GetMilestoneID(gomock.Eq(milestoneName)).
+		Return(milestoneID).
+		AnyTimes()
+
+	// expect call to lookup URL for milestone
+	mockGiteaAccessor.
+		EXPECT().
+		GetMilestoneURL(gomock.Eq(milestoneID)).
+		Return(milestoneURL).
+		AnyTimes()
+}
+
+func TestMilestoneLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpTicketCommentLink,
 		tearDown,
 		"comment:"+tracCommentNumStr+":ticket:"+ticketIDStr,
 		commentURL)
+}
+
+const (
+	attachmentName        = "some-attachment.png"
+	attachmentWikiRelPath = "attachments-dir/somepage/xyz.png"
+	attachmentWikiURL     = "url-for-accessing-some-attachment-in-wiki"
+)
+
+func setUpAttachmentLink(t *testing.T) {
+	setUp(t)
+
+	// expect call to get relative path of attachment within wiki repo
+	mockGiteaWikiAccessor.
+		EXPECT().
+		GetAttachmentRelPath(gomock.Eq(wikiPage), gomock.Eq(attachmentName)).
+		Return(attachmentWikiRelPath).
+		AnyTimes()
+
+	// expect call to lookup URL for attachment file
+	mockGiteaWikiAccessor.
+		EXPECT().
+		GetFileURL(gomock.Eq(attachmentWikiRelPath)).
+		Return(attachmentWikiURL).
+		AnyTimes()
+}
+
+func TestAttachmentLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpAttachmentLink,
+		tearDown,
+		"attachment:"+attachmentName,
+		attachmentWikiURL)
+}
+
+const (
+	otherWikiPage = "SomeOtherWikiPage"
+)
+
+func setUpWikiAttachmentLink(t *testing.T) {
+	setUp(t)
+
+	// expect call to get relative path of attachment within wiki repo
+	mockGiteaWikiAccessor.
+		EXPECT().
+		GetAttachmentRelPath(gomock.Eq(otherWikiPage), gomock.Eq(attachmentName)).
+		Return(attachmentWikiRelPath).
+		AnyTimes()
+
+	// expect call to lookup URL for attachment file
+	mockGiteaWikiAccessor.
+		EXPECT().
+		GetFileURL(gomock.Eq(attachmentWikiRelPath)).
+		Return(attachmentWikiURL).
+		AnyTimes()
+}
+
+func TestWikiAttachmentLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpWikiAttachmentLink,
+		tearDown,
+		"attachment:"+attachmentName+":wiki:"+otherWikiPage,
+		attachmentWikiURL)
+}
+
+const (
+	ticketAttachmentUUID = "UUID-of-ticket-attachment"
+	ticketAttachmentURL  = "url-of-ticket-attachment"
+)
+
+func setUpTicketAttachmentLink(t *testing.T) {
+	setUpAnyTicketLink(t)
+
+	// expect call to get relative path of attachment within wiki repo
+	mockGiteaAccessor.
+		EXPECT().
+		GetAttachmentUUID(gomock.Eq(issueID), gomock.Eq(attachmentName)).
+		Return(ticketAttachmentUUID).
+		AnyTimes()
+
+	// expect call to lookup URL for attachment file
+	mockGiteaAccessor.
+		EXPECT().
+		GetAttachmentURL(gomock.Eq(ticketAttachmentUUID)).
+		Return(ticketAttachmentURL).
+		AnyTimes()
+}
+
+func TestTicketAttachmentLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpTicketAttachmentLink,
+		tearDown,
+		"attachment:"+attachmentName+":ticket:"+ticketIDStr,
+		ticketAttachmentURL)
+}
+
+const (
+	commitID  = "some-commit"
+	commitURL = "url-of-changeset-commit"
+)
+
+func setUpChangesetLink(t *testing.T) {
+	setUp(t)
+
+	// expect call to get commit URL
+	mockGiteaAccessor.
+		EXPECT().
+		GetCommitURL(gomock.Eq(commitID)).
+		Return(commitURL).
+		AnyTimes()
+}
+
+func TestChangesetLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpChangesetLink,
+		tearDown,
+		"changeset:\""+commitID+"/repository-name\"",
+		commitURL)
+}
+
+const (
+	sourcePath = "path/to/some/source/file"
+	sourceURL  = "url-of-source-file"
+)
+
+func setUpSourceLink(t *testing.T) {
+	setUp(t)
+
+	// expect call to get commit URL
+	mockGiteaAccessor.
+		EXPECT().
+		GetSourceURL(gomock.Eq("master"), gomock.Eq(sourcePath)).
+		Return(sourceURL).
+		AnyTimes()
+}
+
+func TestSourceLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpSourceLink,
+		tearDown,
+		"source:\"repo-name/"+sourcePath+"\"",
+		sourceURL)
 }

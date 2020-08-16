@@ -12,7 +12,7 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 	comment := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s", attachmentName, size, desc)
 	commentID := importer.importTicketComment(issueID, ticketID, time, author, comment)
 
-	tracPath := importer.tracAccessor.GetAttachmentPath(ticketID, attachmentName)
+	tracPath := importer.tracAccessor.GetTicketAttachmentPath(ticketID, attachmentName)
 	_, err := os.Stat(tracPath)
 	if err != nil {
 		log.Fatal(err)

@@ -15,6 +15,9 @@ const (
 	// - these are used to validate that the surround context is left intact
 	leadingText  = "some text"
 	trailingText = "some other text"
+
+	// name of wiki page
+	wikiPage = "SomeWikiPage"
 )
 
 var ctrl *gomock.Controller
@@ -32,8 +35,7 @@ func setUp(t *testing.T) {
 	mockGiteaWikiAccessor = mock_giteawiki.NewMockAccessor(ctrl)
 
 	// create converter to be tested
-	converter = markdown.CreateWikiDefaultConverter(mockTracAccessor, mockGiteaAccessor, mockGiteaWikiAccessor)
-
+	converter = markdown.CreateWikiDefaultConverter(mockTracAccessor, mockGiteaAccessor, mockGiteaWikiAccessor, wikiPage)
 }
 
 func tearDown(t *testing.T) {

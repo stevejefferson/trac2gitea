@@ -32,20 +32,6 @@ func (m *MockAccessor) EXPECT() *MockAccessorMockRecorder {
 	return m.recorder
 }
 
-// GetAttachmentPath mocks base method
-func (m *MockAccessor) GetAttachmentPath(arg0 int64, arg1 string) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAttachmentPath", arg0, arg1)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetAttachmentPath indicates an expected call of GetAttachmentPath
-func (mr *MockAccessorMockRecorder) GetAttachmentPath(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentPath", reflect.TypeOf((*MockAccessor)(nil).GetAttachmentPath), arg0, arg1)
-}
-
 // GetAttachments mocks base method
 func (m *MockAccessor) GetAttachments(arg0 int64, arg1 func(int64, int64, int64, string, string, string)) {
 	m.ctrl.T.Helper()
@@ -176,6 +162,20 @@ func (mr *MockAccessorMockRecorder) GetStringConfig(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStringConfig", reflect.TypeOf((*MockAccessor)(nil).GetStringConfig), arg0, arg1)
 }
 
+// GetTicketAttachmentPath mocks base method
+func (m *MockAccessor) GetTicketAttachmentPath(arg0 int64, arg1 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTicketAttachmentPath", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetTicketAttachmentPath indicates an expected call of GetTicketAttachmentPath
+func (mr *MockAccessorMockRecorder) GetTicketAttachmentPath(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTicketAttachmentPath", reflect.TypeOf((*MockAccessor)(nil).GetTicketAttachmentPath), arg0, arg1)
+}
+
 // GetTickets mocks base method
 func (m *MockAccessor) GetTickets(arg0 func(int64, string, int64, string, string, string, string, string, string, string, string, string, string, string)) {
 	m.ctrl.T.Helper()
@@ -210,6 +210,32 @@ func (m *MockAccessor) GetVersionNames(arg0 func(string)) {
 func (mr *MockAccessorMockRecorder) GetVersionNames(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersionNames", reflect.TypeOf((*MockAccessor)(nil).GetVersionNames), arg0)
+}
+
+// GetWikiAttachmentPath mocks base method
+func (m *MockAccessor) GetWikiAttachmentPath(arg0, arg1 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWikiAttachmentPath", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetWikiAttachmentPath indicates an expected call of GetWikiAttachmentPath
+func (mr *MockAccessorMockRecorder) GetWikiAttachmentPath(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWikiAttachmentPath", reflect.TypeOf((*MockAccessor)(nil).GetWikiAttachmentPath), arg0, arg1)
+}
+
+// GetWikiAttachments mocks base method
+func (m *MockAccessor) GetWikiAttachments(arg0 func(string, string)) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "GetWikiAttachments", arg0)
+}
+
+// GetWikiAttachments indicates an expected call of GetWikiAttachments
+func (mr *MockAccessorMockRecorder) GetWikiAttachments(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWikiAttachments", reflect.TypeOf((*MockAccessor)(nil).GetWikiAttachments), arg0)
 }
 
 // GetWikiPages mocks base method

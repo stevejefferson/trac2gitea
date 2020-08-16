@@ -55,6 +55,9 @@ type Accessor interface {
 	// SetIssueUpdateTime sets the update time on a given Gitea issue.
 	SetIssueUpdateTime(issueID int64, updateTime int64)
 
+	// GetIssueURL retrieves a URL for viewing a given issue
+	GetIssueURL(issueID int64) string
+
 	/*
 	 * Issue Labels
 	 */

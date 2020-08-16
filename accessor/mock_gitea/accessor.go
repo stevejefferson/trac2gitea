@@ -221,6 +221,20 @@ func (mr *MockAccessorMockRecorder) GetIssueID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueID", reflect.TypeOf((*MockAccessor)(nil).GetIssueID), arg0)
 }
 
+// GetIssueURL mocks base method
+func (m *MockAccessor) GetIssueURL(arg0 int64) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIssueURL", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetIssueURL indicates an expected call of GetIssueURL
+func (mr *MockAccessorMockRecorder) GetIssueURL(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueURL", reflect.TypeOf((*MockAccessor)(nil).GetIssueURL), arg0)
+}
+
 // GetMilestoneID mocks base method
 func (m *MockAccessor) GetMilestoneID(arg0 string) int64 {
 	m.ctrl.T.Helper()

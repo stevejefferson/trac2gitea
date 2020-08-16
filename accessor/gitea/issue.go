@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"database/sql"
+	"fmt"
 
 	"stevejefferson.co.uk/trac2gitea/log"
 )
@@ -55,4 +56,10 @@ func (accessor *DefaultAccessor) SetIssueUpdateTime(issueID int64, updateTime in
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// GetIssueURL retrieves a URL for viewing a given issue
+func (accessor *DefaultAccessor) GetIssueURL(issueID int64) string {
+	repoURL := accessor.getUserRepoURL()
+	return fmt.Sprintf("%s/issues/%d", repoURL, issueID)
 }

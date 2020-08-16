@@ -9,9 +9,6 @@ import (
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64)) {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
-	// SELECT w1.name, w1.text, w1.author, w1.comment, w1.version, CAST(w1.time*1e-6 AS int8)
-	// 	FROM wiki w1
-	// 	WHERE w1.version = (SELECT MAX(w2.version) FROM wiki w2 WHERE w1.name = w2.name)`)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,6 +30,24 @@ func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(pageName string, pa
 		}
 
 		handlerFn(pageName, pageText, author, comment, version, updateTime)
+	}
+}
+
+// GetWikiAttachments retrieves all Trac wiki page attachments, passing data from each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string)) {
+	rows, err := accessor.db.Query(`SELECT id, filename FROM attachment WHERE type = 'wiki'`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for rows.Next() {
+		var pageName string
+		var filename string
+		if err := rows.Scan(&pageName, &filename); err != nil {
+			log.Fatal(err)
+		}
+
+		handlerFn(pageName, filename)
 	}
 }
 
