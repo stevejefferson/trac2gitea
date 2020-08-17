@@ -238,7 +238,12 @@ func (converter *DefaultConverter) convertBrackettedTracLinks(in string) string 
 		// - if we convert directly to markdown here, the "[<text>]" part of the markdown will get misinterpreted as a Trac single bracket link
 		link := doubleBracketLinkRegexp.ReplaceAllString(match, "$1")
 		text := doubleBracketLinkRegexp.ReplaceAllString(match, "$2")
+
 		if text == "" {
+			// special case: '[[br]]' is a page break in Trac and is dealt with elsewhere
+			if strings.EqualFold(link, "br") {
+				return match
+			}
 			return "[" + link + "]"
 		}
 
@@ -249,6 +254,12 @@ func (converter *DefaultConverter) convertBrackettedTracLinks(in string) string 
 		// convert Trac single bracket links to markdown but leave the link unprocessed; it will get dealt with later
 		link := singleBracketLinkRegexp.ReplaceAllString(match, "$1")
 		text := singleBracketLinkRegexp.ReplaceAllString(match, "$2")
+
+		// special case: '[br]' can be assumed to be the inner section of a '[[br]]' and is a page break in Trac which is dealt with elsewhere
+		if text == "" && strings.EqualFold(link, "br") {
+			return match
+		}
+
 		return "[" + text + "]" + link
 	})
 
