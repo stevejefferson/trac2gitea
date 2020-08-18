@@ -126,11 +126,11 @@ type Accessor interface {
 	// CloneWiki clones the wiki repo.
 	CloneWiki()
 
-	// WikiCommit commits any files added or updated since the last commit to our cloned wiki repo.
-	WikiCommit(author string, authorEMail string, message string)
+	// CommitWiki commits any files added or updated since the last commit to our cloned wiki repo.
+	CommitWiki(author string, authorEMail string, message string)
 
-	// WikiComplete indicates that changes to the local wiki repository are complete.
-	WikiComplete()
+	// PushWiki pushes all changes to the local wiki repository back to the remote.
+	PushWiki()
 
 	// CopyFileToWiki copies an external file into the local clone of the Gitea Wiki
 	CopyFileToWiki(externalFilePath string, giteaWikiRelPath string)

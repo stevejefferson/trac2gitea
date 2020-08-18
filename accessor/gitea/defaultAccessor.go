@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"stevejefferson.co.uk/trac2gitea/log"
 
@@ -121,11 +120,7 @@ func CreateDefaultAccessor(
 
 	// find URL from which clone wiki
 	if giteaWikiRepoURL == "" {
-		serverRootURL := giteaAccessor.GetStringConfig("server", "ROOT_URL")
-		if !strings.HasSuffix(serverRootURL, "/") {
-			serverRootURL = serverRootURL + "/"
-		}
-		giteaWikiRepoURL = serverRootURL + wikiRepoName + ".git"
+		giteaWikiRepoURL = giteaAccessor.getUserRepoURL() + ".git"
 	}
 	giteaAccessor.wikiRepoURL = giteaWikiRepoURL
 

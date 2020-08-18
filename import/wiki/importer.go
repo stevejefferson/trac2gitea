@@ -90,6 +90,6 @@ func (importer *Importer) importWikiPages() {
 		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s by Trac user %s]\n",
 			comment, translatedPageName, version, updateTimeStr, author)
 		importer.giteaAccessor.WikiCommit(giteaAuthor, giteaAuthorEMail, comment)
-		log.Infof("Wiki page %s: wrote version %d to repository\n", translatedPageName, version)
+		log.Infof("Wiki page %s: converted trac version %d\n", translatedPageName, version)
 	})
 }

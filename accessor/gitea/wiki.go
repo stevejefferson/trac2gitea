@@ -25,6 +25,7 @@ func (accessor *DefaultAccessor) GetWikiHtdocRelPath(filename string) string {
 
 // GetWikiFileURL returns a URL for viewing a file stored in the Gitea wiki repository.
 func (accessor *DefaultAccessor) GetWikiFileURL(relpath string) string {
+	//FIXME: we want a path to the "raw" wiki repository here - this is my best guess at what this should be but sadly it does not work
 	return "../raw/" + relpath
 }
 
@@ -42,10 +43,10 @@ func (accessor *DefaultAccessor) CloneWiki() {
 	accessor.wikiRepo = repository
 }
 
-// WikiCommit stages any files added or updated since the last commit then commits them to our cloned wiki repo.
+// CommitWiki stages any files added or updated since the last commit then commits them to our cloned wiki repo.
 // We package the staging and commit together here because it is easier than embedding hooks to do the git staging
 // deep into the wiki parsing process where files from the Trac worksapce can get copied over on-the-fly.
-func (accessor *DefaultAccessor) WikiCommit(author string, authorEMail string, message string) {
+func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, message string) {
 	worktree, err := accessor.wikiRepo.Worktree()
 	if err != nil {
 		log.Fatal(err)
@@ -75,10 +76,23 @@ func (accessor *DefaultAccessor) WikiCommit(author string, authorEMail string, m
 	}
 }
 
-// WikiComplete indicates that changes to the local wiki repository are complete.
-// In an ideal world we would push back to the remote here
-// however, as I haven't worked out how to do the authentication for that yet, we just output a message telling the user to do it.
-func (accessor *DefaultAccessor) WikiComplete() {
+// PushWiki pushes all changes to the local wiki repository back to the remote.
+func (accessor *DefaultAccessor) PushWiki() {
+	// TODO: not working yet
+
+	// auth := &http.BasicAuth{
+	// 	Username: accessor.userName,
+	// 	Password: "[git_basic_auth_token]",
+	// }
+
+	// err := accessor.wikiRepo.Push(&git.PushOptions{
+	// 	RemoteName: "origin",
+	// 	Auth:       auth,
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	log.Infof("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
 		accessor.wikiRepoDir)
 }
