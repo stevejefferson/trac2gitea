@@ -68,13 +68,13 @@ const (
 
 func verifyAllLinkTypes(t *testing.T, setUpFn func(t *testing.T), tearDownFn func(t *testing.T), tracLinkStr string, markdownLinkStr string) {
 	verifyLink(t, setUpFn, tearDownFn, tracPlainLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
-	// verifyLink(t, setUpFn, tearDownFn, tracSingleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
-	// verifyLink(t, setUpFn, tearDownFn, tracSingleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
-	// verifyLink(t, setUpFn, tearDownFn, tracDoubleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
-	// verifyLink(t, setUpFn, tearDownFn, tracDoubleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
-	// verifyLink(t, setUpFn, tearDownFn, tracImage(tracLinkStr), markdownImage(markdownLinkStr))
-	// verifyLink(t, setUpFn, tearDownFn, tracImageWithLink(tracLinkStr, additionalImageLink), markdownImageWithLink(markdownLinkStr, additionalImageLink))
-	// verifyLink(t, setUpFn, tearDownFn, tracImageWithLink(additionalImageLink, tracLinkStr), markdownImageWithLink(additionalImageLink, markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, tracSingleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, tracSingleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
+	verifyLink(t, setUpFn, tearDownFn, tracDoubleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, tracDoubleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
+	verifyLink(t, setUpFn, tearDownFn, tracImage(tracLinkStr), markdownImage(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, tracImageWithLink(tracLinkStr, additionalImageLink), markdownImageWithLink(markdownLinkStr, additionalImageLink))
+	verifyLink(t, setUpFn, tearDownFn, tracImageWithLink(additionalImageLink, tracLinkStr), markdownImageWithLink(additionalImageLink, markdownLinkStr))
 }
 
 const httpLink = "http://www.example.com"
@@ -169,6 +169,26 @@ func TestWikiPrefixedLink(t *testing.T) {
 		tearDown,
 		"wiki:"+wikiPageName,
 		transformedWikiPageName)
+}
+
+const wikiPageAnchor = "page-anchor"
+
+func TestWikiUnprefixedLinkWithAnchor(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpWikiLink,
+		tearDown,
+		wikiPageName+"#"+wikiPageAnchor,
+		transformedWikiPageName+"#"+wikiPageAnchor)
+}
+
+func TestWikiPrefixedLinkWithAnchor(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpWikiLink,
+		tearDown,
+		"wiki:"+wikiPageName+"#"+wikiPageAnchor,
+		transformedWikiPageName+"#"+wikiPageAnchor)
 }
 
 const (

@@ -10,7 +10,7 @@ import (
 
 var (
 	// regexp for trac '[[Image(<image>...,link=<link>)]]': $1=image, $2=link
-	doubleBracketImageLinkRegexp = regexp.MustCompile(`\[\[Image\(([^,)]+)(?:, *link=([[:alnum:]\-._~:/?#@!$&'(*+;%=]+))?[^\]]*\]\]`)
+	doubleBracketImageLinkRegexp = regexp.MustCompile(`\[\[Image\(([^,)]+)(?:, *link=([[:alnum:]\-._~:/?#@!$&'"(*+;%=]+))?[^\]]*\]\]`)
 
 	// regexp for trac '[[<link>]]' and '[[<link>|<text>]]': $1=link, $2=text
 	doubleBracketLinkRegexp = regexp.MustCompile(`\[\[([[:alpha:]][^|\]]*)(?:\|([^\]]+))?\]\]`)
@@ -20,47 +20,43 @@ var (
 	singleBracketLinkRegexp = regexp.MustCompile(`\[([[:alpha:]][^ \]]*)(?: +([^\]]+))?\]`)
 
 	// regexp for 'http://...' and 'https://...' links
-	httpLinkRegexp = regexp.MustCompile(`https?://[[:alnum:]\-._~:/?#@!$&'()*+,;%=]+`)
+	httpLinkRegexp = regexp.MustCompile(`https?://[[:alnum:]\-._~:/?#@!$&'"()*+,;%=]+`)
 
 	// regexp for trac 'htdocs:<link>': $1=link
-	htdocsLinkRegexp = regexp.MustCompile(`htdocs:([[:alnum:]\-._~:/?#@!$&'()*+,;%=]+)`)
-
-	// regexp for trac '<CamelCase>' wiki links: $1=leading char, $2=CamelCase
-	// note: leading char (if any) must be a space or ']'
-	//       - a space constitutes a "start of word" for an unbracketted CamelCase link,
-	//       - a ']' constitutes the end of the link comment after conversion of the various trac bracketting syntaxes above
-	wikiCamelCaseLinkRegexp = regexp.MustCompile(`([[:space:]\]]|\A)((?:[[:upper:]][[:lower:]]+){2,})`)
-
-	// regexp for trac 'wiki:<CamelCase>' links: $1=leading text, $2=CamelCase
-	// notes: 1. rules on what constitutes "CamelCase" are more lax than for plain <CamelCase> variant
-	//        2. leading char is used to exclude a leading ':' and so avoid confusion with wiki page attachment links
-	wikiLinkRegexp = regexp.MustCompile(`([^:])wiki:((?:[[:upper:]][[:lower:]]*)+)`)
-
-	// regexp for a trac 'ticket:<ticketID>' link: $1=leading char, $2=ticketID
-	// note: leading char is used to exclude a leading ':' and so avoid confusion with ticket comment and attachment links
-	ticketLinkRegexp = regexp.MustCompile(`([^:])ticket:([[:digit:]]+)`)
+	htdocsLinkRegexp = regexp.MustCompile(`htdocs:([[:alnum:]\-._~:/?#@!$&'"()*+,;%=]+)`)
 
 	// regexp for a trac  'comment:<commentNum>:ticket:<ticketID>' link: $1=commentNum, $2=ticketID
 	ticketCommentLinkRegexp = regexp.MustCompile(`comment:([[:digit:]]+):ticket:([[:digit:]]+)`)
 
 	// regexp for a trac 'milestone:<milestoneName>' link: $1=milestoneName
-	milestoneLinkRegexp = regexp.MustCompile(`milestone:([[:alnum:]\-._~:/?#@!$&'()*+,;%=]+)`)
+	milestoneLinkRegexp = regexp.MustCompile(`milestone:([[:alnum:]\-._~:/?#@!$&'"()*+,;%=]+)`)
 
-	// regexp for a trac 'attachment:<attachmentName>' link: $1=attachmentName, $2=trailing char
-	// note: trailing char is used to exclude a trailing ':' and so avoid confusion with explict wiki page and with ticket attachments
-	attachmentLinkRegexp = regexp.MustCompile(`attachment:([[:alnum:]\-._~/?#@!$&'()*+,;%=]+)([^\:])`)
-
-	// regexp for a trac 'attachment:<attachmentName>:wiki:<pageName>' link: $1=attachmentName, $2=pageName
-	wikiAttachmentLinkRegexp = regexp.MustCompile(`attachment:([[:alnum:]\-._~/?#@!$&'()*+,;%=]+):wiki:((?:[[:upper:]][[:lower:]]*)+)`)
-
-	// regexp for a trac 'attachment:<attachmentName>:ticket:<ticketID>' link: $1=attachmentName, $2=ticketID
-	ticketAttachmentLinkRegexp = regexp.MustCompile(`attachment:([[:alnum:]\-._~/?#@!$&'()*+,;%=]+):ticket:([[:digit:]]+)`)
+	// regexp for a trac 'attachment:<file>', 'attachment:<file>:wiki:<pageName>' and 'attachment:<file>:ticket:<ticketID>' links: $1=file, $2=pageName, $3=ticketID
+	attachmentLinkRegexp = regexp.MustCompile(
+		`attachment:([[:alnum:]\-._~/?#@!$&'"()*+,;%=]+)` +
+			`(?:` +
+			`(?::wiki:((?:[[:upper:]][[:lower:]]*)+))|` +
+			`(?::ticket:([[:digit:]]+))` +
+			`)?`)
 
 	// regexp for a trac 'changeset:<changesetID>' link: $1=commitID
 	changesetLinkRegexp = regexp.MustCompile(`changeset:"([[:xdigit:]]+)/[^"]+"`)
 
 	// regexp for a trac 'source:<sourcePath>' link: $1=sourcePath
 	sourceLinkRegexp = regexp.MustCompile(`source:"[^/]+/([^"]+)"`)
+
+	// regexp for a trac 'ticket:<ticketID>' link: $1=ticketID
+	ticketLinkRegexp = regexp.MustCompile(`ticket:([[:digit:]]+)`)
+
+	// regexp for trac 'wiki:<CamelCase>#<anchor>' links: $1=CamelCase $2=anchor
+	// note: rules on what constitutes "CamelCase" are more lax than for plain <CamelCase> variant
+	wikiLinkRegexp = regexp.MustCompile(`wiki:((?:[[:upper:]][[:lower:]]*)+)(?:#([[:alnum:]?/:@\-._\~!$&'()*+,;=]+))?`)
+
+	// regexp for trac '<CamelCase>#anchor' wiki links: $1=leading char, $2=CamelCase $3=anchor
+	// note: leading char (if any) must be a space or ']'
+	//       - a space constitutes a "start of word" for an "standalone", unbracketted CamelCase link,
+	//       - a ']' constitutes the end of the link comment after conversion of the various trac bracketting syntaxes above
+	wikiCamelCaseLinkRegexp = regexp.MustCompile(`([[:space:]\]]|\A)((?:[[:upper:]][[:lower:]]+){2,})(?:#([[:alnum:]?/:@\-._\~!$&'()*+,;=]+))?`)
 
 	// regexp for recognising a "marked" link with no accompanying text: $1=leading chars, $2=link
 	noTextMarkedLinkRegexp = regexp.MustCompile(`((?:[^!]\[\])|[^\]])\(@@([^@]+)@@\)`)
@@ -85,40 +81,6 @@ func (converter *DefaultConverter) resolveHtdocsLink(link string) string {
 	converter.giteaAccessor.CopyFileToWiki(tracHtdocPath, wikiHtdocRelPath)
 	wikiHtdocURL := converter.giteaAccessor.GetWikiFileURL(wikiHtdocRelPath)
 	return markLink(wikiHtdocURL)
-}
-
-func (converter *DefaultConverter) resolveWikiCamelCaseLink(link string) string {
-	leadingChar := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$1`)
-	wikiPageName := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$2`)
-	translatedPageName := converter.giteaAccessor.TranslateWikiPageName(wikiPageName)
-	return leadingChar + markLink(translatedPageName)
-}
-
-func (converter *DefaultConverter) resolveWikiLink(link string) string {
-	leadingChar := wikiLinkRegexp.ReplaceAllString(link, `$1`)
-	wikiPageName := wikiLinkRegexp.ReplaceAllString(link, `$2`)
-	translatedPageName := converter.giteaAccessor.TranslateWikiPageName(wikiPageName)
-	return leadingChar + markLink(translatedPageName)
-}
-
-func (converter *DefaultConverter) resolveTicketLink(link string) string {
-	leadingChar := ticketLinkRegexp.ReplaceAllString(link, `$1`)
-	ticketIDStr := ticketLinkRegexp.ReplaceAllString(link, `$2`)
-	ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
-	if err != nil {
-		log.Warnf("found invalid Trac ticket reference %s\n" + link)
-		return link // not a recognised link - do not mark
-	}
-
-	// validate ticket id
-	issueID := converter.giteaAccessor.GetIssueID(ticketID)
-	if issueID == -1 {
-		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
-		return link // not a recognised link - do not mark
-	}
-
-	issueURL := converter.giteaAccessor.GetIssueURL(issueID)
-	return leadingChar + markLink(issueURL)
 }
 
 func (converter *DefaultConverter) resolveTicketCommentLink(link string) string {
@@ -165,46 +127,40 @@ func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 
 func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
-	trailingChars := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
+	wikiPage := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
+	ticketIDStr := attachmentLinkRegexp.ReplaceAllString(link, `$3`)
 
-	attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(converter.wikiPage, attachmentName)
-	attachmentWikiURL := converter.giteaAccessor.GetWikiFileURL(attachmentWikiRelPath)
+	// there are two types of attachment: ticket attachments and wiki attachments...
+	var attachmentURL string
+	if ticketIDStr != "" {
+		var ticketID int64
+		ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	return markLink(attachmentWikiURL) + trailingChars
-}
+		issueID := converter.giteaAccessor.GetIssueID(ticketID)
+		if issueID == -1 {
+			log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+			return link // not a recognised link - do not mark
+		}
 
-func (converter *DefaultConverter) resolveWikiAttachmentLink(link string) string {
-	attachmentName := wikiAttachmentLinkRegexp.ReplaceAllString(link, `$1`)
-	wikiPageName := wikiAttachmentLinkRegexp.ReplaceAllString(link, `$2`)
+		uuid := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
+		if uuid == "" {
+			log.Warnf("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"\n", attachmentName, issueID, link)
+			return link // not a recognised link - do not mark
+		}
 
-	attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(wikiPageName, attachmentName)
-	attachmentWikiURL := converter.giteaAccessor.GetWikiFileURL(attachmentWikiRelPath)
+		attachmentURL = converter.giteaAccessor.GetAttachmentURL(uuid)
+	} else {
+		if wikiPage == "" {
+			wikiPage = converter.wikiPage
+		}
 
-	return markLink(attachmentWikiURL)
-}
-
-func (converter *DefaultConverter) resolveTicketAttachmentLink(link string) string {
-	attachmentName := ticketAttachmentLinkRegexp.ReplaceAllString(link, `$1`)
-	ticketIDStr := ticketAttachmentLinkRegexp.ReplaceAllString(link, `$2`)
-	var ticketID int64
-	ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
-	if err != nil {
-		log.Fatal(err)
+		attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(wikiPage, attachmentName)
+		attachmentURL = converter.giteaAccessor.GetWikiFileURL(attachmentWikiRelPath)
 	}
 
-	issueID := converter.giteaAccessor.GetIssueID(ticketID)
-	if issueID == -1 {
-		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
-		return link // not a recognised link - do not mark
-	}
-
-	uuid := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
-	if uuid == "" {
-		log.Warnf("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"\n", attachmentName, issueID, link)
-		return link // not a recognised link - do not mark
-	}
-
-	attachmentURL := converter.giteaAccessor.GetAttachmentURL(uuid)
 	return markLink(attachmentURL)
 }
 
@@ -218,6 +174,46 @@ func (converter *DefaultConverter) resolveSourceLink(link string) string {
 	sourcePath := sourceLinkRegexp.ReplaceAllString(link, `$1`)
 	sourceURL := converter.giteaAccessor.GetSourceURL("master", sourcePath) // AFAICT Trac source URL does not include the git branch so we'll assume "master"
 	return markLink(sourceURL)
+}
+
+func (converter *DefaultConverter) resolveTicketLink(link string) string {
+	ticketIDStr := ticketLinkRegexp.ReplaceAllString(link, `$1`)
+	ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
+	if err != nil {
+		log.Warnf("found invalid Trac ticket reference %s\n" + link)
+		return link // not a recognised link - do not mark
+	}
+
+	// validate ticket id
+	issueID := converter.giteaAccessor.GetIssueID(ticketID)
+	if issueID == -1 {
+		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		return link // not a recognised link - do not mark
+	}
+
+	issueURL := converter.giteaAccessor.GetIssueURL(issueID)
+	return markLink(issueURL)
+}
+
+func (converter *DefaultConverter) resolveWikiLink(link string) string {
+	wikiPageName := wikiLinkRegexp.ReplaceAllString(link, `$1`)
+	wikiPageAnchor := wikiLinkRegexp.ReplaceAllString(link, `$2`)
+	translatedPageName := converter.giteaAccessor.TranslateWikiPageName(wikiPageName)
+	if wikiPageAnchor == "" {
+		return markLink(translatedPageName)
+	}
+	return markLink(translatedPageName + "#" + wikiPageAnchor)
+}
+
+func (converter *DefaultConverter) resolveWikiCamelCaseLink(link string) string {
+	leadingChar := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$1`)
+	wikiPageName := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$2`)
+	wikiPageAnchor := wikiCamelCaseLinkRegexp.ReplaceAllString(link, `$3`)
+	translatedPageName := converter.giteaAccessor.TranslateWikiPageName(wikiPageName)
+	if wikiPageAnchor == "" {
+		return leadingChar + markLink(translatedPageName)
+	}
+	return leadingChar + markLink(translatedPageName+"#"+wikiPageAnchor)
 }
 
 // convertBrackettedTracLinks converts the various forms of (square) bracketted Trac links into an unbracketted form.
@@ -282,18 +278,6 @@ func (converter *DefaultConverter) convertUnbrackettedTracLinks(in string) strin
 		return converter.resolveHtdocsLink(match)
 	})
 
-	out = wikiCamelCaseLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveWikiCamelCaseLink(match)
-	})
-
-	out = wikiLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveWikiLink(match)
-	})
-
-	out = ticketLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveTicketLink(match)
-	})
-
 	out = ticketCommentLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		return converter.resolveTicketCommentLink(match)
 	})
@@ -306,20 +290,26 @@ func (converter *DefaultConverter) convertUnbrackettedTracLinks(in string) strin
 		return converter.resolveAttachmentLink(match)
 	})
 
-	out = wikiAttachmentLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveWikiAttachmentLink(match)
-	})
-
-	out = ticketAttachmentLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveTicketAttachmentLink(match)
-	})
-
 	out = changesetLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		return converter.resolveChangesetLink(match)
 	})
 
 	out = sourceLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		return converter.resolveSourceLink(match)
+	})
+
+	// trac 'ticket:<ticketID>' and 'wiki:<pageName>' links can form suffixes to other trac links like attachments
+	// so only process a standalone ticket of wiki link after we have handled the suffix cases above
+	out = ticketLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
+		return converter.resolveTicketLink(match)
+	})
+
+	out = wikiLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
+		return converter.resolveWikiLink(match)
+	})
+
+	out = wikiCamelCaseLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
+		return converter.resolveWikiCamelCaseLink(match)
 	})
 
 	return out
