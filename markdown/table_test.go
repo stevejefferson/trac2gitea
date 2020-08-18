@@ -102,3 +102,17 @@ func TestMultiRowTableWithCrazyHeadings(t *testing.T) {
 	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
 }
+
+func TestComplexTable(t *testing.T) {
+	setUp(t)
+	defer tearDown(t)
+
+	tracTable := "||[=#anchor][[Image(htdocs:image.jpg, 128px, link=http://www.example.com)]]" +
+		"||(Some !TextThatsNotALink) text" +
+		"[[br]][[br]]`code`" +
+		"[[br]][[br]]Text: `morecode`, `yetmorecode`" +
+		"[[br]][[br]]Another line of text.[[br]]Final Line of text.||"
+	markdownTable := "|[](#anchor)"
+	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
+	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
+}

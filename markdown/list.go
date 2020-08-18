@@ -3,33 +3,40 @@ package markdown
 import (
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 var romanNumerals = []string{"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx"}
 
 // Numbered and bulleted Trac lists translate directly to markdown without translation .
-// Therefore we only need to translate lettered lists ('a.', 'b.', ...) amd roman-numbered lists ('i.', 'ii.', 'iv.' etc.).
-// Due to the vaguaries of regular expressions be only handle lettered lists from 'a.' to 'h.'
+// Therefore we only need to translate lettered lists ('a.', 'b.', ...) and roman-numbered lists ('i.', 'ii.', 'iv.' etc.).
+// Due to the vaguaries of regular expressions we only handle lettered lists from 'a.' to 'h.'
 // since 'i.' clashes with the roman-numbered case and is more likely to be the latter.
 // For roman lists we do not police the actual numerals in the regexp - too painful.
-var letteredListRegexp = regexp.MustCompile(`[a-h]\. [^\n]+`)
-var romanNumberedListRegexp = regexp.MustCompile(`[ivx]+\. ([^\n]+)`)
+
+// Regexp for lettered lists: $1=leading white space, $2=letter $3=trailing text
+var letteredListRegexp = regexp.MustCompile(`(?m)^([[:blank:]]*)([a-h])\.([^\n]+)$`)
+
+// Regexp for roman lists: $1=leading white space, $2=roman numerals $3=trailing text
+var romanNumberedListRegexp = regexp.MustCompile(`(?m)^([[:blank:]]*)([ivx]+)\.([^\n]+)$`)
 
 func (converter *DefaultConverter) convertLists(in string) string {
 	out := in
 
 	out = letteredListRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		letterNum := match[0] - 'a' + 1 // 'a' => 1, 'b' => 2 etc
-		return fmt.Sprintf("%d%s", letterNum, match[1:])
+		leadingSpace := letteredListRegexp.ReplaceAllString(match, `$1`)
+		letter := letteredListRegexp.ReplaceAllString(match, `$2`)
+		trailingText := letteredListRegexp.ReplaceAllString(match, `$3`)
+		letterNum := letter[0] - 'a' + 1 // 'a' => 1, 'b' => 2 etc
+		return fmt.Sprintf("%s%d.%s", leadingSpace, letterNum, trailingText)
 	})
 
 	out = romanNumberedListRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		dotPos := strings.Index(match, ".")
-		romanNumeral := match[0:dotPos]
-		for i := 0; i < len(romanNumerals); i++ {
-			if romanNumerals[i] == romanNumeral {
-				return fmt.Sprintf("%d%s", i+1, match[dotPos:])
+		leadingSpace := romanNumberedListRegexp.ReplaceAllString(match, `$1`)
+		roman := romanNumberedListRegexp.ReplaceAllString(match, `$2`)
+		trailingText := romanNumberedListRegexp.ReplaceAllString(match, `$3`)
+		for romanIndex := 0; romanIndex < len(romanNumerals); romanIndex++ {
+			if romanNumerals[romanIndex] == roman {
+				return fmt.Sprintf("%s%d.%s", leadingSpace, romanIndex+1, trailingText)
 			}
 		}
 

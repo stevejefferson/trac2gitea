@@ -112,9 +112,32 @@ type Accessor interface {
 	/*
 	 * Wiki
 	 */
-	// GetWikiRepoName retrieves the name of the wiki repo associated with the current project.
-	GetWikiRepoName() string
+	// GetWikiAttachmentRelPath returns the location of an attachment to Trac a wiki page when stored in the Gitea wiki repository.
+	// The returned path is relative to the root of the Gitea wiki repository.
+	GetWikiAttachmentRelPath(pageName string, filename string) string
 
-	// GetWikiRepoURL retrieves the URL of the wiki repo associated with the current project.
-	GetWikiRepoURL() string
+	// GetWikiHtdocRelPath returns the location of a given Trac 'htdocs' file when stored in the Gitea wiki repository.
+	// The returned path is relative to the root of the Gitea wiki repository.
+	GetWikiHtdocRelPath(filename string) string
+
+	// GetWikiFileURL returns a URL for viewing a file stored in the Gitea wiki repository.
+	GetWikiFileURL(relpath string) string
+
+	// CloneWiki clones the wiki repo.
+	CloneWiki()
+
+	// WikiCommit commits any files added or updated since the last commit to our cloned wiki repo.
+	WikiCommit(author string, authorEMail string, message string)
+
+	// WikiComplete indicates that changes to the local wiki repository are complete.
+	WikiComplete()
+
+	// CopyFileToWiki copies an external file into the local clone of the Gitea Wiki
+	CopyFileToWiki(externalFilePath string, giteaWikiRelPath string)
+
+	// WriteWikiPage writes (a version of) a wiki page to the local clone of the wiki repository, returning the path to the written file.
+	WriteWikiPage(pageName string, markdownText string) string
+
+	// TranslateWikiPageName translates a Trac wiki page name into a Gitea one
+	TranslateWikiPageName(pageName string) string
 }

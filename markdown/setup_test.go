@@ -5,7 +5,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"stevejefferson.co.uk/trac2gitea/accessor/mock_gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/mock_giteawiki"
 	"stevejefferson.co.uk/trac2gitea/accessor/mock_trac"
 	"stevejefferson.co.uk/trac2gitea/markdown"
 )
@@ -24,7 +23,6 @@ var ctrl *gomock.Controller
 var converter *markdown.DefaultConverter
 var mockTracAccessor *mock_trac.MockAccessor
 var mockGiteaAccessor *mock_gitea.MockAccessor
-var mockGiteaWikiAccessor *mock_giteawiki.MockAccessor
 
 func setUp(t *testing.T) {
 	ctrl = gomock.NewController(t)
@@ -32,10 +30,9 @@ func setUp(t *testing.T) {
 	// create mock accessors
 	mockTracAccessor = mock_trac.NewMockAccessor(ctrl)
 	mockGiteaAccessor = mock_gitea.NewMockAccessor(ctrl)
-	mockGiteaWikiAccessor = mock_giteawiki.NewMockAccessor(ctrl)
 
 	// create converter to be tested
-	converter = markdown.CreateWikiDefaultConverter(mockTracAccessor, mockGiteaAccessor, mockGiteaWikiAccessor, wikiPage)
+	converter = markdown.CreateWikiDefaultConverter(mockTracAccessor, mockGiteaAccessor, wikiPage)
 }
 
 func tearDown(t *testing.T) {

@@ -4,11 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"stevejefferson.co.uk/trac2gitea/log"
 
 	"github.com/go-ini/ini"
 	_ "github.com/mattn/go-sqlite3" // sqlite database driver
+	"gopkg.in/src-d/go-git.v4"
 )
 
 // DefaultAccessor is the default implementation of the gitea Accessor interface, accessing Gitea directly via its database and filestore.
@@ -22,6 +25,9 @@ type DefaultAccessor struct {
 	repoID            int64
 	defaultAssigneeID int64
 	defaultAuthorID   int64
+	wikiRepoURL       string
+	wikiRepoDir       string
+	wikiRepo          *git.Repository
 }
 
 func fetchConfig(configPath string) *ini.File {
@@ -39,7 +45,14 @@ func fetchConfig(configPath string) *ini.File {
 }
 
 // CreateDefaultAccessor returns a new Gitea default accessor.
-func CreateDefaultAccessor(giteaRootDir string, giteaUserName string, giteaRepoName string, defaultAssignee string, defaultAuthor string) *DefaultAccessor {
+func CreateDefaultAccessor(
+	giteaRootDir string,
+	giteaUserName string,
+	giteaRepoName string,
+	giteaWikiRepoURL string,
+	giteaWikiRepoDir string,
+	defaultAssignee string,
+	defaultAuthor string) *DefaultAccessor {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
 		log.Fatal(err)
@@ -65,7 +78,10 @@ func CreateDefaultAccessor(giteaRootDir string, giteaUserName string, giteaRepoN
 		repoName:          giteaRepoName,
 		repoID:            0,
 		defaultAssigneeID: 0,
-		defaultAuthorID:   0}
+		defaultAuthorID:   0,
+		wikiRepoURL:       "",
+		wikiRepoDir:       "",
+		wikiRepo:          nil}
 
 	// extract path to gitea DB - currently sqlite-specific...
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
@@ -83,12 +99,35 @@ func CreateDefaultAccessor(giteaRootDir string, giteaUserName string, giteaRepoN
 	}
 	giteaAccessor.repoID = giteaRepoID
 
+	// work out user ids
 	adminUserID := giteaAccessor.getAdminUserID()
 	giteaDefaultAssigneeID := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
 	giteaAccessor.defaultAssigneeID = giteaDefaultAssigneeID
 
 	giteaDefaultAuthorID := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
 	giteaAccessor.defaultAuthorID = giteaDefaultAuthorID
+
+	// find directory into which to clone wiki
+	wikiRepoName := giteaUserName + "/" + giteaRepoName + ".wiki"
+	if giteaWikiRepoDir == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
+	}
+	giteaAccessor.wikiRepoDir = giteaWikiRepoDir
+
+	// find URL from which clone wiki
+	if giteaWikiRepoURL == "" {
+		serverRootURL := giteaAccessor.GetStringConfig("server", "ROOT_URL")
+		if !strings.HasSuffix(serverRootURL, "/") {
+			serverRootURL = serverRootURL + "/"
+		}
+		giteaWikiRepoURL = serverRootURL + wikiRepoName + ".git"
+	}
+	giteaAccessor.wikiRepoURL = giteaWikiRepoURL
 
 	return &giteaAccessor
 }

@@ -7,7 +7,6 @@ import (
 	"stevejefferson.co.uk/trac2gitea/log"
 
 	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/giteawiki"
 	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 	"stevejefferson.co.uk/trac2gitea/markdown"
 )
@@ -16,7 +15,6 @@ import (
 type Importer struct {
 	tracAccessor          trac.Accessor
 	giteaAccessor         gitea.Accessor
-	wikiAccessor          giteawiki.Accessor
 	defaultPageOwner      string
 	defaultPageOwnerEMail string
 	convertPredefineds    bool
@@ -26,7 +24,6 @@ type Importer struct {
 func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
-	wAccessor giteawiki.Accessor,
 	dfltPageOwner string,
 	convertPredefs bool) *Importer {
 
@@ -37,7 +34,6 @@ func CreateImporter(
 	dfltPageOwnerEMail := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
 
 	importer := Importer{
-		wikiAccessor:          wAccessor,
 		tracAccessor:          tAccessor,
 		giteaAccessor:         gAccessor,
 		defaultPageOwner:      dfltPageOwner,
@@ -48,19 +44,19 @@ func CreateImporter(
 
 // ImportWiki imports a Trac wiki into a Gitea wiki repository.
 func (importer *Importer) ImportWiki() {
-	importer.wikiAccessor.RepoClone()
+	importer.giteaAccessor.CloneWiki()
 
 	importer.importWikiAttachments()
 	importer.importWikiPages()
 
-	importer.wikiAccessor.RepoComplete()
+	importer.giteaAccessor.WikiComplete()
 }
 
 func (importer *Importer) importWikiAttachments() {
 	importer.tracAccessor.GetWikiAttachments(func(pageName string, filename string) {
 		tracAttachmentPath := importer.tracAccessor.GetWikiAttachmentPath(pageName, filename)
-		giteaAttachmentPath := importer.wikiAccessor.GetAttachmentRelPath(pageName, filename)
-		importer.wikiAccessor.CopyFile(tracAttachmentPath, giteaAttachmentPath)
+		giteaAttachmentPath := importer.giteaAccessor.GetWikiAttachmentRelPath(pageName, filename)
+		importer.giteaAccessor.CopyFileToWiki(tracAttachmentPath, giteaAttachmentPath)
 	})
 }
 
@@ -73,12 +69,12 @@ func (importer *Importer) importWikiPages() {
 		}
 
 		tracToMarkdownConverter := markdown.CreateWikiDefaultConverter(
-			importer.tracAccessor, importer.giteaAccessor, importer.wikiAccessor, pageName)
+			importer.tracAccessor, importer.giteaAccessor, pageName)
 
 		// convert and write wiki page
 		markdownText := tracToMarkdownConverter.Convert(pageText)
-		translatedPageName := importer.wikiAccessor.TranslatePageName(pageName)
-		importer.wikiAccessor.WritePage(translatedPageName, markdownText)
+		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
+		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
 		// translate Trac wiki page (version) author into a Gitea user
 		giteaAuthor := importer.defaultPageOwner
@@ -93,9 +89,7 @@ func (importer *Importer) importWikiPages() {
 		updateTimeStr := time.Unix(updateTime, 0)
 		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s by Trac user %s]\n",
 			comment, translatedPageName, version, updateTimeStr, author)
-		importer.wikiAccessor.RepoStageAndCommit(giteaAuthor, giteaAuthorEMail, comment)
+		importer.giteaAccessor.WikiCommit(giteaAuthor, giteaAuthorEMail, comment)
 		log.Infof("Wiki page %s: wrote version %d to repository\n", translatedPageName, version)
 	})
-
-	importer.wikiAccessor.RepoComplete()
 }

@@ -18,7 +18,6 @@ ROOTPACKAGE=stevejefferson.co.uk/trac2gitea
 
 MOCKFILES=\
 	accessor/mock_gitea/accessor.go \
-	accessor/mock_giteawiki/accessor.go \
 	accessor/mock_trac/accessor.go
 
 .PHONY: all install build test
@@ -54,9 +53,6 @@ mocks: $(MOCKFILES)
 
 # mock generation:
 accessor/mock_gitea/accessor.go: accessor/gitea/accessor.go
-	$(MOCKGEN) -destination=$@ $(ROOTPACKAGE)/$(<D) Accessor
-
-accessor/mock_giteawiki/accessor.go: accessor/giteawiki/accessor.go
 	$(MOCKGEN) -destination=$@ $(ROOTPACKAGE)/$(<D) Accessor
 
 accessor/mock_trac/accessor.go: accessor/trac/accessor.go

@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/pflag"
 	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/giteawiki"
 	"stevejefferson.co.uk/trac2gitea/accessor/trac"
 	"stevejefferson.co.uk/trac2gitea/import/issue"
 	"stevejefferson.co.uk/trac2gitea/import/wiki"
@@ -104,7 +102,8 @@ func main() {
 	log.SetLevel(logLevel)
 
 	tracAccessor := trac.CreateDefaultAccessor(tracRootDir)
-	giteaAccessor := gitea.CreateDefaultAccessor(giteaRootDir, giteaUser, giteaRepo, giteaDefaultAssignee, giteaDefaultAuthor)
+	giteaAccessor := gitea.CreateDefaultAccessor(
+		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoDir, giteaDefaultAssignee, giteaDefaultAuthor)
 
 	if !wikiOnly {
 		issueImporter := issue.CreateImporter(tracAccessor, giteaAccessor)
@@ -120,22 +119,7 @@ func main() {
 	}
 
 	if !dbOnly {
-		if giteaWikiRepoURL == "" {
-			giteaWikiRepoURL = giteaAccessor.GetWikiRepoURL()
-		}
-
-		if giteaWikiRepoDir == "" {
-			cwd, err := os.Getwd()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			wikiRepoName := giteaAccessor.GetWikiRepoName()
-			giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
-		}
-
-		wikiAccessor := giteawiki.CreateDefaultAccessor(giteaWikiRepoURL, giteaWikiRepoDir)
-		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
+		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
 		wikiImporter.ImportWiki()
 	}
 }
