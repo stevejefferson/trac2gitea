@@ -121,6 +121,18 @@ func (mr *MockAccessorMockRecorder) CloneWiki() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloneWiki", reflect.TypeOf((*MockAccessor)(nil).CloneWiki))
 }
 
+// CommitWiki mocks base method
+func (m *MockAccessor) CommitWiki(arg0, arg1, arg2 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "CommitWiki", arg0, arg1, arg2)
+}
+
+// CommitWiki indicates an expected call of CommitWiki
+func (mr *MockAccessorMockRecorder) CommitWiki(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommitWiki", reflect.TypeOf((*MockAccessor)(nil).CommitWiki), arg0, arg1, arg2)
+}
+
 // CopyFileToWiki mocks base method
 func (m *MockAccessor) CopyFileToWiki(arg0, arg1 string) {
 	m.ctrl.T.Helper()
@@ -385,6 +397,18 @@ func (mr *MockAccessorMockRecorder) GetWikiHtdocRelPath(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWikiHtdocRelPath", reflect.TypeOf((*MockAccessor)(nil).GetWikiHtdocRelPath), arg0)
 }
 
+// PushWiki mocks base method
+func (m *MockAccessor) PushWiki() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PushWiki")
+}
+
+// PushWiki indicates an expected call of PushWiki
+func (mr *MockAccessorMockRecorder) PushWiki() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushWiki", reflect.TypeOf((*MockAccessor)(nil).PushWiki))
+}
+
 // SetIssueUpdateTime mocks base method
 func (m *MockAccessor) SetIssueUpdateTime(arg0, arg1 int64) {
 	m.ctrl.T.Helper()
@@ -421,30 +445,6 @@ func (m *MockAccessor) UpdateRepoIssueCount(arg0, arg1 int) {
 func (mr *MockAccessorMockRecorder) UpdateRepoIssueCount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRepoIssueCount", reflect.TypeOf((*MockAccessor)(nil).UpdateRepoIssueCount), arg0, arg1)
-}
-
-// WikiCommit mocks base method
-func (m *MockAccessor) WikiCommit(arg0, arg1, arg2 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "WikiCommit", arg0, arg1, arg2)
-}
-
-// WikiCommit indicates an expected call of WikiCommit
-func (mr *MockAccessorMockRecorder) WikiCommit(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WikiCommit", reflect.TypeOf((*MockAccessor)(nil).WikiCommit), arg0, arg1, arg2)
-}
-
-// WikiComplete mocks base method
-func (m *MockAccessor) WikiComplete() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "WikiComplete")
-}
-
-// WikiComplete indicates an expected call of WikiComplete
-func (mr *MockAccessorMockRecorder) WikiComplete() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WikiComplete", reflect.TypeOf((*MockAccessor)(nil).WikiComplete))
 }
 
 // WriteWikiPage mocks base method

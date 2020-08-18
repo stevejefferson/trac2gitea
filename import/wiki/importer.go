@@ -49,7 +49,7 @@ func (importer *Importer) ImportWiki() {
 	importer.importWikiAttachments()
 	importer.importWikiPages()
 
-	importer.giteaAccessor.WikiComplete()
+	importer.giteaAccessor.PushWiki()
 }
 
 func (importer *Importer) importWikiAttachments() {
@@ -89,7 +89,7 @@ func (importer *Importer) importWikiPages() {
 		updateTimeStr := time.Unix(updateTime, 0)
 		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s by Trac user %s]\n",
 			comment, translatedPageName, version, updateTimeStr, author)
-		importer.giteaAccessor.WikiCommit(giteaAuthor, giteaAuthorEMail, comment)
+		importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEMail, comment)
 		log.Infof("Wiki page %s: converted trac version %d\n", translatedPageName, version)
 	})
 }
