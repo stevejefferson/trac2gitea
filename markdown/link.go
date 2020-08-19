@@ -88,17 +88,22 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 	var ticketCommentNum int64
 	ticketCommentNum, err := strconv.ParseInt(ticketCommentNumStr, 10, 64)
 	if err != nil {
-		log.Fatal(err)
+		log.Warnf("found invalid Trac ticket comment number %s\n", ticketCommentNum)
+		return link
 	}
 
 	ticketIDStr := ticketCommentLinkRegexp.ReplaceAllString(link, `$2`)
 	var ticketID int64
 	ticketID, err = strconv.ParseInt(ticketIDStr, 10, 64)
 	if err != nil {
-		log.Fatal(err)
+		log.Warnf("found invalid Trac ticket id %s\n", ticketIDStr)
+		return link
 	}
 
-	issueID := converter.giteaAccessor.GetIssueID(ticketID)
+	issueID, err := converter.giteaAccessor.GetIssueID(ticketID)
+	if err != nil {
+		return link // not a recognised link - do not mark (error should already be logged)
+	}
 	if issueID == -1 {
 		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
 		return link // not a recognised link - do not mark
@@ -106,8 +111,14 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 
 	// find gitea ID for trac comment
 	// - unfortunately the only real linkage between the trac comment number and gitea comment id here is the comment string itself
-	commentStr := converter.tracAccessor.GetCommentString(ticketID, ticketCommentNum)
-	commentID := converter.giteaAccessor.GetCommentID(issueID, commentStr)
+	commentStr, err := converter.tracAccessor.GetCommentString(ticketID, ticketCommentNum)
+	if err != nil {
+		return link // not a recognised link - do not mark (error should already be logged)
+	}
+	commentID, err := converter.giteaAccessor.GetCommentID(issueID, commentStr)
+	if err != nil {
+		return link // not a recognised link - do not mark (error should already be logged)
+	}
 
 	commentURL := converter.giteaAccessor.GetCommentURL(issueID, commentID)
 	return markLink(commentURL)
@@ -115,7 +126,10 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 
 func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 	milestoneName := milestoneLinkRegexp.ReplaceAllString(link, `$1`)
-	milestoneID := converter.giteaAccessor.GetMilestoneID(milestoneName)
+	milestoneID, err := converter.giteaAccessor.GetMilestoneID(milestoneName)
+	if err != nil {
+		return link // not a recognised link - do not mark (error should already be logged)
+	}
 	if milestoneID == -1 {
 		log.Warnf("cannot find milestone \"%s\" referenced by Trac link \"%s\"\n", milestoneName, link)
 		return link // not a recognised link - do not mark
@@ -136,18 +150,25 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 		var ticketID int64
 		ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
 		if err != nil {
-			log.Fatal(err)
+			log.Warnf("found invalid Trac ticket id %s\n", ticketIDStr)
+			return link
 		}
 
-		issueID := converter.giteaAccessor.GetIssueID(ticketID)
+		issueID, err := converter.giteaAccessor.GetIssueID(ticketID)
+		if err != nil {
+			return link // not a recognised link - do not mark (error already logged)
+		}
 		if issueID == -1 {
 			log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
 			return link // not a recognised link - do not mark
 		}
 
-		uuid := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
+		uuid, err := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
+		if err != nil {
+			return link // not a recognised link - do not mark (error already logged)
+		}
 		if uuid == "" {
-			log.Warnf("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"\n", attachmentName, issueID, link)
+			log.Warnf("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\" (error %\n", attachmentName, issueID, link)
 			return link // not a recognised link - do not mark
 		}
 
@@ -185,7 +206,10 @@ func (converter *DefaultConverter) resolveTicketLink(link string) string {
 	}
 
 	// validate ticket id
-	issueID := converter.giteaAccessor.GetIssueID(ticketID)
+	issueID, err := converter.giteaAccessor.GetIssueID(ticketID)
+	if err != nil {
+		return link // not a recognised link - do not mark (error already logged)
+	}
 	if issueID == -1 {
 		log.Warnf("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
 		return link // not a recognised link - do not mark

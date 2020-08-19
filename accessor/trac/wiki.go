@@ -7,10 +7,12 @@ import (
 )
 
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64)) {
+func (accessor *DefaultAccessor) GetWikiPages(
+	handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error) error {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	for rows.Next() {
@@ -21,7 +23,8 @@ func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(pageName string, pa
 		var version int64
 		var updateTime int64
 		if err := rows.Scan(&pageName, &pageText, &author, &commentStr, &version, &updateTime); err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return err
 		}
 
 		comment := ""
@@ -29,26 +32,38 @@ func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(pageName string, pa
 			comment = commentStr.String
 		}
 
-		handlerFn(pageName, pageText, author, comment, version, updateTime)
+		err = handlerFn(pageName, pageText, author, comment, version, updateTime)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 // GetWikiAttachments retrieves all Trac wiki page attachments, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string)) {
+func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string) error) error {
 	rows, err := accessor.db.Query(`SELECT id, filename FROM attachment WHERE type = 'wiki'`)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	for rows.Next() {
 		var pageName string
 		var filename string
 		if err := rows.Scan(&pageName, &filename); err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return err
 		}
 
-		handlerFn(pageName, filename)
+		err = handlerFn(pageName, filename)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 var prefinedTracPages = []string{

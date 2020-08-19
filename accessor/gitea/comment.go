@@ -7,37 +7,40 @@ import (
 	"stevejefferson.co.uk/trac2gitea/log"
 )
 
-// AddComment adds a comment to Gitea
-func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comment string, time int64) int64 {
+// AddComment adds a comment to Gitea, returns id of created comment
+func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comment string, time int64) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(
 			type, issue_id, poster_id, content, created_unix, updated_unix)
 			VALUES ( 0, $1, $2, $3, $4, $4 )`,
 		issueID, authorID, comment, time)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return -1, err
 	}
 
 	var commentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&commentID)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return -1, err
 	}
 
-	return commentID
+	return commentID, nil
 }
 
 // GetCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
-func (accessor *DefaultAccessor) GetCommentID(issueID int64, commentStr string) int64 {
+func (accessor *DefaultAccessor) GetCommentID(issueID int64, commentStr string) (int64, error) {
 	var commentID int64 = -1
 	err := accessor.db.QueryRow(`
 		SELECT id FROM comment WHERE issue_id = $1 AND content = $2
 		`, issueID, commentStr).Scan(&commentID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Fatal(err)
+		log.Error(err)
+		return -1, err
 	}
 
-	return commentID
+	return commentID, nil
 }
 
 // GetCommentURL retrieves the URL for viewing a Gitea comment for a given issue.

@@ -101,12 +101,21 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
-	tracAccessor := trac.CreateDefaultAccessor(tracRootDir)
-	giteaAccessor := gitea.CreateDefaultAccessor(
+	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	giteaAccessor, err := gitea.CreateDefaultAccessor(
 		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoDir, giteaDefaultAssignee, giteaDefaultAuthor)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if !wikiOnly {
-		issueImporter := issue.CreateImporter(tracAccessor, giteaAccessor)
+		issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		issueImporter.ImportComponents()
 		issueImporter.ImportPriorities()
@@ -119,7 +128,11 @@ func main() {
 	}
 
 	if !dbOnly {
-		wikiImporter := wiki.CreateImporter(tracAccessor, giteaAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
+		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		wikiImporter.ImportWiki()
 	}
 }

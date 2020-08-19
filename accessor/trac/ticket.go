@@ -8,7 +8,7 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 	component string, severity string, priority string,
 	owner string, reporter string, version string,
 	milestone string, status string, resolution string,
-	summary string, description string)) {
+	summary string, description string) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT
 			t.id,
@@ -27,7 +27,8 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 			COALESCE(t.description, '')
 		FROM ticket t ORDER BY id`)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	for rows.Next() {
@@ -35,9 +36,16 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 		var component, ticketType, severity, priority, owner, reporter, version, milestone, status, resolution, summary, description string
 		if err := rows.Scan(&ticketID, &ticketType, &created, &component, &severity, &priority, &owner, &reporter,
 			&version, &milestone, &status, &resolution, &summary, &description); err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return err
 		}
 
-		handlerFn(ticketID, ticketType, created, component, severity, priority, owner, reporter, version, milestone, status, resolution, summary, description)
+		err = handlerFn(ticketID, ticketType, created, component, severity, priority, owner, reporter,
+			version, milestone, status, resolution, summary, description)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

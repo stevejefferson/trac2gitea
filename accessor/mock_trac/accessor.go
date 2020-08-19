@@ -33,9 +33,11 @@ func (m *MockAccessor) EXPECT() *MockAccessorMockRecorder {
 }
 
 // GetAttachments mocks base method
-func (m *MockAccessor) GetAttachments(arg0 int64, arg1 func(int64, int64, int64, string, string, string)) {
+func (m *MockAccessor) GetAttachments(arg0 int64, arg1 func(int64, int64, int64, string, string, string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetAttachments", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetAttachments", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetAttachments indicates an expected call of GetAttachments
@@ -45,11 +47,12 @@ func (mr *MockAccessorMockRecorder) GetAttachments(arg0, arg1 interface{}) *gomo
 }
 
 // GetCommentString mocks base method
-func (m *MockAccessor) GetCommentString(arg0, arg1 int64) string {
+func (m *MockAccessor) GetCommentString(arg0, arg1 int64) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCommentString", arg0, arg1)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetCommentString indicates an expected call of GetCommentString
@@ -59,9 +62,11 @@ func (mr *MockAccessorMockRecorder) GetCommentString(arg0, arg1 interface{}) *go
 }
 
 // GetComments mocks base method
-func (m *MockAccessor) GetComments(arg0 int64, arg1 func(int64, int64, string, string)) {
+func (m *MockAccessor) GetComments(arg0 int64, arg1 func(int64, int64, string, string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetComments", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetComments", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetComments indicates an expected call of GetComments
@@ -71,9 +76,11 @@ func (mr *MockAccessorMockRecorder) GetComments(arg0, arg1 interface{}) *gomock.
 }
 
 // GetComponentNames mocks base method
-func (m *MockAccessor) GetComponentNames(arg0 func(string)) {
+func (m *MockAccessor) GetComponentNames(arg0 func(string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetComponentNames", arg0)
+	ret := m.ctrl.Call(m, "GetComponentNames", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetComponentNames indicates an expected call of GetComponentNames
@@ -101,9 +108,11 @@ func (mr *MockAccessorMockRecorder) GetFullPath(arg0 ...interface{}) *gomock.Cal
 }
 
 // GetMilestones mocks base method
-func (m *MockAccessor) GetMilestones(arg0 func(string, string, int64, int64)) {
+func (m *MockAccessor) GetMilestones(arg0 func(string, string, int64, int64) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetMilestones", arg0)
+	ret := m.ctrl.Call(m, "GetMilestones", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetMilestones indicates an expected call of GetMilestones
@@ -113,9 +122,11 @@ func (mr *MockAccessorMockRecorder) GetMilestones(arg0 interface{}) *gomock.Call
 }
 
 // GetPriorityNames mocks base method
-func (m *MockAccessor) GetPriorityNames(arg0 func(string)) {
+func (m *MockAccessor) GetPriorityNames(arg0 func(string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetPriorityNames", arg0)
+	ret := m.ctrl.Call(m, "GetPriorityNames", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetPriorityNames indicates an expected call of GetPriorityNames
@@ -125,9 +136,11 @@ func (mr *MockAccessorMockRecorder) GetPriorityNames(arg0 interface{}) *gomock.C
 }
 
 // GetResolutionNames mocks base method
-func (m *MockAccessor) GetResolutionNames(arg0 func(string)) {
+func (m *MockAccessor) GetResolutionNames(arg0 func(string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetResolutionNames", arg0)
+	ret := m.ctrl.Call(m, "GetResolutionNames", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetResolutionNames indicates an expected call of GetResolutionNames
@@ -137,9 +150,11 @@ func (mr *MockAccessorMockRecorder) GetResolutionNames(arg0 interface{}) *gomock
 }
 
 // GetSeverityNames mocks base method
-func (m *MockAccessor) GetSeverityNames(arg0 func(string)) {
+func (m *MockAccessor) GetSeverityNames(arg0 func(string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetSeverityNames", arg0)
+	ret := m.ctrl.Call(m, "GetSeverityNames", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetSeverityNames indicates an expected call of GetSeverityNames
@@ -177,9 +192,11 @@ func (mr *MockAccessorMockRecorder) GetTicketAttachmentPath(arg0, arg1 interface
 }
 
 // GetTickets mocks base method
-func (m *MockAccessor) GetTickets(arg0 func(int64, string, int64, string, string, string, string, string, string, string, string, string, string, string)) {
+func (m *MockAccessor) GetTickets(arg0 func(int64, string, int64, string, string, string, string, string, string, string, string, string, string, string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetTickets", arg0)
+	ret := m.ctrl.Call(m, "GetTickets", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetTickets indicates an expected call of GetTickets
@@ -189,9 +206,11 @@ func (mr *MockAccessorMockRecorder) GetTickets(arg0 interface{}) *gomock.Call {
 }
 
 // GetTypeNames mocks base method
-func (m *MockAccessor) GetTypeNames(arg0 func(string)) {
+func (m *MockAccessor) GetTypeNames(arg0 func(string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetTypeNames", arg0)
+	ret := m.ctrl.Call(m, "GetTypeNames", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetTypeNames indicates an expected call of GetTypeNames
@@ -201,9 +220,11 @@ func (mr *MockAccessorMockRecorder) GetTypeNames(arg0 interface{}) *gomock.Call 
 }
 
 // GetVersionNames mocks base method
-func (m *MockAccessor) GetVersionNames(arg0 func(string)) {
+func (m *MockAccessor) GetVersionNames(arg0 func(string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetVersionNames", arg0)
+	ret := m.ctrl.Call(m, "GetVersionNames", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetVersionNames indicates an expected call of GetVersionNames
@@ -227,9 +248,11 @@ func (mr *MockAccessorMockRecorder) GetWikiAttachmentPath(arg0, arg1 interface{}
 }
 
 // GetWikiAttachments mocks base method
-func (m *MockAccessor) GetWikiAttachments(arg0 func(string, string)) {
+func (m *MockAccessor) GetWikiAttachments(arg0 func(string, string) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetWikiAttachments", arg0)
+	ret := m.ctrl.Call(m, "GetWikiAttachments", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetWikiAttachments indicates an expected call of GetWikiAttachments
@@ -239,9 +262,11 @@ func (mr *MockAccessorMockRecorder) GetWikiAttachments(arg0 interface{}) *gomock
 }
 
 // GetWikiPages mocks base method
-func (m *MockAccessor) GetWikiPages(arg0 func(string, string, string, string, int64, int64)) {
+func (m *MockAccessor) GetWikiPages(arg0 func(string, string, string, string, int64, int64) error) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetWikiPages", arg0)
+	ret := m.ctrl.Call(m, "GetWikiPages", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetWikiPages indicates an expected call of GetWikiPages

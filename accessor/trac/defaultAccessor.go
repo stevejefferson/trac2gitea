@@ -2,6 +2,7 @@ package trac
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,24 +22,29 @@ type DefaultAccessor struct {
 }
 
 // CreateDefaultAccessor creates a new Trac accessor.
-func CreateDefaultAccessor(tracRootDir string) *DefaultAccessor {
+func CreateDefaultAccessor(tracRootDir string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(tracRootDir)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 	if stat.IsDir() != true {
-		log.Fatalf("Trac root directory %s is not a directory\n", tracRootDir)
+		err = errors.New("Trac root directory %" + tracRootDir + " is not a directory")
+		log.Error(err)
+		return nil, err
 	}
 
 	tracIniPath := fmt.Sprintf("%s/conf/trac.ini", tracRootDir)
 	stat, err = os.Stat(tracIniPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 
 	tracConfig, err := ini.Load(tracIniPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 
 	accessor := DefaultAccessor{db: nil, rootDir: tracRootDir, config: tracConfig}
@@ -55,9 +61,10 @@ func CreateDefaultAccessor(tracRootDir string) *DefaultAccessor {
 
 	tracDb, err := sql.Open("sqlite3", tracDatabasePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 	accessor.db = tracDb
 
-	return &accessor
+	return &accessor, nil
 }

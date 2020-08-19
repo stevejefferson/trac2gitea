@@ -34,9 +34,12 @@ func (m *MockAccessor) EXPECT() *MockAccessorMockRecorder {
 }
 
 // AddAttachment mocks base method
-func (m *MockAccessor) AddAttachment(arg0 string, arg1, arg2 int64, arg3, arg4 string, arg5 int64) {
+func (m *MockAccessor) AddAttachment(arg0 string, arg1, arg2 int64, arg3, arg4 string, arg5 int64) (int64, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddAttachment", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "AddAttachment", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddAttachment indicates an expected call of AddAttachment
@@ -46,11 +49,12 @@ func (mr *MockAccessorMockRecorder) AddAttachment(arg0, arg1, arg2, arg3, arg4, 
 }
 
 // AddComment mocks base method
-func (m *MockAccessor) AddComment(arg0, arg1 int64, arg2 string, arg3 int64) int64 {
+func (m *MockAccessor) AddComment(arg0, arg1 int64, arg2 string, arg3 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddComment", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddComment indicates an expected call of AddComment
@@ -60,11 +64,12 @@ func (mr *MockAccessorMockRecorder) AddComment(arg0, arg1, arg2, arg3 interface{
 }
 
 // AddIssue mocks base method
-func (m *MockAccessor) AddIssue(arg0 int64, arg1 string, arg2 int64, arg3 string, arg4 sql.NullString, arg5 string, arg6 bool, arg7 string, arg8 int64) int64 {
+func (m *MockAccessor) AddIssue(arg0 int64, arg1 string, arg2 int64, arg3 string, arg4 sql.NullString, arg5 string, arg6 bool, arg7 string, arg8 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddIssue", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddIssue indicates an expected call of AddIssue
@@ -74,11 +79,12 @@ func (mr *MockAccessorMockRecorder) AddIssue(arg0, arg1, arg2, arg3, arg4, arg5,
 }
 
 // AddIssueLabel mocks base method
-func (m *MockAccessor) AddIssueLabel(arg0, arg1 int64) int64 {
+func (m *MockAccessor) AddIssueLabel(arg0, arg1 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddIssueLabel", arg0, arg1)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddIssueLabel indicates an expected call of AddIssueLabel
@@ -88,11 +94,12 @@ func (mr *MockAccessorMockRecorder) AddIssueLabel(arg0, arg1 interface{}) *gomoc
 }
 
 // AddLabel mocks base method
-func (m *MockAccessor) AddLabel(arg0, arg1 string) int64 {
+func (m *MockAccessor) AddLabel(arg0, arg1 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddLabel", arg0, arg1)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddLabel indicates an expected call of AddLabel
@@ -102,11 +109,12 @@ func (mr *MockAccessorMockRecorder) AddLabel(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // AddMilestone mocks base method
-func (m *MockAccessor) AddMilestone(arg0, arg1 string, arg2 bool, arg3, arg4 int64) int64 {
+func (m *MockAccessor) AddMilestone(arg0, arg1 string, arg2 bool, arg3, arg4 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddMilestone", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddMilestone indicates an expected call of AddMilestone
@@ -116,9 +124,11 @@ func (mr *MockAccessorMockRecorder) AddMilestone(arg0, arg1, arg2, arg3, arg4 in
 }
 
 // CloneWiki mocks base method
-func (m *MockAccessor) CloneWiki() {
+func (m *MockAccessor) CloneWiki() error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "CloneWiki")
+	ret := m.ctrl.Call(m, "CloneWiki")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CloneWiki indicates an expected call of CloneWiki
@@ -128,9 +138,11 @@ func (mr *MockAccessorMockRecorder) CloneWiki() *gomock.Call {
 }
 
 // CommitWiki mocks base method
-func (m *MockAccessor) CommitWiki(arg0, arg1, arg2 string) {
+func (m *MockAccessor) CommitWiki(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "CommitWiki", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CommitWiki", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CommitWiki indicates an expected call of CommitWiki
@@ -140,9 +152,11 @@ func (mr *MockAccessorMockRecorder) CommitWiki(arg0, arg1, arg2 interface{}) *go
 }
 
 // CopyFileToWiki mocks base method
-func (m *MockAccessor) CopyFileToWiki(arg0, arg1 string) {
+func (m *MockAccessor) CopyFileToWiki(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "CopyFileToWiki", arg0, arg1)
+	ret := m.ctrl.Call(m, "CopyFileToWiki", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CopyFileToWiki indicates an expected call of CopyFileToWiki
@@ -166,11 +180,12 @@ func (mr *MockAccessorMockRecorder) GetAttachmentURL(arg0 interface{}) *gomock.C
 }
 
 // GetAttachmentUUID mocks base method
-func (m *MockAccessor) GetAttachmentUUID(arg0 int64, arg1 string) string {
+func (m *MockAccessor) GetAttachmentUUID(arg0 int64, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAttachmentUUID", arg0, arg1)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAttachmentUUID indicates an expected call of GetAttachmentUUID
@@ -180,11 +195,12 @@ func (mr *MockAccessorMockRecorder) GetAttachmentUUID(arg0, arg1 interface{}) *g
 }
 
 // GetCommentID mocks base method
-func (m *MockAccessor) GetCommentID(arg0 int64, arg1 string) int64 {
+func (m *MockAccessor) GetCommentID(arg0 int64, arg1 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCommentID", arg0, arg1)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetCommentID indicates an expected call of GetCommentID
@@ -250,11 +266,12 @@ func (mr *MockAccessorMockRecorder) GetDefaultAuthorID() *gomock.Call {
 }
 
 // GetIssueID mocks base method
-func (m *MockAccessor) GetIssueID(arg0 int64) int64 {
+func (m *MockAccessor) GetIssueID(arg0 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIssueID", arg0)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetIssueID indicates an expected call of GetIssueID
@@ -264,11 +281,12 @@ func (mr *MockAccessorMockRecorder) GetIssueID(arg0 interface{}) *gomock.Call {
 }
 
 // GetIssueLabelID mocks base method
-func (m *MockAccessor) GetIssueLabelID(arg0, arg1 int64) int64 {
+func (m *MockAccessor) GetIssueLabelID(arg0, arg1 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIssueLabelID", arg0, arg1)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetIssueLabelID indicates an expected call of GetIssueLabelID
@@ -292,11 +310,12 @@ func (mr *MockAccessorMockRecorder) GetIssueURL(arg0 interface{}) *gomock.Call {
 }
 
 // GetLabelID mocks base method
-func (m *MockAccessor) GetLabelID(arg0 string) int64 {
+func (m *MockAccessor) GetLabelID(arg0 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLabelID", arg0)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetLabelID indicates an expected call of GetLabelID
@@ -306,11 +325,12 @@ func (mr *MockAccessorMockRecorder) GetLabelID(arg0 interface{}) *gomock.Call {
 }
 
 // GetMilestoneID mocks base method
-func (m *MockAccessor) GetMilestoneID(arg0 string) int64 {
+func (m *MockAccessor) GetMilestoneID(arg0 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMilestoneID", arg0)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetMilestoneID indicates an expected call of GetMilestoneID
@@ -362,11 +382,12 @@ func (mr *MockAccessorMockRecorder) GetStringConfig(arg0, arg1 interface{}) *gom
 }
 
 // GetUserEMailAddress mocks base method
-func (m *MockAccessor) GetUserEMailAddress(arg0 int64) string {
+func (m *MockAccessor) GetUserEMailAddress(arg0 int64) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserEMailAddress", arg0)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetUserEMailAddress indicates an expected call of GetUserEMailAddress
@@ -376,11 +397,12 @@ func (mr *MockAccessorMockRecorder) GetUserEMailAddress(arg0 interface{}) *gomoc
 }
 
 // GetUserID mocks base method
-func (m *MockAccessor) GetUserID(arg0 string) int64 {
+func (m *MockAccessor) GetUserID(arg0 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserID", arg0)
 	ret0, _ := ret[0].(int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetUserID indicates an expected call of GetUserID
@@ -432,11 +454,12 @@ func (mr *MockAccessorMockRecorder) GetWikiHtdocRelPath(arg0 interface{}) *gomoc
 }
 
 // LogWiki mocks base method
-func (m *MockAccessor) LogWiki(arg0 string) []string {
+func (m *MockAccessor) LogWiki(arg0 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LogWiki", arg0)
 	ret0, _ := ret[0].([]string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // LogWiki indicates an expected call of LogWiki
@@ -446,9 +469,11 @@ func (mr *MockAccessorMockRecorder) LogWiki(arg0 interface{}) *gomock.Call {
 }
 
 // PushWiki mocks base method
-func (m *MockAccessor) PushWiki() {
+func (m *MockAccessor) PushWiki() error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PushWiki")
+	ret := m.ctrl.Call(m, "PushWiki")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // PushWiki indicates an expected call of PushWiki
@@ -458,9 +483,11 @@ func (mr *MockAccessorMockRecorder) PushWiki() *gomock.Call {
 }
 
 // SetIssueUpdateTime mocks base method
-func (m *MockAccessor) SetIssueUpdateTime(arg0, arg1 int64) {
+func (m *MockAccessor) SetIssueUpdateTime(arg0, arg1 int64) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetIssueUpdateTime", arg0, arg1)
+	ret := m.ctrl.Call(m, "SetIssueUpdateTime", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SetIssueUpdateTime indicates an expected call of SetIssueUpdateTime
@@ -484,9 +511,11 @@ func (mr *MockAccessorMockRecorder) TranslateWikiPageName(arg0 interface{}) *gom
 }
 
 // UpdateRepoIssueCount mocks base method
-func (m *MockAccessor) UpdateRepoIssueCount(arg0, arg1 int) {
+func (m *MockAccessor) UpdateRepoIssueCount(arg0, arg1 int) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UpdateRepoIssueCount", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateRepoIssueCount", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateRepoIssueCount indicates an expected call of UpdateRepoIssueCount
@@ -496,11 +525,12 @@ func (mr *MockAccessorMockRecorder) UpdateRepoIssueCount(arg0, arg1 interface{})
 }
 
 // WriteWikiPage mocks base method
-func (m *MockAccessor) WriteWikiPage(arg0, arg1 string) string {
+func (m *MockAccessor) WriteWikiPage(arg0, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteWikiPage", arg0, arg1)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // WriteWikiPage indicates an expected call of WriteWikiPage

@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,18 +30,19 @@ type DefaultAccessor struct {
 	wikiRepo          *git.Repository
 }
 
-func fetchConfig(configPath string) *ini.File {
+func fetchConfig(configPath string) (*ini.File, error) {
 	_, err := os.Stat(configPath)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	config, err := ini.Load(configPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 
-	return config
+	return config, nil
 }
 
 // CreateDefaultAccessor returns a new Gitea default accessor.
@@ -51,21 +53,32 @@ func CreateDefaultAccessor(
 	giteaWikiRepoURL string,
 	giteaWikiRepoDir string,
 	defaultAssignee string,
-	defaultAuthor string) *DefaultAccessor {
+	defaultAuthor string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 	if !stat.IsDir() {
-		log.Fatalf("Gitea root path %s is not a directory\n", giteaRootDir)
+		err = errors.New("Gitea root path " + giteaRootDir + " is not a directory")
+		log.Error(err)
+		return nil, err
 	}
 
 	giteaMainConfigPath := "/etc/gitea/conf/app.ini"
-	giteaMainConfig := fetchConfig(giteaMainConfigPath)
+	giteaMainConfig, err := fetchConfig(giteaMainConfigPath)
+	if err != nil {
+		return nil, err
+	}
 	giteaCustomConfigPath := fmt.Sprintf("%s/custom/conf/app.ini", giteaRootDir)
-	giteaCustomConfig := fetchConfig(giteaCustomConfigPath)
+	if err != nil {
+		return nil, err
+	}
+	giteaCustomConfig, err := fetchConfig(giteaCustomConfigPath)
 	if giteaMainConfig == nil && giteaCustomConfig == nil {
-		log.Fatalf("cannot find Gitea config in %s or %s\n", giteaMainConfigPath, giteaCustomConfigPath)
+		err = errors.New("Cannot find Gitea config in  " + giteaMainConfigPath + " or " + giteaCustomConfigPath)
+		log.Error(err)
+		return nil, err
 	}
 
 	giteaAccessor := DefaultAccessor{
@@ -86,24 +99,36 @@ func CreateDefaultAccessor(
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
 	giteaDb, err := sql.Open("sqlite3", giteaDbPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 
 	log.Infof("Using Gitea database %s\n", giteaDbPath)
 	giteaAccessor.db = giteaDb
 
-	giteaRepoID := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
+	giteaRepoID, err := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
+	if err != nil {
+		return nil, err
+	}
 	if giteaRepoID == -1 {
-		log.Fatalf("Cannot find repository %s for user %s\n", giteaRepoName, giteaUserName)
+		err = errors.New("Cannot find repository " + giteaRepoName + " for user " + giteaUserName)
+		log.Error(err)
+		return nil, err
 	}
 	giteaAccessor.repoID = giteaRepoID
 
 	// work out user ids
 	adminUserID := giteaAccessor.getAdminUserID()
-	giteaDefaultAssigneeID := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
+	giteaDefaultAssigneeID, err := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
+	if err != nil {
+		return nil, err
+	}
 	giteaAccessor.defaultAssigneeID = giteaDefaultAssigneeID
 
-	giteaDefaultAuthorID := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
+	giteaDefaultAuthorID, err := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
+	if err != nil {
+		return nil, err
+	}
 	giteaAccessor.defaultAuthorID = giteaDefaultAuthorID
 
 	// find directory into which to clone wiki
@@ -111,14 +136,17 @@ func CreateDefaultAccessor(
 	if giteaWikiRepoDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return nil, err
 		}
 
 		giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
 	}
 	_, err = os.Stat(giteaWikiRepoDir)
 	if !os.IsNotExist(err) {
-		log.Fatalf("wiki repository directory %s already exists!\n", giteaWikiRepoDir)
+		err = errors.New("wiki repository directory " + giteaWikiRepoDir + " already exists!")
+		log.Error(err)
+		return nil, err
 	}
 	giteaAccessor.wikiRepoDir = giteaWikiRepoDir
 
@@ -128,7 +156,7 @@ func CreateDefaultAccessor(
 	}
 	giteaAccessor.wikiRepoURL = giteaWikiRepoURL
 
-	return &giteaAccessor
+	return &giteaAccessor, nil
 }
 
 func (accessor *DefaultAccessor) getUserRepoURL() string {

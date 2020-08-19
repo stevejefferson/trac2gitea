@@ -7,35 +7,45 @@ import (
 )
 
 // GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetComments(ticketID int64, handlerFn func(ticketID int64, time int64, author string, comment string)) {
+func (accessor *DefaultAccessor) GetComments(
+	ticketID int64,
+	handlerFn func(ticketID int64, time int64, author string, comment string) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, COALESCE(newvalue, '') newval
 			FROM ticket_change where ticket = $1 AND field = 'comment' AND trim(COALESCE(newvalue, ''), ' ') != ''
 			ORDER BY time asc`, ticketID)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	for rows.Next() {
 		var time int64
 		var author, comment string
 		if err := rows.Scan(&time, &author, &comment); err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return err
 		}
 
-		handlerFn(ticketID, time, author, comment)
+		err = handlerFn(ticketID, time, author, comment)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 // GetCommentString retrieves a given comment string for a given Trac ticket
-func (accessor *DefaultAccessor) GetCommentString(ticketID int64, commentNum int64) string {
+func (accessor *DefaultAccessor) GetCommentString(ticketID int64, commentNum int64) (string, error) {
 	var commentStr string
 	err := accessor.db.QueryRow(`
 		SELECT COALESCE(newvalue, '') FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,
 		ticketID, commentNum).Scan(&commentStr)
 	if err != nil && err != sql.ErrNoRows {
-		log.Fatal(err)
+		log.Error(err)
+		return "", err
 	}
 
-	return commentStr
+	return commentStr, nil
 }

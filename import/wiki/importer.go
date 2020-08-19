@@ -1,6 +1,7 @@
 package wiki
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -26,13 +27,21 @@ func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
 	dfltPageOwner string,
-	convertPredefs bool) *Importer {
+	convertPredefs bool) (*Importer, error) {
 
-	dfltPageOwnerID := gAccessor.GetUserID(dfltPageOwner)
-	if dfltPageOwnerID == -1 {
-		log.Fatalf("Cannot find default owner %s for wiki pages to be imported from Trac\n", dfltPageOwner)
+	dfltPageOwnerID, err := gAccessor.GetUserID(dfltPageOwner)
+	if err != nil {
+		return nil, err
 	}
-	dfltPageOwnerEMail := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
+	if dfltPageOwnerID == -1 {
+		err = errors.New("Cannot find default owner " + dfltPageOwner + " for wiki pages to be imported from Trac")
+		log.Error(err)
+		return nil, err
+	}
+	dfltPageOwnerEMail, err := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
+	if err != nil {
+		return nil, err
+	}
 
 	importer := Importer{
 		tracAccessor:          tAccessor,
@@ -40,33 +49,36 @@ func CreateImporter(
 		defaultPageOwner:      dfltPageOwner,
 		defaultPageOwnerEMail: dfltPageOwnerEMail,
 		convertPredefineds:    convertPredefs}
-	return &importer
+	return &importer, nil
 }
 
 // ImportWiki imports a Trac wiki into a Gitea wiki repository.
-func (importer *Importer) ImportWiki() {
-	importer.giteaAccessor.CloneWiki()
+func (importer *Importer) ImportWiki() error {
+	err := importer.giteaAccessor.CloneWiki()
+	if err != nil {
+		return err
+	}
 
 	importer.importWikiAttachments()
 	importer.importWikiPages()
 
-	importer.giteaAccessor.PushWiki()
+	return importer.giteaAccessor.PushWiki()
 }
 
 func (importer *Importer) importWikiAttachments() {
-	importer.tracAccessor.GetWikiAttachments(func(pageName string, filename string) {
+	importer.tracAccessor.GetWikiAttachments(func(pageName string, filename string) error {
 		tracAttachmentPath := importer.tracAccessor.GetWikiAttachmentPath(pageName, filename)
 		giteaAttachmentPath := importer.giteaAccessor.GetWikiAttachmentRelPath(pageName, filename)
-		importer.giteaAccessor.CopyFileToWiki(tracAttachmentPath, giteaAttachmentPath)
+		return importer.giteaAccessor.CopyFileToWiki(tracAttachmentPath, giteaAttachmentPath)
 	})
 }
 
 func (importer *Importer) importWikiPages() {
-	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) {
+	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
 			log.Debugf("Skipping predefined Trac page %s\n", pageName)
-			return
+			return nil
 		}
 
 		// have we already converted this version of the trac wiki page?
@@ -74,11 +86,14 @@ func (importer *Importer) importWikiPages() {
 		// is the addition of later trac versions of wiki pages - these will get added to the wiki repo as later versions
 		tracPageVersionIdentifier := fmt.Sprintf("trac page %s (version %d)", pageName, version)
 		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
-		commitMessages := importer.giteaAccessor.LogWiki(translatedPageName)
+		commitMessages, err := importer.giteaAccessor.LogWiki(translatedPageName)
+		if err != nil {
+			return err
+		}
 		for _, commitMessage := range commitMessages {
 			if strings.Contains(commitMessage, tracPageVersionIdentifier) {
 				log.Infof("Wiki page %s: %s is already present in wiki - skipping...\n", tracPageVersionIdentifier)
-				return
+				return nil
 			}
 		}
 
@@ -91,17 +106,25 @@ func (importer *Importer) importWikiPages() {
 		// translate Trac wiki page (version) author into a Gitea user
 		giteaAuthor := importer.defaultPageOwner
 		giteaAuthorEMail := importer.defaultPageOwnerEMail
-		giteaAuthorID := importer.giteaAccessor.GetUserID(author)
+		giteaAuthorID, err := importer.giteaAccessor.GetUserID(author)
+		if err != nil {
+			return err
+		}
+
 		if giteaAuthorID != -1 {
 			giteaAuthor = author
-			giteaAuthorEMail = importer.giteaAccessor.GetUserEMailAddress(giteaAuthorID)
+			giteaAuthorEMail, err = importer.giteaAccessor.GetUserEMailAddress(giteaAuthorID)
+			if err != nil {
+				return err
+			}
 		}
 
 		// commit version of wiki page to local repository
 		updateTimeStr := time.Unix(updateTime, 0)
 		comment = fmt.Sprintf("%s\n[Imported: %s - updated at %s by Trac user %s]\n",
 			comment, tracPageVersionIdentifier, updateTimeStr, author)
-		importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEMail, comment)
+		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEMail, comment)
 		log.Infof("Wiki page %s: converted from %s\n", translatedPageName, tracPageVersionIdentifier)
+		return err
 	})
 }

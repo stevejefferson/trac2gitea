@@ -14,7 +14,7 @@ type Importer struct {
 // CreateImporter returns a new Trac ticket to Gitea issue importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
-	gAccessor gitea.Accessor) *Importer {
+	gAccessor gitea.Accessor) (*Importer, error) {
 	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor}
-	return &importer
+	return &importer, nil
 }

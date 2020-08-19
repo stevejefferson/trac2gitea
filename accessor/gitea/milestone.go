@@ -8,7 +8,7 @@ import (
 )
 
 // AddMilestone adds a milestone to Gitea, returns id of created milestone
-func (accessor *DefaultAccessor) AddMilestone(name string, content string, closed bool, deadlineTimestamp int64, closedTimestamp int64) int64 {
+func (accessor *DefaultAccessor) AddMilestone(name string, content string, closed bool, deadlineTimestamp int64, closedTimestamp int64) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO
 			milestone(repo_id,name,content,is_closed,deadline_unix,closed_date_unix)
@@ -16,29 +16,32 @@ func (accessor *DefaultAccessor) AddMilestone(name string, content string, close
 				NOT EXISTS (SELECT * FROM milestone WHERE repo_id = $1 AND name = $2)`,
 		accessor.repoID, name, content, closed, deadlineTimestamp, closedTimestamp)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return -1, err
 	}
 
 	var milestoneID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&milestoneID)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return -1, err
 	}
 
-	return milestoneID
+	return milestoneID, nil
 }
 
 // GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
-func (accessor *DefaultAccessor) GetMilestoneID(name string) int64 {
+func (accessor *DefaultAccessor) GetMilestoneID(name string) (int64, error) {
 	var milestoneID int64 = -1
 	err := accessor.db.QueryRow(`
 		SELECT id FROM milestone WHERE name = $1
 		`, name).Scan(&milestoneID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Fatal(err)
+		log.Error(err)
+		return -1, err
 	}
 
-	return milestoneID
+	return milestoneID, nil
 }
 
 // GetMilestoneURL gets the URL for accessing a given milestone

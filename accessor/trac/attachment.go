@@ -38,23 +38,32 @@ func (accessor *DefaultAccessor) GetWikiAttachmentPath(wikiPage string, attachme
 }
 
 // GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetAttachments(ticketID int64, handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string)) {
+func (accessor *DefaultAccessor) GetAttachments(
+	ticketID int64,
+	handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, filename, description, size
 			FROM attachment
 			WHERE type = 'ticket' AND id = $1
 			ORDER BY time asc`, ticketID)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	for rows.Next() {
 		var time, size int64
 		var author, filename, description string
 		if err := rows.Scan(&time, &author, &filename, &description, &size); err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return err
 		}
 
-		handlerFn(ticketID, time, size, author, filename, description)
+		err = handlerFn(ticketID, time, size, author, filename, description)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

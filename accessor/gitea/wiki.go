@@ -34,25 +34,28 @@ func (accessor *DefaultAccessor) GetWikiFileURL(relpath string) string {
 }
 
 // CloneWiki clones our wiki repo to the provided directory.
-func (accessor *DefaultAccessor) CloneWiki() {
+func (accessor *DefaultAccessor) CloneWiki() error {
 	isBare := false
 	repository, err := git.PlainClone(accessor.wikiRepoDir, isBare, &git.CloneOptions{
 		URL:               accessor.wikiRepoURL,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	accessor.wikiRepo = repository
+	return nil
 }
 
 // LogWiki returns the log of commits for the given wiki file.
-func (accessor *DefaultAccessor) LogWiki(pageName string) []string {
+func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
 	wikiFile := wikiPageFileName(pageName)
 	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFile})
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return nil, err
 	}
 
 	var commitMessages []string
@@ -61,16 +64,17 @@ func (accessor *DefaultAccessor) LogWiki(pageName string) []string {
 		return nil
 	})
 
-	return commitMessages
+	return commitMessages, nil
 }
 
 // CommitWiki stages any files added or updated since the last commit then commits them to our cloned wiki repo.
 // We package the staging and commit together here because it is easier than embedding hooks to do the git staging
 // deep into the wiki parsing process where files from the Trac worksapce can get copied over on-the-fly.
-func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, message string) {
+func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, message string) error {
 	worktree, err := accessor.wikiRepo.Worktree()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	status, err := worktree.Status()
@@ -79,7 +83,8 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 		if worktreeStatus == git.Untracked || worktreeStatus == git.Modified {
 			_, err = worktree.Add(file)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err)
+				return err
 			}
 		}
 	}
@@ -91,14 +96,16 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 			When:  time.Now(),
 		},
 	})
-
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
+
+	return nil
 }
 
 // PushWiki pushes all changes to the local wiki repository back to the remote.
-func (accessor *DefaultAccessor) PushWiki() {
+func (accessor *DefaultAccessor) PushWiki() error {
 	// TODO: not working yet
 
 	// auth := &http.BasicAuth{
@@ -111,25 +118,28 @@ func (accessor *DefaultAccessor) PushWiki() {
 	// 	Auth:       auth,
 	// })
 	// if err != nil {
-	// 	log.Fatal(err)
+	// 	log.Error(err)
+	//	return err
 	// }
 
 	log.Infof("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
 		accessor.wikiRepoDir)
+	return nil
 }
 
 // CopyFileToWiki copies an external file into the Gitea Wiki, returning a URL through which the file can be viewed/
-func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWikiRelPath string) {
+func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWikiRelPath string) error {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
 		log.Warnf("cannot copy non-existant file referenced from Wiki: \"%s\"\n", externalFilePath)
-		return
+		return nil
 	}
 
 	giteaPath := filepath.Join(accessor.wikiRepoDir, giteaWikiRelPath)
 	err = os.MkdirAll(path.Dir(giteaPath), 0775)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
 	// determine whether file already exists - if it does we'll just assume we've already copied it earlier in the conversion
@@ -138,21 +148,22 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 		accessor.copyFile(externalFilePath, giteaPath)
 		log.Debugf("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
 	}
+
+	return nil
 }
 
 // WriteWikiPage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
-func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string) string {
+func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string) (string, error) {
 	pagePath := filepath.Join(accessor.wikiRepoDir, wikiPageFileName(pageName))
 	file, err := os.Create(pagePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return "", err
 	}
 
 	file.WriteString(markdownText)
-
 	log.Debugf("Wrote version of wiki page %s\n", pageName)
-
-	return pagePath
+	return pagePath, nil
 }
 
 // TranslateWikiPageName translates a Trac wiki page name into a Gitea one
