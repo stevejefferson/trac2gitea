@@ -118,7 +118,10 @@ func CreateDefaultAccessor(
 	giteaAccessor.repoID = giteaRepoID
 
 	// work out user ids
-	adminUserID := giteaAccessor.getAdminUserID()
+	adminUserID, err := giteaAccessor.getAdminUserID()
+	if err != nil {
+		return nil, err
+	}
 	giteaDefaultAssigneeID, err := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
 	if err != nil {
 		return nil, err

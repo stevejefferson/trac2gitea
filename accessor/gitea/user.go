@@ -35,7 +35,7 @@ func (accessor *DefaultAccessor) GetDefaultAuthorID() int64 {
 }
 
 // getAdminUserID retrieves the id of the project admin user.
-func (accessor *DefaultAccessor) getAdminUserID() int64 {
+func (accessor *DefaultAccessor) getAdminUserID() (int64, error) {
 	row := accessor.db.QueryRow(`
 		SELECT id FROM user WHERE is_admin ORDER BY id LIMIT 1;
 		`)
@@ -43,10 +43,12 @@ func (accessor *DefaultAccessor) getAdminUserID() int64 {
 	var adminID int64
 	err := row.Scan(&adminID)
 	if err != nil {
-		log.Fatal("No admin user found in Gitea\n")
+		err = errors.New("No admin user found in Gitea")
+		log.Error(err)
+		return -1, err
 	}
 
-	return adminID
+	return adminID, nil
 }
 
 // getAdminDefaultingUserID retrieves the id of a named user, defaulting to the admin user if that user does not exist.
