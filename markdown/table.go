@@ -7,10 +7,10 @@ import (
 
 var (
 	// regexp matching the first row of a trac table: $1=previous (non-table) line, $2=leading whitespace prior to first row, $3=first row
-	tableFirstRowRegexp = regexp.MustCompile(`(?m)^([[:blank:]]*(?:[^\|].*)?)\n([[:blank:]]*)\|\|(.*)\|\|.*\n`)
+	tableFirstRowRegexp = regexp.MustCompile(`(?m)^([[:blank:]]*(?:[^\|\n][^\n]*)?)\n([[:blank:]]*)\|\|([^\n]*)\|\|.*\n`)
 
 	// regexp matching entire trac table row including any intermediate cell separators: $1=leading whitespace, $2=row contents
-	tableRowRegexp = regexp.MustCompile(`(?m)([[:blank:]]*)\|\|(.*)\|\|[^\n]*\n`)
+	tableRowRegexp = regexp.MustCompile(`(?m)([[:blank:]]*)\|\|([^\n]*)\|\|[^\n]*\n`)
 )
 
 func (converter *DefaultConverter) convertTables(in string) string {
