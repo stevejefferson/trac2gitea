@@ -24,8 +24,6 @@ func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comme
 		log.Fatal(err)
 	}
 
-	log.Debugf("Issue %d: added comment (id %d)\n", issueID, commentID)
-
 	return commentID
 }
 

@@ -2,6 +2,7 @@ package wiki
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"stevejefferson.co.uk/trac2gitea/log"
@@ -68,12 +69,23 @@ func (importer *Importer) importWikiPages() {
 			return
 		}
 
-		tracToMarkdownConverter := markdown.CreateWikiDefaultConverter(
-			importer.tracAccessor, importer.giteaAccessor, pageName)
+		// have we already converted this version of the trac wiki page?
+		// - if so, skip it on the assumption that this is a re-import and that the only thing that is likely to have changed
+		// is the addition of later trac versions of wiki pages - these will get added to the wiki repo as later versions
+		tracPageVersionIdentifier := fmt.Sprintf("trac page %s (version %d)", pageName, version)
+		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
+		commitMessages := importer.giteaAccessor.LogWiki(translatedPageName)
+		for _, commitMessage := range commitMessages {
+			if strings.Contains(commitMessage, tracPageVersionIdentifier) {
+				log.Infof("Wiki page %s: %s is already present in wiki - skipping...\n", tracPageVersionIdentifier)
+				return
+			}
+		}
 
 		// convert and write wiki page
+		tracToMarkdownConverter := markdown.CreateWikiDefaultConverter(
+			importer.tracAccessor, importer.giteaAccessor, pageName)
 		markdownText := tracToMarkdownConverter.Convert(pageText)
-		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
 		// translate Trac wiki page (version) author into a Gitea user
@@ -87,9 +99,9 @@ func (importer *Importer) importWikiPages() {
 
 		// commit version of wiki page to local repository
 		updateTimeStr := time.Unix(updateTime, 0)
-		comment = fmt.Sprintf("%s\n[Imported from trac: page %s (version %d) updated at %s by Trac user %s]\n",
-			comment, translatedPageName, version, updateTimeStr, author)
+		comment = fmt.Sprintf("%s\n[Imported: %s - updated at %s by Trac user %s]\n",
+			comment, tracPageVersionIdentifier, updateTimeStr, author)
 		importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEMail, comment)
-		log.Infof("Wiki page %s: converted trac version %d\n", translatedPageName, version)
+		log.Infof("Wiki page %s: converted from %s\n", translatedPageName, tracPageVersionIdentifier)
 	})
 }

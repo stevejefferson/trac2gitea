@@ -11,6 +11,10 @@ import (
 	"stevejefferson.co.uk/trac2gitea/log"
 )
 
+func wikiPageFileName(pageName string) string {
+	return pageName + ".md"
+}
+
 // GetWikiAttachmentRelPath returns the location of an attachment to Trac a wiki page when stored in the Gitea wiki repository.
 // The returned path is relative to the root of the Gitea wiki repository.
 func (accessor *DefaultAccessor) GetWikiAttachmentRelPath(pageName string, filename string) string {
@@ -41,6 +45,23 @@ func (accessor *DefaultAccessor) CloneWiki() {
 	}
 
 	accessor.wikiRepo = repository
+}
+
+// LogWiki returns the log of commits for the given wiki file.
+func (accessor *DefaultAccessor) LogWiki(pageName string) []string {
+	wikiFile := wikiPageFileName(pageName)
+	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFile})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var commitMessages []string
+	err = commitIter.ForEach(func(commit *object.Commit) error {
+		commitMessages = append(commitMessages, commit.Message)
+		return nil
+	})
+
+	return commitMessages
 }
 
 // CommitWiki stages any files added or updated since the last commit then commits them to our cloned wiki repo.
@@ -121,7 +142,7 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 
 // WriteWikiPage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
 func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string) string {
-	pagePath := filepath.Join(accessor.wikiRepoDir, pageName+".md")
+	pagePath := filepath.Join(accessor.wikiRepoDir, wikiPageFileName(pageName))
 	file, err := os.Create(pagePath)
 	if err != nil {
 		log.Fatal(err)

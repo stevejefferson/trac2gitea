@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"stevejefferson.co.uk/trac2gitea/log"
 	"stevejefferson.co.uk/trac2gitea/markdown"
 )
 
+// importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or -1 if the issue was not created.
 func (importer *Importer) importTicket(
 	ticketID int64,
 	created int64,
@@ -17,6 +19,11 @@ func (importer *Importer) importTicket(
 	closed bool,
 	summary string,
 	description string) int64 {
+	if importer.giteaAccessor.GetIssueID(ticketID) != -1 {
+		log.Infof("Issue already exists for ticket %d - skipping...\n", ticketID)
+		return -1
+	}
+
 	t2mConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
 	description = t2mConverter.Convert(description)
 
@@ -47,6 +54,7 @@ func (importer *Importer) importTicket(
 	}
 
 	issueID := importer.giteaAccessor.AddIssue(ticketID, summary, reporterID, milestone, ownerID, owner, closed, description, created)
+	log.Infof("Created issue %d: %s\n", issueID, summary)
 
 	return issueID
 }
@@ -62,19 +70,21 @@ func (importer *Importer) ImportTickets() {
 		owner string, reporter string, version string,
 		milestone string, status string, resolution string,
 		summary string, description string) {
-		count++
 		closed := status == "closed"
-		if closed {
-			closedCount++
+		issueID := importer.importTicket(ticketID, created, owner, reporter, milestone, closed, summary, description)
+		if issueID == -1 {
+			return
 		}
 
-		issueID := importer.importTicket(ticketID, created, owner, reporter, milestone, closed, summary, description)
 		importer.importTicketLabels(issueID, component, severity, priority, version, resolution, ticketType)
 		lastUpdate := importer.importTicketAttachments(ticketID, issueID, created)
 		importer.importTicketComments(ticketID, issueID, lastUpdate)
+
+		count++
+		if closed {
+			closedCount++
+		}
 	})
 
 	importer.giteaAccessor.UpdateRepoIssueCount(count, closedCount)
-
-	// TODO: Update issue count for new labels
 }

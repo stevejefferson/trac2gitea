@@ -74,9 +74,11 @@ func (mr *MockAccessorMockRecorder) AddIssue(arg0, arg1, arg2, arg3, arg4, arg5,
 }
 
 // AddIssueLabel mocks base method
-func (m *MockAccessor) AddIssueLabel(arg0 int64, arg1 string) {
+func (m *MockAccessor) AddIssueLabel(arg0, arg1 int64) int64 {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddIssueLabel", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddIssueLabel", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	return ret0
 }
 
 // AddIssueLabel indicates an expected call of AddIssueLabel
@@ -86,9 +88,11 @@ func (mr *MockAccessorMockRecorder) AddIssueLabel(arg0, arg1 interface{}) *gomoc
 }
 
 // AddLabel mocks base method
-func (m *MockAccessor) AddLabel(arg0, arg1 string) {
+func (m *MockAccessor) AddLabel(arg0, arg1 string) int64 {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddLabel", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddLabel", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	return ret0
 }
 
 // AddLabel indicates an expected call of AddLabel
@@ -98,9 +102,11 @@ func (mr *MockAccessorMockRecorder) AddLabel(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // AddMilestone mocks base method
-func (m *MockAccessor) AddMilestone(arg0, arg1 string, arg2 bool, arg3, arg4 int64) {
+func (m *MockAccessor) AddMilestone(arg0, arg1 string, arg2 bool, arg3, arg4 int64) int64 {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddMilestone", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "AddMilestone", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(int64)
+	return ret0
 }
 
 // AddMilestone indicates an expected call of AddMilestone
@@ -257,6 +263,20 @@ func (mr *MockAccessorMockRecorder) GetIssueID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueID", reflect.TypeOf((*MockAccessor)(nil).GetIssueID), arg0)
 }
 
+// GetIssueLabelID mocks base method
+func (m *MockAccessor) GetIssueLabelID(arg0, arg1 int64) int64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIssueLabelID", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// GetIssueLabelID indicates an expected call of GetIssueLabelID
+func (mr *MockAccessorMockRecorder) GetIssueLabelID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueLabelID", reflect.TypeOf((*MockAccessor)(nil).GetIssueLabelID), arg0, arg1)
+}
+
 // GetIssueURL mocks base method
 func (m *MockAccessor) GetIssueURL(arg0 int64) string {
 	m.ctrl.T.Helper()
@@ -269,6 +289,20 @@ func (m *MockAccessor) GetIssueURL(arg0 int64) string {
 func (mr *MockAccessorMockRecorder) GetIssueURL(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueURL", reflect.TypeOf((*MockAccessor)(nil).GetIssueURL), arg0)
+}
+
+// GetLabelID mocks base method
+func (m *MockAccessor) GetLabelID(arg0 string) int64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLabelID", arg0)
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// GetLabelID indicates an expected call of GetLabelID
+func (mr *MockAccessorMockRecorder) GetLabelID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLabelID", reflect.TypeOf((*MockAccessor)(nil).GetLabelID), arg0)
 }
 
 // GetMilestoneID mocks base method
@@ -395,6 +429,20 @@ func (m *MockAccessor) GetWikiHtdocRelPath(arg0 string) string {
 func (mr *MockAccessorMockRecorder) GetWikiHtdocRelPath(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWikiHtdocRelPath", reflect.TypeOf((*MockAccessor)(nil).GetWikiHtdocRelPath), arg0)
+}
+
+// LogWiki mocks base method
+func (m *MockAccessor) LogWiki(arg0 string) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LogWiki", arg0)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// LogWiki indicates an expected call of LogWiki
+func (mr *MockAccessorMockRecorder) LogWiki(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogWiki", reflect.TypeOf((*MockAccessor)(nil).LogWiki), arg0)
 }
 
 // PushWiki mocks base method

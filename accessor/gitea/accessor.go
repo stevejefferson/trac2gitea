@@ -61,20 +61,26 @@ type Accessor interface {
 	/*
 	 * Issue Labels
 	 */
-	// AddIssueLabel adds an issue label to Gitea.
-	AddIssueLabel(issueID int64, label string)
+	// GetIssueLabelID retrieves the id of the given Gitea issue and label - returns -1 if no such issue label.
+	GetIssueLabelID(issueID int64, labelID int64) int64
+
+	// AddIssueLabel adds an issue label to Gitea, returns issue label ID
+	AddIssueLabel(issueID int64, labelID int64) int64
 
 	/*
 	 * Labels
 	 */
-	// AddLabel adds a label to Gitea.
-	AddLabel(label string, color string)
+	// GetLabelID retrieves the id of the given label, returns -1 if no such label
+	GetLabelID(labelName string) int64
+
+	// AddLabel adds a label to Gitea, returns label id.
+	AddLabel(label string, color string) int64
 
 	/*
 	 * Milestones
 	 */
-	// AddMilestone adds a milestone to Gitea.
-	AddMilestone(name string, content string, closed bool, deadlineTimestamp int64, closedTimestamp int64)
+	// AddMilestone adds a milestone to Gitea,  returns id of created milestone
+	AddMilestone(name string, content string, closed bool, deadlineTimestamp int64, closedTimestamp int64) int64
 
 	// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
 	GetMilestoneID(name string) int64
@@ -125,6 +131,9 @@ type Accessor interface {
 
 	// CloneWiki clones the wiki repo.
 	CloneWiki()
+
+	// LogWiki returns the log of commits for the given wiki page.
+	LogWiki(pageName string) []string
 
 	// CommitWiki commits any files added or updated since the last commit to our cloned wiki repo.
 	CommitWiki(author string, authorEMail string, message string)

@@ -116,6 +116,10 @@ func CreateDefaultAccessor(
 
 		giteaWikiRepoDir = filepath.Join(cwd, wikiRepoName)
 	}
+	_, err = os.Stat(giteaWikiRepoDir)
+	if !os.IsNotExist(err) {
+		log.Fatalf("wiki repository directory %s already exists!\n", giteaWikiRepoDir)
+	}
 	giteaAccessor.wikiRepoDir = giteaWikiRepoDir
 
 	// find URL from which clone wiki

@@ -30,3 +30,18 @@ Options:
 * `<gitea-user>` is the owner of the Gitea project being migrated to
 
 * `<gitea-repo>` is the Gitea repository (project) name being migrated to
+
+## Limitations
+* Both Trac and Gitea databases are assumed to be `sqlite`
+    The database connections are created in:
+    * Trac: `accessor.trac.defaultAccessor.go`, func `CreateDefaultAccessor`
+    * Gitea: `accessor.gitea.defaultAccessor.go`, func `CreateDefaultAccessor`
+
+    Having changed these, try running and see if any SQL breaks.
+
+    All trac database accesses are in package `accessor.trac` and all Gitea database accesses are in package `accessor.gitea`.
+* Wiki repository is pulled from Gitea wiki git repository but is not pushed back.
+    The last line output by the converter will give the location of the cloned wiki repository. Go into this directory and do a `git push`.
+
+## Acknowedgements
+The database migration part is largely derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).
