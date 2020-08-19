@@ -3,6 +3,7 @@ package gitea
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"stevejefferson.co.uk/trac2gitea/log"
@@ -79,4 +80,10 @@ func (accessor *DefaultAccessor) GetUserEMailAddress(userID int64) (string, erro
 	}
 
 	return emailAddress, nil
+}
+
+// getUserRepoURL retrieves the URL of the current repository for the current user
+func (accessor *DefaultAccessor) getUserRepoURL() string {
+	rootURL := accessor.GetStringConfig("server", "ROOT_URL")
+	return fmt.Sprintf("%s/%s/%s", rootURL, accessor.userName, accessor.repoName)
 }

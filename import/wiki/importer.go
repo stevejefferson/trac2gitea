@@ -73,6 +73,30 @@ func (importer *Importer) importWikiAttachments() {
 	})
 }
 
+// cache of commit message list keyed by page name - use this because 'LogWiki' is potentially slow
+var commitMessagesByPage = make(map[string][]string)
+
+// pageCommitExists determines whether or not a commit of the given page exists cwith a commit message containing the provided string
+func (importer *Importer) pageCommitExists(pageName string, commitString string) (bool, error) {
+	commitMessages, haveCommitMessages := commitMessagesByPage[pageName]
+	if !haveCommitMessages {
+		pageCommitMessages, err := importer.giteaAccessor.LogWiki(pageName)
+		if err != nil {
+			return false, err
+		}
+		commitMessagesByPage[pageName] = pageCommitMessages
+		commitMessages = pageCommitMessages
+	}
+
+	for _, commitMessage := range commitMessages {
+		if strings.Contains(commitMessage, commitString) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func (importer *Importer) importWikiPages() {
 	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error {
 		// skip predefined pages
@@ -86,15 +110,13 @@ func (importer *Importer) importWikiPages() {
 		// is the addition of later trac versions of wiki pages - these will get added to the wiki repo as later versions
 		tracPageVersionIdentifier := fmt.Sprintf("trac page %s (version %d)", pageName, version)
 		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
-		commitMessages, err := importer.giteaAccessor.LogWiki(translatedPageName)
+		hasCommit, err := importer.pageCommitExists(translatedPageName, tracPageVersionIdentifier)
 		if err != nil {
 			return err
 		}
-		for _, commitMessage := range commitMessages {
-			if strings.Contains(commitMessage, tracPageVersionIdentifier) {
-				log.Infof("Wiki page %s: %s is already present in wiki - skipping...\n", tracPageVersionIdentifier)
-				return nil
-			}
+		if hasCommit {
+			log.Infof("Wiki page %s: %s is already present in wiki - skipping...\n", translatedPageName, tracPageVersionIdentifier)
+			return nil
 		}
 
 		// convert and write wiki page

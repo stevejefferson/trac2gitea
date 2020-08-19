@@ -155,14 +155,10 @@ func CreateDefaultAccessor(
 
 	// find URL from which clone wiki
 	if giteaWikiRepoURL == "" {
-		giteaWikiRepoURL = giteaAccessor.getUserRepoURL() + ".git"
+		rootURL := giteaAccessor.GetStringConfig("server", "ROOT_URL")
+		giteaWikiRepoURL = fmt.Sprintf("%s/%s.git", rootURL, wikiRepoName)
 	}
 	giteaAccessor.wikiRepoURL = giteaWikiRepoURL
 
 	return &giteaAccessor, nil
-}
-
-func (accessor *DefaultAccessor) getUserRepoURL() string {
-	baseURL := accessor.GetStringConfig("server", "ROOT_URL")
-	return fmt.Sprintf("%s/%s/%s", baseURL, accessor.userName, accessor.repoName)
 }

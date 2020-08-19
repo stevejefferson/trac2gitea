@@ -36,6 +36,8 @@ func (accessor *DefaultAccessor) GetWikiFileURL(relpath string) string {
 // CloneWiki clones our wiki repo to the provided directory.
 func (accessor *DefaultAccessor) CloneWiki() error {
 	isBare := false
+	log.Info("Cloning wiki repository %s into directory %s\n", accessor.wikiRepoURL, accessor.wikiRepoDir)
+
 	repository, err := git.PlainClone(accessor.wikiRepoDir, isBare, &git.CloneOptions{
 		URL:               accessor.wikiRepoURL,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
@@ -51,8 +53,17 @@ func (accessor *DefaultAccessor) CloneWiki() error {
 
 // LogWiki returns the log of commits for the given wiki file.
 func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
-	wikiFile := wikiPageFileName(pageName)
-	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFile})
+	wikiFilename := wikiPageFileName(pageName)
+	wikiFile := filepath.Join(accessor.wikiRepoDir, wikiFilename)
+
+	// if file does not exist then we needn't look for its log...
+	_, err := os.Stat(wikiFile)
+	if os.IsNotExist(err) {
+		noCommits := []string{}
+		return noCommits, nil
+	}
+
+	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFilename})
 	if err != nil {
 		log.Error(err)
 		return nil, err
