@@ -1,6 +1,7 @@
 // Copyright 2020 Steve Jefferson. All rights reserved.
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
+
 package trac
 
 // GetStringConfig retrieves a value from the Trac config as a string.

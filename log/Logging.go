@@ -1,6 +1,7 @@
 // Copyright 2020 Steve Jefferson. All rights reserved.
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
+
 package log
 
 import (
@@ -76,12 +77,14 @@ func printf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 func sysprint(reqdLevel Level, prefix string, v ...interface{}) {
 	if level <= reqdLevel {
 		systemlog.Println(prependArg(prefix, v)...)
+		debug.PrintStack()
 	}
 }
 
 func sysprintf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
 		systemlog.Printf(prefix+format, v...)
+		debug.PrintStack()
 	}
 }
 
