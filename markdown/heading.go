@@ -26,7 +26,8 @@ func compileRegexps() {
 		// $2 = heading text
 		// $3 = any trailing text on line which may contain an optional Trac heading anchor
 		//      (we have to warn about because markdown heading anchors are not the same)
-		headingRegexpStr := `(?m)^(` + tracHeadingDelimiter + `) *([^=\n]+)` + tracHeadingDelimiter + `(.*)$`
+		// note: the trailing sequence of '='s  on trac headings turns out to be optional
+		headingRegexpStr := `(?m)^(` + tracHeadingDelimiter + `) *([^=\n]+)(?:` + tracHeadingDelimiter + `)?(.*)$`
 		headingRegexps[headingLevel] = regexp.MustCompile(headingRegexpStr)
 	}
 }

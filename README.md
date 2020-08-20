@@ -55,10 +55,12 @@ Options:
       --default-assignee username      username to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>
       --default-author username        username to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>
       --default-wiki-author username   username to attribute Wiki content to when trac author is not found in Gitea - defaults to <gitea-user>
+      --no-wiki-push                   do not push wiki on completion
       --verbose                        verbose output
       --wiki-convert-predefined        convert Trac predefined wiki pages - by default we skip these
       --wiki-dir string                directory into which to checkout (clone) wiki repository - defaults to cwd
       --wiki-only                      convert wiki only
+      --wiki-token string              password/token for accessing wiki repository (ignored if wiki-url provided)
       --wiki-url string                URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git
 ```
 
@@ -68,18 +70,17 @@ Options:
 * `<gitea-repo>` is the Gitea repository (project) name being migrated to
 
 ## Limitations
-* The current code is written for `sqlite` (for both the Trac and Gitea databases).
-    Hopefully, very little of the SQL used by the converter is specific to a particular SQL dialect so porting to a different database type should not be particularly difficult.
+The current code is written for `sqlite` (for both the Trac and Gitea databases).
 
-    For anyone using a different database, ehe database connections are created in:
-    * Trac: `accessor.trac.defaultAccessor.go`, func `CreateDefaultAccessor`
-    * Gitea: `accessor.gitea.defaultAccessor.go`, func `CreateDefaultAccessor`
+Hopefully, very little of the SQL used by the converter is specific to a particular SQL dialect so porting to a different database type should not be particularly difficult.
 
-    Having changed these, try running the converter and see if any SQL breaks.
+For anyone using a different database, ehe database connections are created in:
+  * Trac: `accessor.trac.defaultAccessor.go`, func `CreateDefaultAccessor`
+  * Gitea: `accessor.gitea.defaultAccessor.go`, func `CreateDefaultAccessor`
 
-    All trac database accesses are in package `accessor.trac` and all Gitea database accesses are in package `accessor.gitea`.
-* Wiki repository is pulled from Gitea wiki git repository but is not pushed back.
-    The last line output by the converter will give the location of the cloned wiki repository. Go into this directory and do a `git push`.
+Having changed these, try running the converter and see if any SQL breaks.
+
+All trac database accesses are in package `accessor.trac` and all Gitea database accesses are in package `accessor.gitea`.
 
 ## Building
 The default Makefile target should build the application (in the cwd) and run the tests.

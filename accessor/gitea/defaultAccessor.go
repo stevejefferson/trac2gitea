@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"stevejefferson.co.uk/trac2gitea/log"
 
@@ -30,6 +31,7 @@ type DefaultAccessor struct {
 	defaultAssigneeID int64
 	defaultAuthorID   int64
 	wikiRepoURL       string
+	wikiRepoToken     string
 	wikiRepoDir       string
 	wikiRepo          *git.Repository
 }
@@ -55,6 +57,7 @@ func CreateDefaultAccessor(
 	giteaUserName string,
 	giteaRepoName string,
 	giteaWikiRepoURL string,
+	giteaWikiRepoToken string,
 	giteaWikiRepoDir string,
 	defaultAssignee string,
 	defaultAuthor string) (*DefaultAccessor, error) {
@@ -96,6 +99,7 @@ func CreateDefaultAccessor(
 		defaultAssigneeID: 0,
 		defaultAuthorID:   0,
 		wikiRepoURL:       "",
+		wikiRepoToken:     "",
 		wikiRepoDir:       "",
 		wikiRepo:          nil}
 
@@ -139,7 +143,7 @@ func CreateDefaultAccessor(
 	giteaAccessor.defaultAuthorID = giteaDefaultAuthorID
 
 	// find directory into which to clone wiki
-	wikiRepoName := giteaUserName + "/" + giteaRepoName + ".wiki"
+	wikiRepoName := giteaRepoName + ".wiki"
 	if giteaWikiRepoDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -160,8 +164,25 @@ func CreateDefaultAccessor(
 	// find URL from which clone wiki
 	if giteaWikiRepoURL == "" {
 		rootURL := giteaAccessor.GetStringConfig("server", "ROOT_URL")
-		giteaWikiRepoURL = fmt.Sprintf("%s/%s.git", rootURL, wikiRepoName)
+		if giteaWikiRepoToken != "" {
+			slashSlashPos := strings.Index(rootURL, "//")
+			if slashSlashPos == -1 {
+				err = errors.New("ROOT_URL " + rootURL + " malformed? expecting a '//'")
+				log.Error(err)
+				return nil, err
+			}
+
+			// insert username and token into URL - 'http://example.com' should become 'http://<user>:<token>@example.com'
+			rootURL = rootURL[0:slashSlashPos+2] + giteaUserName + ":" + giteaWikiRepoToken + "@" + rootURL[slashSlashPos+2:]
+
+			giteaAccessor.wikiRepoToken = giteaWikiRepoToken
+		}
+		if rootURL[len(rootURL)-1:] != "/" {
+			rootURL = rootURL + "/"
+		}
+		giteaWikiRepoURL = fmt.Sprintf("%s%s/%s.git", rootURL, giteaUserName, wikiRepoName)
 	}
+	log.Infof("Using Wiki repo URL %s\n", giteaWikiRepoURL)
 	giteaAccessor.wikiRepoURL = giteaWikiRepoURL
 
 	return &giteaAccessor, nil

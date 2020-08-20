@@ -57,7 +57,7 @@ func CreateImporter(
 }
 
 // ImportWiki imports a Trac wiki into a Gitea wiki repository.
-func (importer *Importer) ImportWiki() error {
+func (importer *Importer) ImportWiki(push bool) error {
 	err := importer.giteaAccessor.CloneWiki()
 	if err != nil {
 		return err
@@ -66,7 +66,12 @@ func (importer *Importer) ImportWiki() error {
 	importer.importWikiAttachments()
 	importer.importWikiPages()
 
-	return importer.giteaAccessor.PushWiki()
+	if push {
+		return importer.giteaAccessor.PushWiki()
+	}
+
+	log.Infof("Trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.\n")
+	return nil
 }
 
 func (importer *Importer) importWikiAttachments() {

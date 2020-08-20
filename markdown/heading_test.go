@@ -58,6 +58,14 @@ func TestLevel6Heading(t *testing.T) {
 	assertEquals(t, conversion, leadingText+"\n###### "+headingText+"\n"+trailingText)
 }
 
+func TestHeadingWithNoTrailingPart(t *testing.T) {
+	setUp(t)
+	defer tearDown(t)
+
+	conversion := converter.Convert(leadingText + "\n==== " + headingText + "\n" + trailingText)
+	assertEquals(t, conversion, leadingText+"\n#### "+headingText+"\n"+trailingText)
+}
+
 func TestHeadingWithAnchor(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)

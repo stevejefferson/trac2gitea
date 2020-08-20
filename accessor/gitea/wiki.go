@@ -12,6 +12,7 @@ import (
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"stevejefferson.co.uk/trac2gitea/log"
 )
 
@@ -40,7 +41,7 @@ func (accessor *DefaultAccessor) GetWikiFileURL(relpath string) string {
 // CloneWiki clones our wiki repo to the provided directory.
 func (accessor *DefaultAccessor) CloneWiki() error {
 	isBare := false
-	log.Info("Cloning wiki repository %s into directory %s\n", accessor.wikiRepoURL, accessor.wikiRepoDir)
+	log.Infof("Cloning wiki repository %s into directory %s\n", accessor.wikiRepoURL, accessor.wikiRepoDir)
 
 	repository, err := git.PlainClone(accessor.wikiRepoDir, isBare, &git.CloneOptions{
 		URL:               accessor.wikiRepoURL,
@@ -121,25 +122,23 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 
 // PushWiki pushes all changes to the local wiki repository back to the remote.
 func (accessor *DefaultAccessor) PushWiki() error {
-	// TODO: not working yet
+	auth := &http.BasicAuth{
+		Username: accessor.userName,
+		Password: accessor.wikiRepoToken,
+	}
 
-	// auth := &http.BasicAuth{
-	// 	Username: accessor.userName,
-	// 	Password: "[git_basic_auth_token]",
-	// }
+	log.Debugf("Pushing wiki to remote\n")
+	err := accessor.wikiRepo.Push(&git.PushOptions{
+		RemoteName: "origin",
+		Auth:       auth,
+	})
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		log.Error(err)
+		return err
+	}
 
-	// err := accessor.wikiRepo.Push(&git.PushOptions{
-	// 	RemoteName: "origin",
-	// 	Auth:       auth,
-	// })
-	// if err != nil {
-	// 	log.Error(err)
-	//	return err
-	// }
-
-	log.Infof("Trac wiki has been imported into cloned wiki repository at %s. Please review changes and push back to remote when done.\n",
-		accessor.wikiRepoDir)
-	return nil
+	log.Debugf("Deleting cloned wiki directory %s\n", accessor.wikiRepoDir)
+	return os.RemoveAll(accessor.wikiRepoDir)
 }
 
 // CopyFileToWiki copies an external file into the Gitea Wiki, returning a URL through which the file can be viewed/

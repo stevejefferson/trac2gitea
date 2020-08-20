@@ -18,6 +18,7 @@ import (
 
 var dbOnly bool
 var wikiOnly bool
+var wikiPush bool
 var verbose bool
 var wikiConvertPredefineds bool
 var tracRootDir string
@@ -25,6 +26,7 @@ var giteaRootDir string
 var giteaUser string
 var giteaRepo string
 var giteaWikiRepoURL string
+var giteaWikiRepoToken string
 var giteaWikiRepoDir string
 var giteaDefaultAssignee string
 var giteaDefaultAuthor string
@@ -40,6 +42,8 @@ func parseArgs() {
 
 	wikiURLParam := pflag.String("wiki-url", "",
 		"URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git")
+	wikiTokenParam := pflag.String("wiki-token", "",
+		"password/token for accessing wiki repository (ignored if wiki-url provided)")
 	wikiDirParam := pflag.String("wiki-dir", "",
 		"directory into which to checkout (clone) wiki repository - defaults to cwd")
 	wikiConvertPredefinedsParam := pflag.Bool("wiki-convert-predefined", false,
@@ -49,6 +53,8 @@ func parseArgs() {
 		"convert database only")
 	wikiOnlyParam := pflag.Bool("wiki-only", false,
 		"convert wiki only")
+	wikiNoPushParam := pflag.Bool("no-wiki-push", false,
+		"do not push wiki on completion")
 	verboseParam := pflag.Bool("verbose", false,
 		"verbose output")
 
@@ -65,6 +71,8 @@ func parseArgs() {
 	verbose = *verboseParam
 	dbOnly = *dbOnlyParam
 	wikiOnly = *wikiOnlyParam
+	wikiPush = !*wikiNoPushParam
+
 	if dbOnly && wikiOnly {
 		log.Fatal("Cannot generate only database AND only wiki!")
 	}
@@ -93,6 +101,7 @@ func parseArgs() {
 		giteaDefaultWikiAuthor = giteaUser
 	}
 	giteaWikiRepoURL = *wikiURLParam
+	giteaWikiRepoToken = *wikiTokenParam
 	giteaWikiRepoDir = *wikiDirParam
 }
 
@@ -110,7 +119,7 @@ func main() {
 		log.Fatal(err)
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
-		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoDir, giteaDefaultAssignee, giteaDefaultAuthor)
+		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, giteaDefaultAssignee, giteaDefaultAuthor)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -137,6 +146,6 @@ func main() {
 			log.Fatal(err)
 		}
 
-		wikiImporter.ImportWiki()
+		wikiImporter.ImportWiki(wikiPush)
 	}
 }
