@@ -120,12 +120,12 @@ func Infof(format string, v ...interface{}) {
 
 // Warn outputs a warning message
 func Warn(v ...interface{}) {
-	sysprint(WARN, "Warning: ", v...)
+	print(WARN, "Warning: ", v...)
 }
 
 // Warnf outputs a formatted warning message
 func Warnf(format string, v ...interface{}) {
-	sysprintf(WARN, "Warning: ", format, v...)
+	printf(WARN, "Warning: ", format, v...)
 }
 
 // Error outputs an error message
