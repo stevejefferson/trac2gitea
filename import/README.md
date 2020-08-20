@@ -1,6 +1,6 @@
 # trac2gitea `import` Packages
 
-These implement the data import process.
+These packages implement the data import process.
 * `import.issue` imports Trac ticket and associated data as Gitea issues
 * `import.wiki` imports Trac wiki data into the Gitea project wiki repository
 
