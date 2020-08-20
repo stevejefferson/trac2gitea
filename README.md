@@ -81,5 +81,10 @@ Options:
 * Wiki repository is pulled from Gitea wiki git repository but is not pushed back.
     The last line output by the converter will give the location of the cloned wiki repository. Go into this directory and do a `git push`.
 
+## Building
+The default Makefile target should build the application (in the cwd) and run the tests.
+
+Missing dependencies can be fetched with the `deps` target.
+
 ## Acknowedgements
 The database migration part is largely derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).
