@@ -4,7 +4,9 @@
 
 package markdown_test
 
-import "testing"
+import (
+	"testing"
+)
 
 const (
 	row1Cell1 = "this is row 1, cell 1"
@@ -31,6 +33,19 @@ func TestSingleNonHeaderRowTableHasHeaderRowPrepended(t *testing.T) {
 		"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n"
 	conversion := converter.Convert(leadingText + "\n\n" + tracTable + trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+trailingText)
+}
+
+func TestSingleNonHeaderRowTableAtStartOfTextHasHeaderRowPrepended(t *testing.T) {
+	setUp(t)
+	defer tearDown(t)
+
+	tracTable := "||" + row1Cell1 + "||" + row1Cell2 + "||" + row1Cell3 + "||\n"
+	markdownTable :=
+		"| | | |\n" +
+			"|---|---|---|\n" +
+			"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n"
+	conversion := converter.Convert(tracTable + trailingText)
+	assertEquals(t, conversion, markdownTable+trailingText)
 }
 
 func TestSinglePartialHeaderRowTableBecomesAllHeaderRow(t *testing.T) {
@@ -128,6 +143,46 @@ func TestMultiRowTableWithAllHeaders(t *testing.T) {
 
 	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
+}
+
+func TestTableAtStartOfText(t *testing.T) {
+	setUp(t)
+	defer tearDown(t)
+
+	tracTable :=
+		"||=" + row1Cell1 + "=||=" + row1Cell2 + "=||=" + row1Cell3 + "=||\n" +
+			"||" + row2Cell1 + "||" + row2Cell2 + "||" + row2Cell3 + "||\n" +
+			"||" + row3Cell1 + "||" + row3Cell2 + "||" + row3Cell3 + "||"
+
+	// expect insertion of extra newline and for first row to (still) be all headings
+	markdownTable := "\n" +
+		"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n" +
+		"|---|---|---|\n" +
+		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
+		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|"
+
+	conversion := converter.Convert(leadingText + "\n" + tracTable)
+	assertEquals(t, conversion, leadingText+"\n"+markdownTable)
+}
+
+func TestTableAtEndOfText(t *testing.T) {
+	setUp(t)
+	defer tearDown(t)
+
+	tracTable :=
+		"||=" + row1Cell1 + "=||=" + row1Cell2 + "=||=" + row1Cell3 + "=||\n" +
+			"||" + row2Cell1 + "||" + row2Cell2 + "||" + row2Cell3 + "||\n" +
+			"||" + row3Cell1 + "||" + row3Cell2 + "||" + row3Cell3 + "||"
+
+	// expect insertion of extra newline and for first row to (still) be all headings
+	markdownTable := "\n" +
+		"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n" +
+		"|---|---|---|\n" +
+		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
+		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|"
+
+	conversion := converter.Convert(leadingText + "\n" + tracTable)
+	assertEquals(t, conversion, leadingText+"\n"+markdownTable)
 }
 
 func TestMultiRowTableWithCrazyHeadings(t *testing.T) {

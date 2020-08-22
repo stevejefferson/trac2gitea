@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"stevejefferson.co.uk/trac2gitea/log"
+	"stevejefferson.co.uk/trac2gitea/markdown"
 
 	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
 	"stevejefferson.co.uk/trac2gitea/accessor/trac"
-	"stevejefferson.co.uk/trac2gitea/markdown"
 )
 
 // Importer imports Trac Wiki data into a Gitea wiki repository.
@@ -85,7 +85,7 @@ func (importer *Importer) importWikiAttachments() {
 // cache of commit message list keyed by page name - use this because 'LogWiki' is potentially slow
 var commitMessagesByPage = make(map[string][]string)
 
-// pageCommitExists determines whether or not a commit of the given page exists cwith a commit message containing the provided string
+// pageCommitExists determines whether or not a commit of the given page exists with a commit message containing the provided string
 func (importer *Importer) pageCommitExists(pageName string, commitString string) (bool, error) {
 	commitMessages, haveCommitMessages := commitMessagesByPage[pageName]
 	if !haveCommitMessages {

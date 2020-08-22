@@ -169,6 +169,12 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 // WriteWikiPage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
 func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string) (string, error) {
 	pagePath := filepath.Join(accessor.wikiRepoDir, wikiPageFileName(pageName))
+	err := os.MkdirAll(path.Dir(pagePath), 0775)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+
 	file, err := os.Create(pagePath)
 	if err != nil {
 		log.Error(err)
