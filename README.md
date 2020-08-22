@@ -43,7 +43,7 @@ At present the following Trac data is converted:
 ## Requirements ##
 The converter requires access to both the Trac and Gitea filestore.
 It retrieves data directly from the Trac database and writes into the Gitea database.
-Access to the Gitea project wiki is via `git`.
+Access to the Gitea project wiki is via by checking out the wiki git repository.
 
 The Gitea project must have been created prior to the migration as must the Gitea project wiki if a Trac wiki is to be converted (this can however just consist of an empty `Home.md` welcome page).
 
@@ -83,9 +83,16 @@ Having changed these, try running the converter and see if any SQL breaks.
 All trac database accesses are in package `accessor.trac` and all Gitea database accesses are in package `accessor.gitea`.
 
 ## Building
-The default Makefile target should build the application (in the cwd) and run the tests.
+From the root of the source tree run:
+```
+make
+```
+This will build the application as an executable `trac2gitea` (in the source tree root directory) and run the tests.
 
-Missing dependencies can be fetched with the `deps` target.
+Missing dependencies can be fetched using:
+```
+make deps
+```
 
-## Acknowedgements
-The database migration part is largely derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).
+## Acknowledgements
+The database migration code is largely derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).
