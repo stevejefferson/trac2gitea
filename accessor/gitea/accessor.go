@@ -41,12 +41,12 @@ type Accessor interface {
 	/*
 	 * Issues
 	 */
-	// GetIssueID retrieves the id of the Gitea issue corresponding to a given Trac ticket - returns -1 if no such issue.
-	GetIssueID(ticketID int64) (int64, error)
+	// GetIssueID retrieves the id of the Gitea issue corresponding to a given index - returns -1 if no such issue.
+	GetIssueID(issueIndex int64) (int64, error)
 
 	// AddIssue adds a new issue to Gitea - returns id of created issue.
 	AddIssue(
-		ticketID int64,
+		issueIndex int64,
 		summary string,
 		reporterID int64,
 		milestone string,
@@ -133,13 +133,13 @@ type Accessor interface {
 	// GetWikiFileURL returns a URL for viewing a file stored in the Gitea wiki repository.
 	GetWikiFileURL(relpath string) string
 
-	// CloneWiki clones the wiki repo.
+	// CloneWiki creates a local clone of the wiki repo.
 	CloneWiki() error
 
-	// LogWiki returns the log of commits for the given wiki page.
+	// LogWiki returns the log of commits for the given wiki page
 	LogWiki(pageName string) ([]string, error)
 
-	// CommitWiki commits any files added or updated since the last commit to our cloned wiki repo.
+	// CommitWiki commits any files added or updated since the last commit to our local wiki repo.
 	CommitWiki(author string, authorEMail string, message string) error
 
 	// PushWiki pushes all changes to the local wiki repository back to the remote.

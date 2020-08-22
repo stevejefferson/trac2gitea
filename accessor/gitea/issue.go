@@ -11,12 +11,12 @@ import (
 	"stevejefferson.co.uk/trac2gitea/log"
 )
 
-// GetIssueID retrieves the id of the Gitea issue corresponding to a given Trac ticket - returns -1 if no such issue.
-func (accessor *DefaultAccessor) GetIssueID(ticketID int64) (int64, error) {
+// GetIssueID retrieves the id of the Gitea issue corresponding to a given issue index - returns -1 if no such issue.
+func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
 	var issueID int64 = -1
 	err := accessor.db.QueryRow(`
 		SELECT id FROM issue WHERE repo_id = $1 AND "index" = $2
-		`, accessor.repoID, ticketID).Scan(&issueID)
+		`, accessor.repoID, issueIndex).Scan(&issueID)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		return -1, err
@@ -27,7 +27,7 @@ func (accessor *DefaultAccessor) GetIssueID(ticketID int64) (int64, error) {
 
 // AddIssue adds a new issue to Gitea.
 func (accessor *DefaultAccessor) AddIssue(
-	ticketID int64,
+	issueIndex int64,
 	summary string,
 	reporterID int64,
 	milestone string,
@@ -39,7 +39,7 @@ func (accessor *DefaultAccessor) AddIssue(
 	_, err := accessor.db.Exec(`
 		INSERT INTO issue("index", repo_id, name, poster_id, milestone_id, original_author_id, original_author, is_pull, is_closed, content, created_unix)
 			SELECT $1, $2, $3, $4, (SELECT id FROM milestone WHERE repo_id = $2 AND name = $5), $6, $7, false, $8, $9, $10`,
-		ticketID, accessor.repoID, summary, reporterID, milestone, ownerID, owner, closed, description, created)
+		issueIndex, accessor.repoID, summary, reporterID, milestone, ownerID, owner, closed, description, created)
 	if err != nil {
 		log.Error(err)
 		return -1, err
