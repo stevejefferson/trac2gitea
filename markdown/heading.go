@@ -7,8 +7,6 @@ package markdown
 import (
 	"regexp"
 	"strings"
-
-	"stevejefferson.co.uk/trac2gitea/log"
 )
 
 const maxHeadingLevel = 6
@@ -25,7 +23,6 @@ func compileRegexps() {
 		// $1 = heading level delimiter (which we transform into the equivalent markdown delimiter)
 		// $2 = heading text
 		// $3 = any trailing text on line which may contain an optional Trac heading anchor
-		//      (we have to warn about because markdown heading anchors are not the same)
 		// note: the trailing sequence of '='s  on trac headings turns out to be optional
 		headingRegexpStr := `(?m)^(` + tracHeadingDelimiter + `) *([^=\n]+)(?:` + tracHeadingDelimiter + `)?(.*)$`
 		headingRegexps[headingLevel] = regexp.MustCompile(headingRegexpStr)
@@ -52,19 +49,20 @@ func (converter *DefaultConverter) convertHeadings(in string) string {
 			headingText = strings.Trim(headingText, " ")
 
 			// examine any trailing text for presence of a Trac heading anchor
+			anchor := ""
 			trailingText := headingRegexp.ReplaceAllString(match, `$3`)
 			if headingAnchorRegexp.MatchString(trailingText) {
-				// any Trac anchor must be the same as the heading after hyphenation
-				// (markdown heading anchors are formed from the heading text and can't be arbitrary strings as in Trac)
+				// if Trac anchor is the same as the "hyphenated" heading then this is the same as the implicit markdown heading anchor
+				// so we don't need to embed an explicit anchor
 				anchorName := headingAnchorRegexp.ReplaceAllString(trailingText, `$1`)
 				hyphenatedHeading := strings.Replace(headingText, " ", "-", -1)
 				if hyphenatedHeading != anchorName {
-					log.Warnf("anchor \"%s\" on trac heading \"%s\" cannot be used in markdown - hyphenate the heading text and use that to reference the heading\n",
-						anchorName, headingText)
+					// Trac anchor does not match markdown implicit anchor - the best we can do is insert a raw HTML anchor
+					anchor = "<a name=\"" + anchorName + "\"></a>"
 				}
 			}
 
-			return markdownDelimiter + " " + headingText
+			return markdownDelimiter + " " + anchor + headingText
 		})
 	}
 

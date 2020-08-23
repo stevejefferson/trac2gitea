@@ -10,13 +10,13 @@ func TestUnlabelledAnchor(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "[=#name]" + trailingText)
-	assertEquals(t, conversion, leadingText+"[](#name)"+trailingText)
+	conversion := converter.Convert(leadingText + "[=#anchor-name]" + trailingText)
+	assertEquals(t, conversion, leadingText+"<a name=\"anchor-name\"></a>"+trailingText)
 }
 func TestLabelledAnchor(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "[=#name anchor label]" + trailingText)
-	assertEquals(t, conversion, leadingText+"[anchor label](#name)"+trailingText)
+	conversion := converter.Convert(leadingText + "[=#anchor-name anchor label]" + trailingText)
+	assertEquals(t, conversion, leadingText+"<a name=\"anchor-name\">anchor label</a>"+trailingText)
 }

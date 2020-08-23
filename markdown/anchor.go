@@ -16,7 +16,9 @@ func (converter *DefaultConverter) convertAnchors(in string) string {
 	out = anchorRegexp.ReplaceAllStringFunc(out, func(match string) string {
 		anchorName := anchorRegexp.ReplaceAllString(match, `$1`)
 		anchorLabel := anchorRegexp.ReplaceAllString(match, `$2`)
-		return "[" + anchorLabel + "](#" + anchorName + ")"
+
+		// there is no agreed markdown for anchors however raw HTML works
+		return "<a name=\"" + anchorName + "\">" + anchorLabel + "</a>"
 	})
 
 	return out
