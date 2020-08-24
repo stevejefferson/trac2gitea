@@ -34,7 +34,7 @@ func (importer *Importer) importLabels(tracMethod func(tAccessor trac.Accessor, 
 			return err
 		}
 		if labelID != -1 {
-			log.Debugf("label %s already exists, skipping...\n", labelName)
+			log.Debug("label %s already exists, skipping...\n", labelName)
 			return nil
 		}
 
@@ -43,7 +43,7 @@ func (importer *Importer) importLabels(tracMethod func(tAccessor trac.Accessor, 
 			return err
 		}
 
-		log.Debugf("Created label (id %d), name %s, color %s\n", labelID, labelName, labelColor)
+		log.Debug("Created label (id %d), name %s, color %s\n", labelID, labelName, labelColor)
 		return nil
 	})
 }

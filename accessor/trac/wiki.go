@@ -15,7 +15,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 	handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error) error {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving trac wiki pages: %v\n", err)
 		return err
 	}
 
@@ -27,7 +27,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 		var version int64
 		var updateTime int64
 		if err := rows.Scan(&pageName, &pageText, &author, &commentStr, &version, &updateTime); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting data on trac wiki page: %v\n", err)
 			return err
 		}
 
@@ -49,7 +49,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string) error) error {
 	rows, err := accessor.db.Query(`SELECT id, filename FROM attachment WHERE type = 'wiki'`)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving attachments for trac wiki pages: %v\n", err)
 		return err
 	}
 
@@ -57,7 +57,7 @@ func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage stri
 		var pageName string
 		var filename string
 		if err := rows.Scan(&pageName, &filename); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting attachment data for trac wiki page: %v\n", err)
 			return err
 		}
 

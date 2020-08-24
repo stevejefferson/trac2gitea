@@ -28,7 +28,7 @@ func (importer *Importer) importTicket(
 		return -1, err
 	}
 	if issueID != -1 {
-		log.Infof("Issue already exists for ticket %d - skipping...\n", ticketID)
+		log.Info("Issue already exists for ticket %d - skipping...\n", ticketID)
 		return -1, nil
 	}
 
@@ -73,7 +73,7 @@ func (importer *Importer) importTicket(
 	if err != nil {
 		return -1, err
 	}
-	log.Infof("Created issue %d: %s\n", issueID, summary)
+	log.Info("Created issue %d: %s\n", issueID, summary)
 
 	return issueID, nil
 }

@@ -41,14 +41,14 @@ func (accessor *DefaultAccessor) GetWikiFileURL(relpath string) string {
 // CloneWiki clones our wiki repo to the provided directory.
 func (accessor *DefaultAccessor) CloneWiki() error {
 	isBare := false
-	log.Infof("Cloning wiki repository %s into directory %s\n", accessor.wikiRepoURL, accessor.wikiRepoDir)
+	log.Info("Cloning wiki repository %s into directory %s\n", accessor.wikiRepoURL, accessor.wikiRepoDir)
 
 	repository, err := git.PlainClone(accessor.wikiRepoDir, isBare, &git.CloneOptions{
 		URL:               accessor.wikiRepoURL,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem cloning wiki repository %s into directory %s: %v\n", accessor.wikiRepoURL, accessor.wikiRepoDir, err)
 		return err
 	}
 
@@ -70,7 +70,7 @@ func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
 
 	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFilename})
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving git commit log for file %s: %v\n", wikiFilename, err)
 		return nil, err
 	}
 
@@ -89,7 +89,7 @@ func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
 func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, message string) error {
 	worktree, err := accessor.wikiRepo.Worktree()
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving git work tree for cloned wiki repository: %v\n", err)
 		return err
 	}
 
@@ -99,7 +99,7 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 		if worktreeStatus == git.Untracked || worktreeStatus == git.Modified {
 			_, err = worktree.Add(file)
 			if err != nil {
-				log.Error(err)
+				log.Error("Problem adding file %s to git work tree in cloned wiki repository: %v\n", file, err)
 				return err
 			}
 		}
@@ -113,7 +113,7 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 		},
 	})
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem committing changes to wiki repository: %v\n", err)
 		return err
 	}
 
@@ -127,17 +127,17 @@ func (accessor *DefaultAccessor) PushWiki() error {
 		Password: accessor.wikiRepoToken,
 	}
 
-	log.Debugf("Pushing wiki to remote\n")
+	log.Debug("Pushing wiki to remote\n")
 	err := accessor.wikiRepo.Push(&git.PushOptions{
 		RemoteName: "origin",
 		Auth:       auth,
 	})
 	if err != nil && err != git.NoErrAlreadyUpToDate {
-		log.Error(err)
+		log.Error("Problem pushing wiki repository back to remote: %v\n", err)
 		return err
 	}
 
-	log.Debugf("Deleting cloned wiki directory %s\n", accessor.wikiRepoDir)
+	log.Debug("Deleting cloned wiki directory %s\n", accessor.wikiRepoDir)
 	return os.RemoveAll(accessor.wikiRepoDir)
 }
 
@@ -145,14 +145,15 @@ func (accessor *DefaultAccessor) PushWiki() error {
 func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWikiRelPath string) error {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
-		log.Warnf("cannot copy non-existant file referenced from Wiki: \"%s\"\n", externalFilePath)
+		log.Warn("Cannot copy non-existant file referenced from Wiki: \"%s\"\n", externalFilePath)
 		return nil
 	}
 
 	giteaPath := filepath.Join(accessor.wikiRepoDir, giteaWikiRelPath)
-	err = os.MkdirAll(path.Dir(giteaPath), 0775)
+	giteaDir := path.Dir(giteaPath)
+	err = os.MkdirAll(giteaDir, 0775)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem trying to create directory tree %s in cloned wiki repository: %v\n", giteaDir, err)
 		return err
 	}
 
@@ -160,7 +161,7 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 	_, err = os.Stat(giteaPath)
 	if !os.IsExist(err) {
 		accessor.copyFile(externalFilePath, giteaPath)
-		log.Debugf("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
+		log.Debug("Copied file %s to wiki path %s\n", externalFilePath, giteaWikiRelPath)
 	}
 
 	return nil
@@ -169,20 +170,21 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 // WriteWikiPage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
 func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string) (string, error) {
 	pagePath := filepath.Join(accessor.wikiRepoDir, wikiPageFileName(pageName))
-	err := os.MkdirAll(path.Dir(pagePath), 0775)
+	pageDir := path.Dir(pagePath)
+	err := os.MkdirAll(pageDir, 0775)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem trying to create wiki repository directory %s: %v\n", pageDir, err)
 		return "", err
 	}
 
 	file, err := os.Create(pagePath)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem creating wiki page file %s: %v\n", pagePath, err)
 		return "", err
 	}
 
 	file.WriteString(markdownText)
-	log.Debugf("Wrote version of wiki page %s\n", pageName)
+	log.Debug("Wrote version of wiki page %s\n", pageName)
 	return pagePath, nil
 }
 

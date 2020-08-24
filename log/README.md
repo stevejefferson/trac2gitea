@@ -1,2 +1,2 @@
 # trac2gitea `log` Package
-This provides a simple logging facility with a similar interface to the system logger.
+This provides a simple logging facility with an equivalent interface to that used internally by Gitea.

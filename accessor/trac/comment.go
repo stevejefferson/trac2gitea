@@ -19,7 +19,7 @@ func (accessor *DefaultAccessor) GetComments(
 			FROM ticket_change where ticket = $1 AND field = 'comment' AND trim(COALESCE(newvalue, ''), ' ') != ''
 			ORDER BY time asc`, ticketID)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving comments for trac ticket %s: %v\n", ticketID, err)
 		return err
 	}
 
@@ -27,7 +27,7 @@ func (accessor *DefaultAccessor) GetComments(
 		var time int64
 		var author, comment string
 		if err := rows.Scan(&time, &author, &comment); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting comment data for trac ticket %s: %v\n", ticketID, err)
 			return err
 		}
 
@@ -47,7 +47,7 @@ func (accessor *DefaultAccessor) GetCommentString(ticketID int64, commentNum int
 		SELECT COALESCE(newvalue, '') FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,
 		ticketID, commentNum).Scan(&commentStr)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Problem retrieving text of comment %d for trac ticket %d: %v\n", commentNum, ticketID, err)
 		return "", err
 	}
 

@@ -14,7 +14,7 @@ func (importer *Importer) ImportMilestones() error {
 			return err
 		}
 		if milestoneID != -1 {
-			log.Debugf("milestone %s already exists - skipping...\n", name)
+			log.Debug("milestone %s already exists - skipping...\n", name)
 			return nil
 		}
 
@@ -23,7 +23,7 @@ func (importer *Importer) ImportMilestones() error {
 			return err
 		}
 
-		log.Debugf("Added milestone (id %d) %s\n", milestoneID, name)
+		log.Debug("Added milestone (id %d) %s\n", milestoneID, name)
 		return nil
 	})
 }

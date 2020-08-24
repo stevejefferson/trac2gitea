@@ -116,18 +116,18 @@ func main() {
 
 	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("%v\n", err)
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
 		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, giteaDefaultAssignee, giteaDefaultAuthor)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("%v\n", err)
 	}
 
 	if !wikiOnly {
 		issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("%v\n", err)
 		}
 
 		issueImporter.ImportComponents()
@@ -143,7 +143,7 @@ func main() {
 	if !dbOnly {
 		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("%v\n", err)
 		}
 
 		wikiImporter.ImportWiki(wikiPush)

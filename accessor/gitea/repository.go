@@ -16,7 +16,7 @@ func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (in
 	err := accessor.db.QueryRow(`SELECT r.id FROM repository r, user u WHERE r.owner_id =
 			u.id AND u.name = $1 AND r.name = $2`, userName, repoName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Problem looking up repository %s for user %s: %v\n", repoName, userName, err)
 		return -1, err
 	}
 
@@ -32,7 +32,7 @@ func (accessor *DefaultAccessor) UpdateRepoIssueCount(count int, closedCount int
 				WHERE id = $2`,
 			count, accessor.repoID)
 		if err != nil {
-			log.Error(err)
+			log.Error("Problem updating number of issues for repository %d: %v\n", accessor.repoID, err)
 			return err
 		}
 	}
@@ -43,12 +43,12 @@ func (accessor *DefaultAccessor) UpdateRepoIssueCount(count int, closedCount int
 				WHERE id = $2`,
 			closedCount, accessor.repoID)
 		if err != nil {
-			log.Error(err)
+			log.Error("Problem updating number of closed issues for repository %d: %v\n", accessor.repoID, err)
 			return err
 		}
 	}
 
-	log.Infof("Updated repository: total issues=%d, closed issues=%d\n", count, closedCount)
+	log.Info("Updated repository: total issues=%d, closed issues=%d\n", count, closedCount)
 	return nil
 }
 

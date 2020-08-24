@@ -19,14 +19,14 @@ func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comme
 			VALUES ( 0, $1, $2, $3, $4, $4 )`,
 		issueID, authorID, comment, time)
 	if err != nil {
-		log.Error(err)
+		log.Error("Cannot insert comment for issue %d: %v\n", issueID, err)
 		return -1, err
 	}
 
 	var commentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&commentID)
 	if err != nil {
-		log.Error(err)
+		log.Error("Cannot find id of newly-inserted comment for issue %d: %v\n", issueID, err)
 		return -1, err
 	}
 
@@ -40,7 +40,7 @@ func (accessor *DefaultAccessor) GetCommentID(issueID int64, commentStr string) 
 		SELECT id FROM comment WHERE issue_id = $1 AND content = $2
 		`, issueID, commentStr).Scan(&commentID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Cannot find comment for issue %d: %v\n", issueID, err)
 		return -1, err
 	}
 

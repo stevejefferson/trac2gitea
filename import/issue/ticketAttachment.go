@@ -23,7 +23,7 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 	tracPath := importer.tracAccessor.GetTicketAttachmentPath(ticketID, attachmentName)
 	_, err = os.Stat(tracPath)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem accessing trac attachment at path %s: %v\n", tracPath, err)
 		return "", err
 	}
 	elems := strings.Split(tracPath, "/")
@@ -42,9 +42,9 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 
 	if existingUUID != "" {
 		if existingUUID == uuid {
-			log.Debugf("Attachment %s, (uuid=\"%s\") already exists for issue %d - skipping...\n", attachmentName, uuid, issueID)
+			log.Debug("Attachment %s, (uuid=\"%s\") already exists for issue %d - skipping...\n", attachmentName, uuid, issueID)
 		} else {
-			log.Warnf("Attachment %s already exists for issue %d but under uuid \"%s\" (expecting \"%s\") - skipping...\n", attachmentName, issueID, existingUUID, uuid)
+			log.Warn("Attachment %s already exists for issue %d but under uuid \"%s\" (expecting \"%s\") - skipping...\n", attachmentName, issueID, existingUUID, uuid)
 		}
 		return "", nil
 	}

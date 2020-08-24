@@ -6,7 +6,6 @@ package gitea
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -22,7 +21,7 @@ func (accessor *DefaultAccessor) GetUserID(name string) (int64, error) {
 	var id int64 = -1
 	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, name).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Cannot look up user %s: %v\n", name, err)
 		return -1, err
 	}
 
@@ -48,8 +47,8 @@ func (accessor *DefaultAccessor) getAdminUserID() (int64, error) {
 	var adminID int64
 	err := row.Scan(&adminID)
 	if err != nil {
-		err = errors.New("No admin user found in Gitea")
-		log.Error(err)
+		err = fmt.Errorf("No admin user found in Gitea")
+		log.Error("%v\n", err)
 		return -1, err
 	}
 
@@ -65,8 +64,8 @@ func (accessor *DefaultAccessor) getAdminDefaultingUserID(userName string, admin
 			return -1, err
 		}
 		if userID == -1 {
-			err := errors.New("Cannot find gitea user  " + userName)
-			log.Error(err)
+			err := fmt.Errorf("Cannot find gitea user %s", userName)
+			log.Error("%v\n", err)
 			return -1, err
 		}
 	}
@@ -79,7 +78,7 @@ func (accessor *DefaultAccessor) GetUserEMailAddress(userID int64) (string, erro
 	var emailAddress string = ""
 	err := accessor.db.QueryRow(`SELECT email FROM user WHERE id = $1`, userID).Scan(&emailAddress)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Problem finding email address for user %d: %v\n", userID, err)
 		return "", err
 	}
 

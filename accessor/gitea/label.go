@@ -17,7 +17,7 @@ func (accessor *DefaultAccessor) GetLabelID(labelName string) (int64, error) {
 		SELECT id FROM label WHERE repo_id = $1 AND name = $2
 		`, accessor.repoID, labelName).Scan(&labelID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Cannot find label %s: %v\n", labelName, err)
 		return -1, err
 	}
 
@@ -32,14 +32,14 @@ func (accessor *DefaultAccessor) AddLabel(labelName string, labelColor string) (
 			NOT EXISTS ( SELECT * FROM label WHERE repo_id = $1 AND name = $2 )`,
 		accessor.repoID, labelName, labelColor)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem creating label %s in repo %d: %v\n", labelName, accessor.repoID, err)
 		return -1, err
 	}
 
 	var labelID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&labelID)
 	if err != nil {
-		log.Error(err)
+		log.Error("Cannot find id of newly-inserted label: %v\n", err)
 		return -1, err
 	}
 

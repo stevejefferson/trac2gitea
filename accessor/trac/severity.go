@@ -10,14 +10,14 @@ import "stevejefferson.co.uk/trac2gitea/log"
 func (accessor *DefaultAccessor) GetSeverityNames(handlerFn func(severityName string) error) error {
 	rows, err := accessor.db.Query(`SELECT DISTINCT COALESCE(severity,'') FROM ticket`)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem extracting names of trac severities: %v\n", err)
 		return err
 	}
 
 	for rows.Next() {
 		var severityName string
 		if err := rows.Scan(&severityName); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting name of trac severity: %v\n", err)
 			return err
 		}
 

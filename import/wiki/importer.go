@@ -5,7 +5,6 @@
 package wiki
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -38,8 +37,8 @@ func CreateImporter(
 		return nil, err
 	}
 	if dfltPageOwnerID == -1 {
-		err = errors.New("Cannot find default owner " + dfltPageOwner + " for wiki pages to be imported from Trac")
-		log.Error(err)
+		err = fmt.Errorf("Cannot find default owner %s for wiki pages to be imported from Trac", dfltPageOwner)
+		log.Error("%v\n", err)
 		return nil, err
 	}
 	dfltPageOwnerEMail, err := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
@@ -70,7 +69,7 @@ func (importer *Importer) ImportWiki(push bool) error {
 		return importer.giteaAccessor.PushWiki()
 	}
 
-	log.Infof("Trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.\n")
+	log.Info("Trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.\n")
 	return nil
 }
 
@@ -110,7 +109,7 @@ func (importer *Importer) importWikiPages() {
 	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
-			log.Debugf("Skipping predefined Trac page %s\n", pageName)
+			log.Debug("Skipping predefined Trac page %s\n", pageName)
 			return nil
 		}
 
@@ -124,7 +123,7 @@ func (importer *Importer) importWikiPages() {
 			return err
 		}
 		if hasCommit {
-			log.Infof("Wiki page %s: %s is already present in wiki - skipping...\n", translatedPageName, tracPageVersionIdentifier)
+			log.Info("Wiki page %s: %s is already present in wiki - skipping...\n", translatedPageName, tracPageVersionIdentifier)
 			return nil
 		}
 
@@ -155,7 +154,7 @@ func (importer *Importer) importWikiPages() {
 		comment = fmt.Sprintf("%s\n[Imported: %s - updated at %s by Trac user %s]\n",
 			comment, tracPageVersionIdentifier, updateTimeStr, author)
 		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEMail, comment)
-		log.Infof("Wiki page %s: converted from %s\n", translatedPageName, tracPageVersionIdentifier)
+		log.Info("Wiki page %s: converted from %s\n", translatedPageName, tracPageVersionIdentifier)
 		return err
 	})
 }

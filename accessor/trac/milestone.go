@@ -17,7 +17,7 @@ func (accessor *DefaultAccessor) GetMilestones(
 				FROM ticket
 				WHERE COALESCE(milestone,'') NOT IN ( select COALESCE(name,'') from milestone )`)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving trac milestones: %v\n", err)
 		return err
 	}
 
@@ -25,7 +25,7 @@ func (accessor *DefaultAccessor) GetMilestones(
 		var completed, due int64
 		var name, description string
 		if err := rows.Scan(&name, &description, &due, &completed); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting data on trac milestone: %v\n", err)
 			return err
 		}
 

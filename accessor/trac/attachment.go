@@ -51,7 +51,7 @@ func (accessor *DefaultAccessor) GetAttachments(
 			WHERE type = 'ticket' AND id = $1
 			ORDER BY time asc`, ticketID)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem retrieving attachment for trac ticket %d: %v\n", ticketID, err)
 		return err
 	}
 
@@ -59,7 +59,7 @@ func (accessor *DefaultAccessor) GetAttachments(
 		var time, size int64
 		var author, filename, description string
 		if err := rows.Scan(&time, &author, &filename, &description, &size); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting attachment data for trac ticket %d: %v\n", ticketID, err)
 			return err
 		}
 

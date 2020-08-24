@@ -46,7 +46,7 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 		return -1, err
 	}
 	if commentID != -1 {
-		log.Debugf("Comment \"%s\" for issue %d already exists - skipping...\n", truncatedComment, issueID)
+		log.Debug("Comment \"%s\" for issue %d already exists - skipping...\n", truncatedComment, issueID)
 		return -1, nil
 	}
 
@@ -55,7 +55,7 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 		return -1, err
 	}
 
-	log.Debugf("Issue %d: added comment \"%s\" (id %d)\n", issueID, truncatedComment, commentID)
+	log.Debug("Issue %d: added comment \"%s\" (id %d)\n", issueID, truncatedComment, commentID)
 
 	return commentID, nil
 }

@@ -20,14 +20,14 @@ func (accessor *DefaultAccessor) AddMilestone(name string, content string, close
 				NOT EXISTS (SELECT * FROM milestone WHERE repo_id = $1 AND name = $2)`,
 		accessor.repoID, name, content, closed, deadlineTimestamp, closedTimestamp)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem adding milestone %s for repo %d: %v\n", name, accessor.repoID, err)
 		return -1, err
 	}
 
 	var milestoneID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&milestoneID)
 	if err != nil {
-		log.Error(err)
+		log.Error("Cannot find id of newly-inserted milestone: %v\n", err)
 		return -1, err
 	}
 
@@ -41,7 +41,7 @@ func (accessor *DefaultAccessor) GetMilestoneID(name string) (int64, error) {
 		SELECT id FROM milestone WHERE name = $1
 		`, name).Scan(&milestoneID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+		log.Error("Cannot find milestone %s: %v\n", name, err)
 		return -1, err
 	}
 

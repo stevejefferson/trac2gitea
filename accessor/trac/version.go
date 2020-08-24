@@ -10,14 +10,14 @@ import "stevejefferson.co.uk/trac2gitea/log"
 func (accessor *DefaultAccessor) GetVersionNames(handlerFn func(version string) error) error {
 	rows, err := accessor.db.Query(`SELECT DISTINCT COALESCE(version,'') FROM ticket UNION SELECT COALESCE(name,'') FROM version`)
 	if err != nil {
-		log.Error(err)
+		log.Error("Problem extracting names of trac versions: %v\n", err)
 		return err
 	}
 
 	for rows.Next() {
 		var version string
 		if err := rows.Scan(&version); err != nil {
-			log.Error(err)
+			log.Error("Problem extracting name of trac version: %v\n", err)
 			return err
 		}
 

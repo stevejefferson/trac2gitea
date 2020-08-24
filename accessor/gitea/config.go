@@ -26,14 +26,14 @@ func getStringConfigValue(config *ini.File, sectionName string, configName strin
 func (accessor *DefaultAccessor) GetStringConfig(sectionName string, configName string) string {
 	mainConfigValue := getStringConfigValue(accessor.mainConfig, sectionName, configName)
 	if mainConfigValue != "" {
-		log.Debugf("Found value in Gitea main config section=%s, name=%s, value=%s\n", sectionName, configName, mainConfigValue)
+		log.Debug("Found value in Gitea main config section=%s, name=%s, value=%s\n", sectionName, configName, mainConfigValue)
 
 		return mainConfigValue
 	}
 
 	customConfigValue := getStringConfigValue(accessor.customConfig, sectionName, configName)
 
-	log.Debugf("Found value in Gitea custom config section=%s, name=%s, value=%s\n", sectionName, configName, customConfigValue)
+	log.Debug("Found value in Gitea custom config section=%s, name=%s, value=%s\n", sectionName, configName, customConfigValue)
 
 	return customConfigValue
 }

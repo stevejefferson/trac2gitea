@@ -62,22 +62,9 @@ func prependArg(arg interface{}, existing []interface{}) []interface{} {
 	return newArgs
 }
 
-func print(reqdLevel Level, prefix string, v ...interface{}) {
-	if level <= reqdLevel {
-		fmt.Println(prependArg(prefix, v)...)
-	}
-}
-
 func printf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
 		fmt.Printf(prefix+format, v...)
-	}
-}
-
-func sysprint(reqdLevel Level, prefix string, v ...interface{}) {
-	if level <= reqdLevel {
-		systemlog.Println(prependArg(prefix, v)...)
-		debug.PrintStack()
 	}
 }
 
@@ -88,70 +75,33 @@ func sysprintf(reqdLevel Level, prefix string, format string, v ...interface{}) 
 	}
 }
 
-// Trace outputs a tracing message
-func Trace(v ...interface{}) {
-	print(TRACE, "", v...)
-}
-
-// Tracef outputs a formatted tracing message
-func Tracef(format string, v ...interface{}) {
+// Trace outputs a formatted tracing message
+func Trace(format string, v ...interface{}) {
 	printf(TRACE, "", format, v...)
 }
 
-// Debug outputs a debugging message
-func Debug(v ...interface{}) {
-	print(DEBUG, "", v...)
-}
-
-// Debugf outputs a formatted debugging message
-func Debugf(format string, v ...interface{}) {
+// Debug outputs a formatted debugging message
+func Debug(format string, v ...interface{}) {
 	printf(DEBUG, "", format, v...)
 }
 
-// Info outputs an information message
-func Info(v ...interface{}) {
-	print(INFO, "", v...)
-}
-
-// Infof outputs a formatted information message
-func Infof(format string, v ...interface{}) {
+// Info outputs a formatted information message
+func Info(format string, v ...interface{}) {
 	printf(INFO, "", format, v...)
 }
 
-// Warn outputs a warning message
-func Warn(v ...interface{}) {
-	print(WARN, "Warning: ", v...)
-}
-
-// Warnf outputs a formatted warning message
-func Warnf(format string, v ...interface{}) {
+// Warn outputs a formatted warning message
+func Warn(format string, v ...interface{}) {
 	printf(WARN, "Warning: ", format, v...)
 }
 
-// Error outputs an error message
-func Error(v ...interface{}) {
-	sysprint(ERROR, "Error: ", v...)
-}
-
-// Errorf outputs a formatted error message
-func Errorf(format string, v ...interface{}) {
+// Error outputs a formatted error message
+func Error(format string, v ...interface{}) {
 	sysprintf(ERROR, "Error: ", format, v...)
 }
 
-// Fatal outputs a fatal error message
-func Fatal(v ...interface{}) {
-	// fatal errors go to the system fatal error handler
-	if level <= FATAL {
-		debug.PrintStack()
-		systemlog.Fatal(prependArg("Fatal: ", v)...)
-	}
-
-	// if logLevel is NONE (the only level higher than FATAL) we terminate anyway but without a message
-	os.Exit(1)
-}
-
-// Fatalf outputs a formatted fatal error message
-func Fatalf(format string, v ...interface{}) {
+// Fatal outputs a formatted fatal error message
+func Fatal(format string, v ...interface{}) {
 	// fatal errors go to the system fatal error handler
 	if level <= FATAL {
 		debug.PrintStack()
