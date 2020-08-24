@@ -7,7 +7,7 @@ package gitea
 import (
 	"database/sql"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetLabelID retrieves the id of the given label, returns -1 if no such label

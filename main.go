@@ -9,11 +9,11 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
-	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/trac"
-	"stevejefferson.co.uk/trac2gitea/import/issue"
-	"stevejefferson.co.uk/trac2gitea/import/wiki"
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
+	"github.com/stevejefferson/trac2gitea/import/issue"
+	"github.com/stevejefferson/trac2gitea/import/wiki"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 var dbOnly bool

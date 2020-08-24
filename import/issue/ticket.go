@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
-	"stevejefferson.co.uk/trac2gitea/log"
-	"stevejefferson.co.uk/trac2gitea/markdown"
+	"github.com/stevejefferson/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/markdown"
 )
 
 // importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or -1 if the issue was not created.

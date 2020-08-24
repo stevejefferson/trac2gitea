@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (int64, error) {

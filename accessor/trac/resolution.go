@@ -4,7 +4,7 @@
 
 package trac
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import "github.com/stevejefferson/trac2gitea/log"
 
 // GetResolutionNames retrieves all resolution names used in Trac tickets, passing each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetResolutionNames(handlerFn func(resolution string) error) error {

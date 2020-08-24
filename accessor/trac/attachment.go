@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"path"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 func encodeSha1(str string) string {

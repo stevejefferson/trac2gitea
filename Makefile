@@ -14,7 +14,7 @@ MOCKGEN=$(GOBINDIR)/mockgen
 
 BINARY_NAME=trac2gitea
 PACKAGES=$(shell go list ./...)
-ROOTPACKAGE=stevejefferson.co.uk/trac2gitea
+ROOTPACKAGE=github.com/stevejefferson/trac2gitea
 
 MOCKFILES=\
 	accessor/mock_gitea/accessor.go \

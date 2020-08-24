@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"stevejefferson.co.uk/trac2gitea/accessor/mock_gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/mock_trac"
-	"stevejefferson.co.uk/trac2gitea/markdown"
+	"github.com/stevejefferson/trac2gitea/accessor/mock_gitea"
+	"github.com/stevejefferson/trac2gitea/accessor/mock_trac"
+	"github.com/stevejefferson/trac2gitea/markdown"
 )
 
 const (

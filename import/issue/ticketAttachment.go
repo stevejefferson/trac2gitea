@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // importTicketAttachment imports a single ticket attachment from Trac into Gitea, returns UUID if newly-created attachment or "" if attachment already existed

@@ -4,7 +4,7 @@
 
 package trac
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import "github.com/stevejefferson/trac2gitea/log"
 
 // GetPriorityNames retrieves all priority names used in Trac tickets, passing each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetPriorityNames(handlerFn func(priorityName string) error) error {

@@ -4,7 +4,7 @@
 
 package trac
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import "github.com/stevejefferson/trac2gitea/log"
 
 // GetSeverityNames retrieves all severity names used in Trac tickets, passing each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetSeverityNames(handlerFn func(severityName string) error) error {

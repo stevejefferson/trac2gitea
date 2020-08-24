@@ -7,7 +7,7 @@ package trac
 import (
 	"database/sql"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.

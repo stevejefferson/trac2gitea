@@ -5,8 +5,8 @@
 package markdown
 
 import (
-	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/trac"
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
 // DefaultConverter is the default implementation of the Trac markdown to Gitea markdown converter.

@@ -4,7 +4,7 @@
 
 package trac
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import "github.com/stevejefferson/trac2gitea/log"
 
 // GetComponentNames retrieves all Trac component names, passing each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetComponentNames(handlerFn func(cmptName string) error) error {

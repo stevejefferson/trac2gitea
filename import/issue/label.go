@@ -5,8 +5,8 @@
 package issue
 
 import (
-	"stevejefferson.co.uk/trac2gitea/accessor/trac"
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // label colors and prefixes - courtesy of `trac2gogs`

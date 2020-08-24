@@ -1,4 +1,4 @@
-module stevejefferson.co.uk/trac2gitea
+module github.com/stevejefferson/trac2gitea
 
 go 1.14
 

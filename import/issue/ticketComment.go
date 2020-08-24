@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"stevejefferson.co.uk/trac2gitea/log"
-	"stevejefferson.co.uk/trac2gitea/markdown"
+	"github.com/stevejefferson/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/markdown"
 )
 
 func truncateString(str string, maxlen int) string {

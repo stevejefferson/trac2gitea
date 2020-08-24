@@ -4,7 +4,7 @@
 
 package issue
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import "github.com/stevejefferson/trac2gitea/log"
 
 // ImportMilestones imports Trac milestones as Gitea milestones.
 func (importer *Importer) ImportMilestones() error {

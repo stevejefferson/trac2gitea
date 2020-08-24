@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // AddComment adds a comment to Gitea, returns id of created comment

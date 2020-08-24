@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.

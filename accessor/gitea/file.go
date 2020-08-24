@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 func (accessor *DefaultAccessor) copyFile(externalFilePath string, giteaPath string) error {

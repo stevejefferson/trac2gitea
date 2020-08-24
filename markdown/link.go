@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 var (

@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetIssueID retrieves the id of the Gitea issue corresponding to a given issue index - returns -1 if no such issue.

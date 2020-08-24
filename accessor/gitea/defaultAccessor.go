@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 
 	"github.com/go-ini/ini"
 	_ "github.com/mattn/go-sqlite3" // sqlite database driver

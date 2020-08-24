@@ -4,7 +4,7 @@
 
 package issue
 
-import "stevejefferson.co.uk/trac2gitea/log"
+import "github.com/stevejefferson/trac2gitea/log"
 
 // importTicketLabel imports a single issue label from Trac into Gitea, returns id of created issue label or -1 if issue label already exists
 func (importer *Importer) importTicketLabel(issueID int64, tracLabel string, labelPrefix string, labelColor string) (int64, error) {

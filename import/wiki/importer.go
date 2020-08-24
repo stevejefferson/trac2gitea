@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"stevejefferson.co.uk/trac2gitea/log"
-	"stevejefferson.co.uk/trac2gitea/markdown"
+	"github.com/stevejefferson/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/markdown"
 
-	"stevejefferson.co.uk/trac2gitea/accessor/gitea"
-	"stevejefferson.co.uk/trac2gitea/accessor/trac"
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
 // Importer imports Trac Wiki data into a Gitea wiki repository.

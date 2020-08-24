@@ -6,7 +6,7 @@ package gitea
 
 import (
 	"github.com/go-ini/ini"
-	"stevejefferson.co.uk/trac2gitea/log"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 func getStringConfigValue(config *ini.File, sectionName string, configName string) string {
