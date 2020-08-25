@@ -1,6 +1,6 @@
 # trac2gitea
 
-`trac2gitea` is a command-line tool for migrating [Trac](https://trac.edgewall.org/) projects into [Gitea](https://gitea.io/).
+`trac2gitea` is a command-line utility for migrating [Trac](https://trac.edgewall.org/) projects into [Gitea](https://gitea.io/).
 
 ## Scope
 At present the following Trac data is converted:
@@ -27,7 +27,7 @@ At present the following Trac data is converted:
     * images
     * `[[url|text]]` style
     * `[url text]` style
-    * `http://..` and `https://...` links
+    * `http://...` and `https://...` links
     * `htdocs:...` (files are stored in a `htdocs` subdirectory of the Gitea wiki repository)
     * `CamelCase` inter-wiki links
     * `wiki:...` inter-wiki links
@@ -41,7 +41,7 @@ At present the following Trac data is converted:
     * `source:...` source file references
 
 ## Requirements ##
-The converter requires access to both the Trac and Gitea filestore.
+The utility requires access to both the Trac and Gitea filestore.
 It retrieves data directly from the Trac database and writes into the Gitea database.
 Access to the Gitea project wiki is via by checking out the wiki git repository.
 
@@ -72,9 +72,9 @@ Options:
 ## Limitations
 The current code is written for `sqlite` (for both the Trac and Gitea databases).
 
-Hopefully, very little of the SQL used by the converter is specific to a particular SQL dialect so porting to a different database type should not be particularly difficult.
+Hopefully, the SQL used by the converter is fairly generic so porting to a different database type should hopefully not be particularly difficult.
 
-For anyone using a different database, ehe database connections are created in:
+For anyone using a different database, the database connections are created in:
   * Trac: `accessor.trac.defaultAccessor.go`, func `CreateDefaultAccessor`
   * Gitea: `accessor.gitea.defaultAccessor.go`, func `CreateDefaultAccessor`
 
@@ -88,6 +88,11 @@ From the root of the source tree run:
 make
 ```
 This will build the application as an executable `trac2gitea` (in the source tree root directory) and run the tests.
+
+To build the application itself without running the tests, use:
+```
+make build
+```
 
 Missing dependencies can be fetched using:
 ```
