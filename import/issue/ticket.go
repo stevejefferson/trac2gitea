@@ -5,10 +5,6 @@
 package issue
 
 import (
-	"database/sql"
-	"fmt"
-	"strings"
-
 	"github.com/stevejefferson/trac2gitea/log"
 	"github.com/stevejefferson/trac2gitea/markdown"
 )
@@ -35,41 +31,21 @@ func (importer *Importer) importTicket(
 	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
 	description = markdownConverter.Convert(description)
 
-	var header []string
-
-	// find users first, and tweak description to add missing users
-	reporterID, err := importer.giteaAccessor.GetUserID(reporter)
+	reporterID, _, err := importer.getUser(reporter)
 	if err != nil {
 		return -1, err
 	}
 
-	if reporterID == -1 {
-		header = append(header, fmt.Sprintf("    Originally reported by %s", reporter))
-		reporterID = importer.giteaAccessor.GetDefaultAuthorID()
-	}
-	var ownerID sql.NullString
+	var ownerID int64 = -1
+	var ownerName = ""
 	if owner != "" {
-		tmp, err := importer.giteaAccessor.GetUserID(owner)
+		ownerID, ownerName, err = importer.getUser(owner)
 		if err != nil {
 			return -1, err
 		}
-
-		if tmp == -1 {
-			header = append(header, fmt.Sprintf("    Originally assigned to %s", owner))
-			ownerID.String = fmt.Sprintf("%d", importer.giteaAccessor.GetDefaultAssigneeID())
-			ownerID.Valid = true
-		} else {
-			ownerID.String = fmt.Sprintf("%d", tmp)
-			ownerID.Valid = true
-		}
-	} else {
-		ownerID.Valid = false
-	}
-	if len(header) > 0 {
-		description = fmt.Sprintf("%s\n\n%s", strings.Join(header, "\n"), description)
 	}
 
-	issueID, err = importer.giteaAccessor.AddIssue(ticketID, summary, reporterID, milestone, ownerID, owner, closed, description, created)
+	issueID, err = importer.giteaAccessor.AddIssue(ticketID, summary, reporterID, milestone, ownerID, ownerName, closed, description, created)
 	if err != nil {
 		return -1, err
 	}

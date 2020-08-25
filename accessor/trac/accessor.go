@@ -2,7 +2,6 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-
 package trac
 
 // Accessor is the interface through which we access all Trac data.
@@ -88,6 +87,12 @@ type Accessor interface {
 	 */
 	// GetTypeNames retrieves all type names used in Trac tickets, passing each one to the provided "handler" function.
 	GetTypeNames(handlerFn func(typeName string) error) error
+
+	/*
+	 * Users
+	 */
+	// GetUserMap returns a blank user mapping mapping for every user name found in Trac database fields to be converted
+	GetUserMap() (map[string]string, error)
 
 	/*
 	 * Versions

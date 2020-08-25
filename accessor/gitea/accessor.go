@@ -4,8 +4,6 @@
 
 package gitea
 
-import "database/sql"
-
 // Accessor is the interface to all of our interactions with a Gitea project.
 type Accessor interface {
 	/*
@@ -50,7 +48,7 @@ type Accessor interface {
 		summary string,
 		reporterID int64,
 		milestone string,
-		ownerID sql.NullString,
+		ownerID int64,
 		owner string,
 		closed bool,
 		description string,
@@ -108,16 +106,13 @@ type Accessor interface {
 	 * Users
 	 */
 	// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
-	GetUserID(name string) (int64, error)
-
-	// GetDefaultAssigneeID retrieves the id of the user to which to assign tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
-	GetDefaultAssigneeID() int64
-
-	// GetDefaultAuthorID retrieves the id of the user to set as the author of tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
-	GetDefaultAuthorID() int64
+	GetUserID(userName string) (int64, error)
 
 	// GetUserEMailAddress retrieves the email address of a given user
-	GetUserEMailAddress(userID int64) (string, error)
+	GetUserEMailAddress(userName string) (string, error)
+
+	// GenerateDefaultUserMappings populates the provided user map with a default mapping for each user in the map.
+	GenerateDefaultUserMappings(userMap map[string]string, defaultUserName string) error
 
 	/*
 	 * Wiki

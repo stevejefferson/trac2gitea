@@ -18,40 +18,24 @@ import (
 
 // Importer imports Trac Wiki data into a Gitea wiki repository.
 type Importer struct {
-	tracAccessor          trac.Accessor
-	giteaAccessor         gitea.Accessor
-	defaultPageOwner      string
-	defaultPageOwnerEMail string
-	convertPredefineds    bool
+	tracAccessor       trac.Accessor
+	giteaAccessor      gitea.Accessor
+	convertPredefineds bool
+	userMap            map[string]string
 }
 
 // CreateImporter creates a Trac wiki to Gitea wiki repository importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
-	dfltPageOwner string,
-	convertPredefs bool) (*Importer, error) {
-
-	dfltPageOwnerID, err := gAccessor.GetUserID(dfltPageOwner)
-	if err != nil {
-		return nil, err
-	}
-	if dfltPageOwnerID == -1 {
-		err = fmt.Errorf("Cannot find default owner %s for wiki pages to be imported from Trac", dfltPageOwner)
-		log.Error("%v\n", err)
-		return nil, err
-	}
-	dfltPageOwnerEMail, err := gAccessor.GetUserEMailAddress(dfltPageOwnerID)
-	if err != nil {
-		return nil, err
-	}
+	convertPredefs bool,
+	uMap map[string]string) (*Importer, error) {
 
 	importer := Importer{
-		tracAccessor:          tAccessor,
-		giteaAccessor:         gAccessor,
-		defaultPageOwner:      dfltPageOwner,
-		defaultPageOwnerEMail: dfltPageOwnerEMail,
-		convertPredefineds:    convertPredefs}
+		tracAccessor:       tAccessor,
+		giteaAccessor:      gAccessor,
+		convertPredefineds: convertPredefs,
+		userMap:            uMap}
 	return &importer, nil
 }
 
@@ -133,27 +117,24 @@ func (importer *Importer) importWikiPages() {
 		markdownText := tracToMarkdownConverter.Convert(pageText)
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
-		// translate Trac wiki page (version) author into a Gitea user
-		giteaAuthor := importer.defaultPageOwner
-		giteaAuthorEMail := importer.defaultPageOwnerEMail
-		giteaAuthorID, err := importer.giteaAccessor.GetUserID(author)
-		if err != nil {
+		// find Gitea equivalent of Trac author
+		giteaAuthor := importer.userMap[author]
+		if giteaAuthor == "" {
+			// can only happen if provided with faulty user-supplied map
+			err = fmt.Errorf("Cannot find Gitea equivalent for trac author %s of wiki page %s", author, pageName)
+			log.Error("%v\n", err)
 			return err
 		}
-
-		if giteaAuthorID != -1 {
-			giteaAuthor = author
-			giteaAuthorEMail, err = importer.giteaAccessor.GetUserEMailAddress(giteaAuthorID)
-			if err != nil {
-				return err
-			}
+		giteaAuthorEmail, err := importer.giteaAccessor.GetUserEMailAddress(giteaAuthor)
+		if err != nil {
+			return err
 		}
 
 		// commit version of wiki page to local repository
 		updateTimeStr := time.Unix(updateTime, 0)
 		comment = fmt.Sprintf("%s\n[Imported: %s - updated at %s by Trac user %s]\n",
 			comment, tracPageVersionIdentifier, updateTimeStr, author)
-		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEMail, comment)
+		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEmail, comment)
 		log.Info("Wiki page %s: converted from %s\n", translatedPageName, tracPageVersionIdentifier)
 		return err
 	})

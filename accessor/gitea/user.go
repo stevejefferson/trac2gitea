@@ -7,78 +7,34 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
-func (accessor *DefaultAccessor) GetUserID(name string) (int64, error) {
-	if strings.Trim(name, " ") == "" {
+func (accessor *DefaultAccessor) GetUserID(userName string) (int64, error) {
+	if strings.Trim(userName, " ") == "" {
 		return -1, nil
 	}
 
 	var id int64 = -1
-	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, name).Scan(&id)
+	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, userName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Cannot look up user %s: %v\n", name, err)
+		log.Error("Cannot look up user %s: %v\n", userName, err)
 		return -1, err
 	}
 
 	return id, nil
 }
 
-// GetDefaultAssigneeID retrieves the id of the user to which to assign tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
-func (accessor *DefaultAccessor) GetDefaultAssigneeID() int64 {
-	return accessor.defaultAssigneeID
-}
-
-// GetDefaultAuthorID retrieves the id of the user to set as the author of tickets/comments in the case where the Trac-supplied user id does not exist in Gitea.
-func (accessor *DefaultAccessor) GetDefaultAuthorID() int64 {
-	return accessor.defaultAuthorID
-}
-
-// getAdminUserID retrieves the id of the project admin user.
-func (accessor *DefaultAccessor) getAdminUserID() (int64, error) {
-	row := accessor.db.QueryRow(`
-		SELECT id FROM user WHERE is_admin ORDER BY id LIMIT 1;
-		`)
-
-	var adminID int64
-	err := row.Scan(&adminID)
-	if err != nil {
-		err = fmt.Errorf("No admin user found in Gitea")
-		log.Error("%v\n", err)
-		return -1, err
-	}
-
-	return adminID, nil
-}
-
-// getAdminDefaultingUserID retrieves the id of a named user, defaulting to the admin user if that user does not exist.
-func (accessor *DefaultAccessor) getAdminDefaultingUserID(userName string, adminUserID int64) (int64, error) {
-	userID := adminUserID
-	if userName != "" {
-		userID, err := accessor.GetUserID(userName)
-		if err != nil {
-			return -1, err
-		}
-		if userID == -1 {
-			err := fmt.Errorf("Cannot find gitea user %s", userName)
-			log.Error("%v\n", err)
-			return -1, err
-		}
-	}
-
-	return userID, nil
-}
-
 // GetUserEMailAddress retrieves the email address of a given user
-func (accessor *DefaultAccessor) GetUserEMailAddress(userID int64) (string, error) {
+func (accessor *DefaultAccessor) GetUserEMailAddress(userName string) (string, error) {
 	var emailAddress string = ""
-	err := accessor.db.QueryRow(`SELECT email FROM user WHERE id = $1`, userID).Scan(&emailAddress)
+	err := accessor.db.QueryRow(`SELECT email FROM user WHERE lower_name = $1`, userName).Scan(&emailAddress)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Problem finding email address for user %d: %v\n", userID, err)
+		log.Error("Problem finding email address for user %s: %v\n", userName, err)
 		return "", err
 	}
 
@@ -89,4 +45,48 @@ func (accessor *DefaultAccessor) GetUserEMailAddress(userID int64) (string, erro
 func (accessor *DefaultAccessor) getUserRepoURL() string {
 	rootURL := accessor.GetStringConfig("server", "ROOT_URL")
 	return fmt.Sprintf("%s/%s/%s", rootURL, accessor.userName, accessor.repoName)
+}
+
+// matchUser retrieves the name of the user best matching a user name or email address
+func (accessor *DefaultAccessor) matchUser(userName string, userEmail string) (string, error) {
+	var matchedUserName = ""
+	lcUserName := strings.ToLower(userName)
+	err := accessor.db.QueryRow(`
+		SELECT lower_name FROM user 
+		WHERE lower_name = $1 
+		OR full_name = $2 
+		OR email = $3`, lcUserName, userName, userEmail).Scan(&matchedUserName)
+	if err != nil && err != sql.ErrNoRows {
+		log.Error("Problem matching user name %s, email %s: %v\n", userName, userEmail, err)
+		return "", err
+	}
+
+	return matchedUserName, nil
+}
+
+// regexp for matching a user: $1=username (may have space padding) $2=user email (optional)
+var userRegexp = regexp.MustCompile(`([^<]*)(?:<([^>]+)>)?`)
+
+// GenerateDefaultUserMappings populates the provided user map with a default mapping for each user in the map.
+func (accessor *DefaultAccessor) GenerateDefaultUserMappings(userMap map[string]string, defaultUserName string) error {
+	for user := range userMap {
+		userName := userRegexp.ReplaceAllString(user, `$1`)
+		trimmedUserName := strings.Trim(userName, " ")
+		userEmail := userRegexp.ReplaceAllString(user, `$2`)
+
+		matchedUserName, err := accessor.matchUser(trimmedUserName, userEmail)
+		log.Debug("Matched user \"%s\", email \"%s\" to \"%s\"\n", userName, userEmail, matchedUserName)
+		if err != nil {
+			return err
+		}
+
+		if matchedUserName == "" {
+			matchedUserName = defaultUserName
+			log.Debug("Mapping unmatched user \"%s\" to default user \"%s\"\n", userName, defaultUserName)
+		}
+
+		userMap[user] = matchedUserName
+	}
+
+	return nil
 }

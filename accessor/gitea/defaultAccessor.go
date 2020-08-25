@@ -20,19 +20,17 @@ import (
 
 // DefaultAccessor is the default implementation of the gitea Accessor interface, accessing Gitea directly via its database and filestore.
 type DefaultAccessor struct {
-	rootDir           string
-	mainConfig        *ini.File
-	customConfig      *ini.File
-	db                *sql.DB
-	userName          string
-	repoName          string
-	repoID            int64
-	defaultAssigneeID int64
-	defaultAuthorID   int64
-	wikiRepoURL       string
-	wikiRepoToken     string
-	wikiRepoDir       string
-	wikiRepo          *git.Repository
+	rootDir       string
+	mainConfig    *ini.File
+	customConfig  *ini.File
+	db            *sql.DB
+	userName      string
+	repoName      string
+	repoID        int64
+	wikiRepoURL   string
+	wikiRepoToken string
+	wikiRepoDir   string
+	wikiRepo      *git.Repository
 }
 
 func fetchConfig(configPath string) (*ini.File, error) {
@@ -57,9 +55,7 @@ func CreateDefaultAccessor(
 	giteaRepoName string,
 	giteaWikiRepoURL string,
 	giteaWikiRepoToken string,
-	giteaWikiRepoDir string,
-	defaultAssignee string,
-	defaultAuthor string) (*DefaultAccessor, error) {
+	giteaWikiRepoDir string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
 		log.Error("Cannot access Gitea root directory %s: %v\n", giteaRootDir, err)
@@ -88,19 +84,17 @@ func CreateDefaultAccessor(
 	}
 
 	giteaAccessor := DefaultAccessor{
-		rootDir:           giteaRootDir,
-		mainConfig:        giteaMainConfig,
-		customConfig:      giteaCustomConfig,
-		db:                nil,
-		userName:          giteaUserName,
-		repoName:          giteaRepoName,
-		repoID:            0,
-		defaultAssigneeID: 0,
-		defaultAuthorID:   0,
-		wikiRepoURL:       "",
-		wikiRepoToken:     "",
-		wikiRepoDir:       "",
-		wikiRepo:          nil}
+		rootDir:       giteaRootDir,
+		mainConfig:    giteaMainConfig,
+		customConfig:  giteaCustomConfig,
+		db:            nil,
+		userName:      giteaUserName,
+		repoName:      giteaRepoName,
+		repoID:        0,
+		wikiRepoURL:   "",
+		wikiRepoToken: "",
+		wikiRepoDir:   "",
+		wikiRepo:      nil}
 
 	// extract path to gitea DB - currently sqlite-specific...
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
@@ -123,23 +117,6 @@ func CreateDefaultAccessor(
 		return nil, err
 	}
 	giteaAccessor.repoID = giteaRepoID
-
-	// work out user ids
-	adminUserID, err := giteaAccessor.getAdminUserID()
-	if err != nil {
-		return nil, err
-	}
-	giteaDefaultAssigneeID, err := giteaAccessor.getAdminDefaultingUserID(defaultAssignee, adminUserID)
-	if err != nil {
-		return nil, err
-	}
-	giteaAccessor.defaultAssigneeID = giteaDefaultAssigneeID
-
-	giteaDefaultAuthorID, err := giteaAccessor.getAdminDefaultingUserID(defaultAuthor, adminUserID)
-	if err != nil {
-		return nil, err
-	}
-	giteaAccessor.defaultAuthorID = giteaDefaultAuthorID
 
 	// find directory into which to clone wiki
 	wikiRepoName := giteaRepoName + ".wiki"

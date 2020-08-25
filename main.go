@@ -5,8 +5,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
@@ -21,6 +23,8 @@ var wikiOnly bool
 var wikiPush bool
 var verbose bool
 var wikiConvertPredefineds bool
+var generatedUserMapFile string
+var userMapFile string
 var tracRootDir string
 var giteaRootDir string
 var giteaUser string
@@ -28,18 +32,8 @@ var giteaRepo string
 var giteaWikiRepoURL string
 var giteaWikiRepoToken string
 var giteaWikiRepoDir string
-var giteaDefaultAssignee string
-var giteaDefaultAuthor string
-var giteaDefaultWikiAuthor string
 
 func parseArgs() {
-	defaultAssigneeParam := pflag.String("default-assignee", "",
-		"`username` to assign tickets to when trac assignee is not found in Gitea - defaults to <gitea-user>")
-	defaultAuthorParam := pflag.String("default-author", "",
-		"`username` to attribute content to when trac author is not found in Gitea - defaults to <gitea-user>")
-	defaultWikiAuthorParam := pflag.String("default-wiki-author", "",
-		"`username` to attribute Wiki content to when trac author is not found in Gitea - defaults to <gitea-user>")
-
 	wikiURLParam := pflag.String("wiki-url", "",
 		"URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git")
 	wikiTokenParam := pflag.String("wiki-token", "",
@@ -49,6 +43,10 @@ func parseArgs() {
 	wikiConvertPredefinedsParam := pflag.Bool("wiki-convert-predefined", false,
 		"convert Trac predefined wiki pages - by default we skip these")
 
+	generateUserMapParam := pflag.String("generate-user-map", "",
+		"generate a or update map of trac users to gitea users into the specified file (note: no conversion will be performed if this param is provided)")
+	userMapParam := pflag.String("user-map", "",
+		"user provided mapping of trac users to gitea users for conversion")
 	dbOnlyParam := pflag.Bool("db-only", false,
 		"convert database only")
 	wikiOnlyParam := pflag.Bool("wiki-only", false,
@@ -73,6 +71,9 @@ func parseArgs() {
 	wikiOnly = *wikiOnlyParam
 	wikiPush = !*wikiNoPushParam
 
+	generatedUserMapFile = *generateUserMapParam
+	userMapFile = *userMapParam
+
 	if dbOnly && wikiOnly {
 		log.Fatal("Cannot generate only database AND only wiki!")
 	}
@@ -88,21 +89,60 @@ func parseArgs() {
 	giteaUser = pflag.Arg(2)
 	giteaRepo = pflag.Arg(3)
 
-	giteaDefaultAssignee = *defaultAssigneeParam
-	if giteaDefaultAssignee == "" {
-		giteaDefaultAssignee = giteaUser
-	}
-	giteaDefaultAuthor = *defaultAuthorParam
-	if giteaDefaultAuthor == "" {
-		giteaDefaultAuthor = giteaUser
-	}
-	giteaDefaultWikiAuthor = *defaultWikiAuthorParam
-	if giteaDefaultWikiAuthor == "" {
-		giteaDefaultWikiAuthor = giteaUser
-	}
 	giteaWikiRepoURL = *wikiURLParam
 	giteaWikiRepoToken = *wikiTokenParam
 	giteaWikiRepoDir = *wikiDirParam
+}
+
+func readUserMap(mapFile string) (map[string]string, error) {
+	fd, err := os.Open(mapFile)
+	if err != nil {
+		log.Error("Cannot create user map file %s: %v\n", mapFile, err)
+		return nil, err
+	}
+	defer fd.Close()
+
+	userMap := make(map[string]string)
+	scanner := bufio.NewScanner(fd)
+	for scanner.Scan() {
+		userMapLine := scanner.Text()
+		equalsPos := strings.LastIndex(userMapLine, "=")
+		if equalsPos == -1 {
+			err = fmt.Errorf("badly formatted user map file %s: found line %s", mapFile, userMapLine)
+			log.Error("%v\n", err)
+			return nil, err
+		}
+
+		tracUserName := userMapLine[0:equalsPos]
+		giteaUserName := userMapLine[equalsPos+1:]
+		userMap[tracUserName] = giteaUserName
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Error("Problem reading user map file %s: %v\n", mapFile, err)
+		return nil, err
+	}
+
+	return userMap, nil
+}
+
+func writeUserMap(userMap map[string]string, mapFile string) error {
+	fd, err := os.Create(mapFile)
+	if err != nil {
+		log.Error("Cannot create user map file %s: %v\n", mapFile, err)
+		return err
+	}
+	defer fd.Close()
+
+	for tracUserName, giteaUserName := range userMap {
+		_, err := fd.WriteString(tracUserName + "=" + giteaUserName + "\n")
+		if err != nil {
+			log.Error("Cannot write user mapping %s=%s to map file %s: %v\n", tracUserName, giteaUserName, mapFile, err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func main() {
@@ -119,13 +159,30 @@ func main() {
 		log.Fatal("%v\n", err)
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
-		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, giteaDefaultAssignee, giteaDefaultAuthor)
+		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir)
 	if err != nil {
 		log.Fatal("%v\n", err)
 	}
 
+	var userMap map[string]string
+	if userMapFile != "" {
+		userMap, err = readUserMap(userMapFile)
+	} else {
+		userMap, err = tracAccessor.GetUserMap()
+		giteaAccessor.GenerateDefaultUserMappings(userMap, giteaUser)
+	}
+	if err != nil {
+		log.Fatal("%v\n", err)
+	}
+
+	if generatedUserMapFile != "" {
+		writeUserMap(userMap, generatedUserMapFile)
+		log.Info("Trac -> Gitea user mapping generated in %s\n", generatedUserMapFile)
+		return
+	}
+
 	if !wikiOnly {
-		issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor)
+		issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor, userMap)
 		if err != nil {
 			log.Fatal("%v\n", err)
 		}
@@ -141,7 +198,7 @@ func main() {
 	}
 
 	if !dbOnly {
-		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, giteaDefaultWikiAuthor, wikiConvertPredefineds)
+		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiConvertPredefineds, userMap)
 		if err != nil {
 			log.Fatal("%v\n", err)
 		}

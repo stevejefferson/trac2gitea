@@ -13,12 +13,14 @@ import (
 type Importer struct {
 	giteaAccessor gitea.Accessor
 	tracAccessor  trac.Accessor
+	userMap       map[string]string
 }
 
 // CreateImporter returns a new Trac ticket to Gitea issue importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
-	gAccessor gitea.Accessor) (*Importer, error) {
-	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor}
+	gAccessor gitea.Accessor,
+	uMap map[string]string) (*Importer, error) {
+	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, userMap: uMap}
 	return &importer, nil
 }

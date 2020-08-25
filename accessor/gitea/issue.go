@@ -31,15 +31,19 @@ func (accessor *DefaultAccessor) AddIssue(
 	summary string,
 	reporterID int64,
 	milestone string,
-	ownerID sql.NullString,
+	ownerID int64,
 	owner string,
 	closed bool,
 	description string,
 	created int64) (int64, error) {
+	var nullableOwnerID sql.NullInt64
+	nullableOwnerID.Valid = (ownerID != -1)
+	nullableOwnerID.Int64 = ownerID
+
 	_, err := accessor.db.Exec(`
 		INSERT INTO issue("index", repo_id, name, poster_id, milestone_id, original_author_id, original_author, is_pull, is_closed, content, created_unix)
 			SELECT $1, $2, $3, $4, (SELECT id FROM milestone WHERE repo_id = $2 AND name = $5), $6, $7, false, $8, $9, $10`,
-		issueIndex, accessor.repoID, summary, reporterID, milestone, ownerID, owner, closed, description, created)
+		issueIndex, accessor.repoID, summary, reporterID, milestone, nullableOwnerID, owner, closed, description, created)
 	if err != nil {
 		log.Error("Problem creating issue in repository %s with index %d: %v\n", accessor.repoID, issueIndex, err)
 		return -1, err

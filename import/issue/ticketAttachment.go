@@ -14,8 +14,13 @@ import (
 
 // importTicketAttachment imports a single ticket attachment from Trac into Gitea, returns UUID if newly-created attachment or "" if attachment already existed
 func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, time int64, size int64, author string, attachmentName string, desc string) (string, error) {
+	authorID, _, err := importer.getUser(author)
+	if err != nil {
+		return "", err
+	}
+
 	comment := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s", attachmentName, size, desc)
-	commentID, err := importer.importTicketComment(issueID, ticketID, time, author, comment)
+	commentID, err := importer.importTicketComment(issueID, ticketID, time, authorID, comment)
 	if err != nil {
 		return "", err
 	}
