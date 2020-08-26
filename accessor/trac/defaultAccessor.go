@@ -28,25 +28,20 @@ type DefaultAccessor struct {
 func CreateDefaultAccessor(tracRootDir string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(tracRootDir)
 	if err != nil {
-		log.Error("Cannot access trac root directory %s: %v\n", tracRootDir, err)
 		return nil, err
 	}
 	if stat.IsDir() != true {
-		err = fmt.Errorf("Trac root %s is not a directory", tracRootDir)
-		log.Error("%v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("trac root %s is not a directory", tracRootDir)
 	}
 
 	tracIniPath := fmt.Sprintf("%s/conf/trac.ini", tracRootDir)
 	stat, err = os.Stat(tracIniPath)
 	if err != nil {
-		log.Error("Cannot access trac config file %s: %v\n", tracIniPath, err)
 		return nil, err
 	}
 
 	tracConfig, err := ini.Load(tracIniPath)
 	if err != nil {
-		log.Error("Problem loading trac config file %s: %v\n", tracIniPath, err)
 		return nil, err
 	}
 
@@ -60,11 +55,10 @@ func CreateDefaultAccessor(tracRootDir string) (*DefaultAccessor, error) {
 		tracDatabasePath = filepath.Join(tracRootDir, tracDatabasePath)
 	}
 
-	log.Info("Using trac database %s\n", tracDatabasePath)
+	log.Info("using trac database %s", tracDatabasePath)
 
 	tracDb, err := sql.Open("sqlite3", tracDatabasePath)
 	if err != nil {
-		log.Error("Problem opening trac database %s: %v\n", tracDatabasePath, err)
 		return nil, err
 	}
 	accessor.db = tracDb

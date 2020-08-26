@@ -71,7 +71,7 @@ func parseArgs() {
 	writeUserMap = *writeUserMapParam
 
 	if dbOnly && wikiOnly {
-		log.Fatal("Cannot generate only database AND only wiki!")
+		log.Fatal("cannot generate only database AND only wiki!")
 	}
 	wikiConvertPredefineds = *wikiConvertPredefinedsParam
 	giteaWikiRepoURL = *wikiURLParam
@@ -83,7 +83,7 @@ func parseArgs() {
 		os.Exit(1)
 	}
 	if (pflag.NArg() == 4) && writeUserMap {
-		log.Fatal("Must provide user map file if writing user map")
+		log.Fatal("must provide user map file if writing user map")
 	}
 
 	tracRootDir = pflag.Arg(0)
@@ -98,7 +98,6 @@ func parseArgs() {
 func readFromUserMap(mapFile string) (map[string]string, error) {
 	fd, err := os.Open(mapFile)
 	if err != nil {
-		log.Error("Cannot open user map file %s: %v\n", mapFile, err)
 		return nil, err
 	}
 	defer fd.Close()
@@ -109,9 +108,7 @@ func readFromUserMap(mapFile string) (map[string]string, error) {
 		userMapLine := scanner.Text()
 		equalsPos := strings.LastIndex(userMapLine, "=")
 		if equalsPos == -1 {
-			err = fmt.Errorf("badly formatted user map file %s: found line %s", mapFile, userMapLine)
-			log.Error("%v\n", err)
-			return nil, err
+			return nil, fmt.Errorf("badly formatted user map file %s: found line %s", mapFile, userMapLine)
 		}
 
 		tracUserName := strings.Trim(userMapLine[0:equalsPos], " ")
@@ -120,7 +117,6 @@ func readFromUserMap(mapFile string) (map[string]string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Error("Problem reading user map file %s: %v\n", mapFile, err)
 		return nil, err
 	}
 
@@ -130,15 +126,12 @@ func readFromUserMap(mapFile string) (map[string]string, error) {
 func writeToUserMap(userMap map[string]string, mapFile string) error {
 	fd, err := os.Create(mapFile)
 	if err != nil {
-		log.Error("Cannot create user map file %s: %v\n", mapFile, err)
 		return err
 	}
 	defer fd.Close()
 
 	for tracUserName, giteaUserName := range userMap {
-		_, err := fd.WriteString(tracUserName + " = " + giteaUserName + "\n")
-		if err != nil {
-			log.Error("Cannot write user mapping %s = %s to map file %s: %v\n", tracUserName, giteaUserName, mapFile, err)
+		if _, err := fd.WriteString(tracUserName + " = " + giteaUserName + "\n"); err != nil {
 			return err
 		}
 	}
@@ -157,53 +150,80 @@ func main() {
 
 	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
 	if err != nil {
-		log.Fatal("%v\n", err)
+		log.Fatal("%v", err)
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
 		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir)
 	if err != nil {
-		log.Fatal("%v\n", err)
+		log.Fatal("%v", err)
 	}
 
 	var userMap map[string]string
 	if userMapFile != "" && !writeUserMap {
 		userMap, err = readFromUserMap(userMapFile)
+		if err != nil {
+			log.Fatal("%v", err)
+		}
 	} else {
-		userMap, err = tracAccessor.GetUserMap()
-		giteaAccessor.GenerateDefaultUserMappings(userMap, giteaUser)
-	}
-	if err != nil {
-		log.Fatal("%v\n", err)
+		userMap, err := tracAccessor.GetUserMap()
+		if err != nil {
+			log.Fatal("%v", err)
+		}
+
+		if err = giteaAccessor.GenerateDefaultUserMappings(userMap, giteaUser); err != nil {
+			log.Fatal("%v", err)
+		}
 	}
 
 	if writeUserMap {
-		writeToUserMap(userMap, userMapFile)
-		log.Info("Trac to Gitea user mapping generated in %s - no conversion performed\n", userMapFile)
+		if err = writeToUserMap(userMap, userMapFile); err != nil {
+			log.Fatal("%v", err)
+		}
+
+		log.Info("Trac to Gitea user mapping generated in %s - no conversion performed", userMapFile)
 		return
 	}
 
 	if !wikiOnly {
 		issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor, userMap)
 		if err != nil {
-			log.Fatal("%v\n", err)
+			log.Fatal("%v", err)
 		}
 
-		issueImporter.ImportComponents()
-		issueImporter.ImportPriorities()
-		issueImporter.ImportSeverities()
-		issueImporter.ImportVersions()
-		issueImporter.ImportTypes()
-		issueImporter.ImportResolutions()
-		issueImporter.ImportMilestones()
-		issueImporter.ImportTickets()
+		if err = issueImporter.ImportComponents(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportPriorities(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportSeverities(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportVersions(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportTypes(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportResolutions(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportMilestones(); err != nil {
+			log.Fatal("%v", err)
+		}
+		if err = issueImporter.ImportTickets(); err != nil {
+			log.Fatal("%v", err)
+		}
 	}
 
 	if !dbOnly {
 		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiConvertPredefineds, userMap)
 		if err != nil {
-			log.Fatal("%v\n", err)
+			log.Fatal("%v", err)
 		}
 
-		wikiImporter.ImportWiki(wikiPush)
+		if err = wikiImporter.ImportWiki(wikiPush); err != nil {
+			log.Fatal("%v", err)
+		}
 	}
 }

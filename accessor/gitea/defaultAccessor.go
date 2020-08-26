@@ -41,8 +41,7 @@ func fetchConfig(configPath string) (*ini.File, error) {
 
 	config, err := ini.Load(configPath)
 	if err != nil {
-		log.Error("Unable to load config %s: %v\n", configPath, err)
-		return nil, err
+		return nil, fmt.Errorf("unable to load config %s: %v", configPath, err)
 	}
 
 	return config, nil
@@ -58,13 +57,10 @@ func CreateDefaultAccessor(
 	giteaWikiRepoDir string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
-		log.Error("Cannot access Gitea root directory %s: %v\n", giteaRootDir, err)
-		return nil, err
+		return nil, fmt.Errorf("cannot access Gitea root directory %s: %v", giteaRootDir, err)
 	}
 	if !stat.IsDir() {
-		err = fmt.Errorf("Gitea root path %s is not a directory", giteaRootDir)
-		log.Error("%v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("gitea root path %s is not a directory", giteaRootDir)
 	}
 
 	giteaMainConfigPath := "/etc/gitea/conf/app.ini"
@@ -78,9 +74,7 @@ func CreateDefaultAccessor(
 	}
 	giteaCustomConfig, err := fetchConfig(giteaCustomConfigPath)
 	if giteaMainConfig == nil && giteaCustomConfig == nil {
-		err = fmt.Errorf("Cannot find Gitea config in %s or %s", giteaMainConfigPath, giteaCustomConfigPath)
-		log.Error("%v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("cannot find Gitea config in %s or %s", giteaMainConfigPath, giteaCustomConfigPath)
 	}
 
 	giteaAccessor := DefaultAccessor{
@@ -100,11 +94,10 @@ func CreateDefaultAccessor(
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
 	giteaDb, err := sql.Open("sqlite3", giteaDbPath)
 	if err != nil {
-		log.Error("Cannot open database $s: %v\n", giteaDbPath, err)
 		return nil, err
 	}
 
-	log.Info("Using Gitea database %s\n", giteaDbPath)
+	log.Info("using Gitea database %s", giteaDbPath)
 	giteaAccessor.db = giteaDb
 
 	giteaRepoID, err := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
@@ -112,9 +105,7 @@ func CreateDefaultAccessor(
 		return nil, err
 	}
 	if giteaRepoID == -1 {
-		err = fmt.Errorf("Cannot find repository %s for user %s", giteaRepoName, giteaUserName)
-		log.Error("%v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("cannot find repository %s for user %s", giteaRepoName, giteaUserName)
 	}
 	giteaAccessor.repoID = giteaRepoID
 
@@ -123,7 +114,6 @@ func CreateDefaultAccessor(
 	if giteaWikiRepoDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
-			log.Error("Cannot find cwd: %v\n", err)
 			return nil, err
 		}
 
@@ -131,9 +121,7 @@ func CreateDefaultAccessor(
 	}
 	_, err = os.Stat(giteaWikiRepoDir)
 	if !os.IsNotExist(err) {
-		err = fmt.Errorf("Wiki repository directory %s already exists", giteaWikiRepoDir)
-		log.Error("%v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("wiki repository directory %s already exists", giteaWikiRepoDir)
 	}
 	giteaAccessor.wikiRepoDir = giteaWikiRepoDir
 
@@ -143,9 +131,7 @@ func CreateDefaultAccessor(
 		if giteaWikiRepoToken != "" {
 			slashSlashPos := strings.Index(rootURL, "//")
 			if slashSlashPos == -1 {
-				err = fmt.Errorf("ROOT_URL %s malformed? expecting a '//'", rootURL)
-				log.Error("%v\n", err)
-				return nil, err
+				return nil, fmt.Errorf("ROOT_URL %s malformed? expecting a '//'", rootURL)
 			}
 
 			// insert username and token into URL - 'http://example.com' should become 'http://<user>:<token>@example.com'
@@ -158,7 +144,7 @@ func CreateDefaultAccessor(
 		}
 		giteaWikiRepoURL = fmt.Sprintf("%s%s/%s.git", rootURL, giteaUserName, wikiRepoName)
 	}
-	log.Info("Using Wiki repo URL %s\n", giteaWikiRepoURL)
+	log.Info("using Wiki repo URL %s", giteaWikiRepoURL)
 	giteaAccessor.wikiRepoURL = giteaWikiRepoURL
 
 	return &giteaAccessor, nil

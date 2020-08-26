@@ -8,7 +8,6 @@ import (
 	"fmt"
 	systemlog "log"
 	"os"
-	"runtime/debug"
 )
 
 // Level is the level of the logger
@@ -64,14 +63,13 @@ func prependArg(arg interface{}, existing []interface{}) []interface{} {
 
 func printf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
-		fmt.Printf(prefix+format, v...)
+		fmt.Printf(prefix+format+"\n", v...)
 	}
 }
 
 func sysprintf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
-		systemlog.Printf(prefix+format, v...)
-		// debug.PrintStack()
+		systemlog.Printf(prefix+format+"\n", v...)
 	}
 }
 
@@ -104,8 +102,7 @@ func Error(format string, v ...interface{}) {
 func Fatal(format string, v ...interface{}) {
 	// fatal errors go to the system fatal error handler
 	if level <= FATAL {
-		debug.PrintStack()
-		systemlog.Fatalf("Fatal: "+format, v...)
+		systemlog.Fatalf("Fatal: "+format+"\n", v...)
 	}
 
 	// if logLevel is NONE (the only level higher than FATAL) we terminate anyway but without a message

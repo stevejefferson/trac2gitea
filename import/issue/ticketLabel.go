@@ -18,7 +18,7 @@ func (importer *Importer) importTicketLabel(issueID int64, tracLabel string, lab
 		return -1, err
 	}
 	if labelID == -1 {
-		log.Warn("Cannot find label \"%s\" referenced by issue %d - creating it\n", labelName, issueID)
+		log.Warn("cannot find label \"%s\" referenced by issue %d - creating it", labelName, issueID)
 		labelID, err = importer.giteaAccessor.AddLabel(labelName, labelColor)
 		if err != nil {
 			return -1, err
@@ -30,7 +30,7 @@ func (importer *Importer) importTicketLabel(issueID int64, tracLabel string, lab
 		return -1, err
 	}
 	if issueLabelID != -1 {
-		log.Debug("Label %s already referenced by issue %d - skipping...\n", labelName, issueID)
+		log.Debug("label %s already referenced by issue %d - skipping...", labelName, issueID)
 		return -1, nil
 	}
 
@@ -39,7 +39,7 @@ func (importer *Importer) importTicketLabel(issueID int64, tracLabel string, lab
 		return -1, err
 	}
 
-	log.Debug("Created issue label (id %d) for issue %d, label %d\n", issueLabelID, issueID, labelID)
+	log.Debug("created issue label (id %d) for issue %d, label %d", issueLabelID, issueID, labelID)
 
 	return issueLabelID, nil
 }

@@ -19,7 +19,6 @@ func (accessor *DefaultAccessor) GetAttachmentUUID(issueID int64, name string) (
 			select uuid from attachment where issue_id = $1 and name = $2
 			`, issueID, name).Scan(&uuid)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Cannot retrieve uuid of attachment %s for issue %d: %v\n", name, issueID, err)
 		return "", err
 	}
 
@@ -33,18 +32,16 @@ func (accessor *DefaultAccessor) AddAttachment(uuid string, issueID int64, comme
 			uuid, issue_id, comment_id, name, created_unix)
 			VALUES ($1, $2, $3, $4, $5)`, uuid, issueID, commentID, attachmentName, time)
 	if err != nil {
-		log.Error("Cannot add new attachment for issue %d with UUID %s: %v\n", uuid, issueID, err)
 		return -1, err
 	}
 
 	var attachmentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&attachmentID)
 	if err != nil {
-		log.Error("Cannot find id of newly-inserted attachment %s for issue %d: %v\n", uuid, issueID, err)
 		return -1, err
 	}
 
-	log.Debug("Issue:%d, comment:%d : added attachment %s\n", issueID, commentID, attachmentName)
+	log.Debug("issue:%d, comment:%d : added attachment %s", issueID, commentID, attachmentName)
 
 	giteaAttachmentsRootDir := accessor.GetStringConfig("attachment", "PATH")
 	if giteaAttachmentsRootDir == "" {

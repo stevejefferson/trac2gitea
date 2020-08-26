@@ -7,8 +7,6 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
-
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetIssueID retrieves the id of the Gitea issue corresponding to a given issue index - returns -1 if no such issue.
@@ -18,7 +16,6 @@ func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
 		SELECT id FROM issue WHERE repo_id = $1 AND "index" = $2
 		`, accessor.repoID, issueIndex).Scan(&issueID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Failure looking up issue in repository %s with index %d: %v\n", accessor.repoID, issueIndex, err)
 		return -1, err
 	}
 
@@ -45,14 +42,12 @@ func (accessor *DefaultAccessor) AddIssue(
 			SELECT $1, $2, $3, $4, (SELECT id FROM milestone WHERE repo_id = $2 AND name = $5), $6, $7, false, $8, $9, $10`,
 		issueIndex, accessor.repoID, summary, reporterID, milestone, nullableOwnerID, owner, closed, description, created)
 	if err != nil {
-		log.Error("Problem creating issue in repository %s with index %d: %v\n", accessor.repoID, issueIndex, err)
 		return -1, err
 	}
 
 	var issueID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueID)
 	if err != nil {
-		log.Error("Cannot find id of newly-inserted issue: %v\n", err)
 		return -1, err
 	}
 
@@ -63,7 +58,6 @@ func (accessor *DefaultAccessor) AddIssue(
 func (accessor *DefaultAccessor) SetIssueUpdateTime(issueID int64, updateTime int64) error {
 	_, err := accessor.db.Exec(`UPDATE issue SET updated_unix = MAX(updated_unix,$1) WHERE id = $2`, updateTime, issueID)
 	if err != nil {
-		log.Error("Problem updating last updated time for issue %d: %v\n", issueID, err)
 		return err
 	}
 

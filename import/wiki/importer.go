@@ -53,7 +53,7 @@ func (importer *Importer) ImportWiki(push bool) error {
 		return importer.giteaAccessor.PushWiki()
 	}
 
-	log.Info("Trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.\n")
+	log.Info("trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.")
 	return nil
 }
 
@@ -93,7 +93,7 @@ func (importer *Importer) importWikiPages() {
 	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
-			log.Debug("Skipping predefined Trac page %s\n", pageName)
+			log.Debug("skipping predefined Trac page %s", pageName)
 			return nil
 		}
 
@@ -108,7 +108,7 @@ func (importer *Importer) importWikiPages() {
 			return err
 		}
 		if hasCommit {
-			log.Info("Wiki page %s: %s is already present in wiki - skipping...\n", translatedPageName, tracPageVersionIdentifier)
+			log.Info("wiki page %s: %s is already present in wiki - skipping...", translatedPageName, tracPageVersionIdentifier)
 			return nil
 		}
 
@@ -122,9 +122,7 @@ func (importer *Importer) importWikiPages() {
 		giteaAuthor := importer.userMap[author]
 		if giteaAuthor == "" {
 			// can only happen if provided with faulty user-supplied map
-			err = fmt.Errorf("Cannot find Gitea equivalent for trac author %s of wiki page %s", author, pageName)
-			log.Error("%v\n", err)
-			return err
+			return fmt.Errorf("cannot find Gitea equivalent for trac author %s of wiki page %s", author, pageName)
 		}
 		giteaAuthorEmail, err := importer.giteaAccessor.GetUserEMailAddress(giteaAuthor)
 		if err != nil {
@@ -134,7 +132,7 @@ func (importer *Importer) importWikiPages() {
 		// commit version of wiki page to local repository
 		fullComment := tracPageVersionIdentifier + "\n\n" + comment
 		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEmail, fullComment)
-		log.Info("Wiki page %s: converted from Trac page %s, version %d\n", translatedPageName, pageName, version)
+		log.Info("wiki page %s: converted from Trac page %s, version %d", translatedPageName, pageName, version)
 		return err
 	})
 }

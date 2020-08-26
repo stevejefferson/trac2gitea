@@ -15,9 +15,7 @@ func (importer *Importer) getUser(tracUser string) (int64, string, error) {
 	// lookup Gitea user in map - the only reason for there not to be a mapping is with a faulty user-supplied map
 	giteaUserName := importer.userMap[tracUser]
 	if giteaUserName == "" {
-		err := fmt.Errorf("Cannot find mapping from Trac user %s to Gitea", tracUser)
-		log.Error("%v\n", err)
-		return -1, "", err
+		return -1, "", fmt.Errorf("cannot find mapping from Trac user %s to Gitea", tracUser)
 	}
 
 	userID, err := importer.giteaAccessor.GetUserID(giteaUserName)
@@ -25,6 +23,6 @@ func (importer *Importer) getUser(tracUser string) (int64, string, error) {
 		return -1, "", err
 	}
 
-	log.Debug("Mapped Trac user %s onto Gitea user %s\n", tracUser, giteaUserName)
+	log.Debug("mapped Trac user %s onto Gitea user %s", tracUser, giteaUserName)
 	return userID, giteaUserName, nil
 }

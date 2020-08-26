@@ -22,7 +22,6 @@ func (accessor *DefaultAccessor) GetUserID(userName string) (int64, error) {
 	var id int64 = -1
 	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, userName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Cannot look up user %s: %v\n", userName, err)
 		return -1, err
 	}
 
@@ -34,7 +33,6 @@ func (accessor *DefaultAccessor) GetUserEMailAddress(userName string) (string, e
 	var emailAddress string = ""
 	err := accessor.db.QueryRow(`SELECT email FROM user WHERE lower_name = $1`, userName).Scan(&emailAddress)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Problem finding email address for user %s: %v\n", userName, err)
 		return "", err
 	}
 
@@ -57,7 +55,6 @@ func (accessor *DefaultAccessor) matchUser(userName string, userEmail string) (s
 		OR full_name = $2 
 		OR email = $3`, lcUserName, userName, userEmail).Scan(&matchedUserName)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Problem matching user name %s, email %s: %v\n", userName, userEmail, err)
 		return "", err
 	}
 
@@ -75,14 +72,14 @@ func (accessor *DefaultAccessor) GenerateDefaultUserMappings(userMap map[string]
 		userEmail := userRegexp.ReplaceAllString(user, `$2`)
 
 		matchedUserName, err := accessor.matchUser(trimmedUserName, userEmail)
-		log.Debug("Matched user \"%s\", email \"%s\" to \"%s\"\n", userName, userEmail, matchedUserName)
+		log.Debug("matched user \"%s\", email \"%s\" to \"%s\"", userName, userEmail, matchedUserName)
 		if err != nil {
 			return err
 		}
 
 		if matchedUserName == "" {
 			matchedUserName = defaultUserName
-			log.Debug("Mapping unmatched user \"%s\" to default user \"%s\"\n", userName, defaultUserName)
+			log.Debug("mapping unmatched user \"%s\" to default user \"%s\"", userName, defaultUserName)
 		}
 
 		userMap[user] = matchedUserName

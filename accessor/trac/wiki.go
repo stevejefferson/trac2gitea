@@ -6,8 +6,6 @@ package trac
 
 import (
 	"database/sql"
-
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
@@ -15,7 +13,6 @@ func (accessor *DefaultAccessor) GetWikiPages(
 	handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error) error {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
 	if err != nil {
-		log.Error("Problem retrieving trac wiki pages: %v\n", err)
 		return err
 	}
 
@@ -27,7 +24,6 @@ func (accessor *DefaultAccessor) GetWikiPages(
 		var version int64
 		var updateTime int64
 		if err := rows.Scan(&pageName, &pageText, &author, &commentStr, &version, &updateTime); err != nil {
-			log.Error("Problem extracting data on trac wiki page: %v\n", err)
 			return err
 		}
 
@@ -36,8 +32,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 			comment = commentStr.String
 		}
 
-		err = handlerFn(pageName, pageText, author, comment, version, updateTime)
-		if err != nil {
+		if err = handlerFn(pageName, pageText, author, comment, version, updateTime); err != nil {
 			return err
 		}
 	}
@@ -49,7 +44,6 @@ func (accessor *DefaultAccessor) GetWikiPages(
 func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string) error) error {
 	rows, err := accessor.db.Query(`SELECT id, filename FROM attachment WHERE type = 'wiki'`)
 	if err != nil {
-		log.Error("Problem retrieving attachments for trac wiki pages: %v\n", err)
 		return err
 	}
 
@@ -57,12 +51,10 @@ func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage stri
 		var pageName string
 		var filename string
 		if err := rows.Scan(&pageName, &filename); err != nil {
-			log.Error("Problem extracting attachment data for trac wiki page: %v\n", err)
 			return err
 		}
 
-		err = handlerFn(pageName, filename)
-		if err != nil {
+		if err = handlerFn(pageName, filename); err != nil {
 			return err
 		}
 	}
@@ -129,7 +121,7 @@ var prefinedTracPages = []string{
 	"WikiProcessors",
 	"WikiRestructuredText",
 	"WikiRestructuredTextLinks",
-	//"WikiStart"	// keep WikiStart - the default contents are usually overwritten by projects to produce a "home" page
+	//"WikiStart"	// keep WikiStart - the default contents are usually overwritten by projects to produce a "Home" page
 }
 
 // IsPredefinedPage returns true if the provided page name is one of Trac's predefined ones - by default we ignore these

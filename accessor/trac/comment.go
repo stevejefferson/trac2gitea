@@ -6,8 +6,6 @@ package trac
 
 import (
 	"database/sql"
-
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
@@ -19,7 +17,6 @@ func (accessor *DefaultAccessor) GetComments(
 			FROM ticket_change where ticket = $1 AND field = 'comment' AND trim(COALESCE(newvalue, ''), ' ') != ''
 			ORDER BY time asc`, ticketID)
 	if err != nil {
-		log.Error("Problem retrieving comments for trac ticket %s: %v\n", ticketID, err)
 		return err
 	}
 
@@ -27,12 +24,10 @@ func (accessor *DefaultAccessor) GetComments(
 		var time int64
 		var author, comment string
 		if err := rows.Scan(&time, &author, &comment); err != nil {
-			log.Error("Problem extracting comment data for trac ticket %s: %v\n", ticketID, err)
 			return err
 		}
 
-		err = handlerFn(ticketID, time, author, comment)
-		if err != nil {
+		if err = handlerFn(ticketID, time, author, comment); err != nil {
 			return err
 		}
 	}
@@ -47,7 +42,6 @@ func (accessor *DefaultAccessor) GetCommentString(ticketID int64, commentNum int
 		SELECT COALESCE(newvalue, '') FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,
 		ticketID, commentNum).Scan(&commentStr)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("Problem retrieving text of comment %d for trac ticket %d: %v\n", commentNum, ticketID, err)
 		return "", err
 	}
 

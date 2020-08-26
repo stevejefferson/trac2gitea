@@ -92,7 +92,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 	var ticketCommentNum int64
 	ticketCommentNum, err := strconv.ParseInt(ticketCommentNumStr, 10, 64)
 	if err != nil {
-		log.Warn("found invalid Trac ticket comment number %s\n", ticketCommentNum)
+		log.Warn("found invalid Trac ticket comment number %s", ticketCommentNum)
 		return link
 	}
 
@@ -100,7 +100,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 	var ticketID int64
 	ticketID, err = strconv.ParseInt(ticketIDStr, 10, 64)
 	if err != nil {
-		log.Warn("found invalid Trac ticket id %s\n", ticketIDStr)
+		log.Warn("found invalid Trac ticket id %s", ticketIDStr)
 		return link
 	}
 
@@ -109,7 +109,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
 	if issueID == -1 {
-		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", ticketID, link)
 		return link // not a recognised link - do not mark
 	}
 
@@ -135,7 +135,7 @@ func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
 	if milestoneID == -1 {
-		log.Warn("cannot find milestone \"%s\" referenced by Trac link \"%s\"\n", milestoneName, link)
+		log.Warn("cannot find milestone \"%s\" referenced by Trac link \"%s\"", milestoneName, link)
 		return link // not a recognised link - do not mark
 	}
 
@@ -154,7 +154,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 		var ticketID int64
 		ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
 		if err != nil {
-			log.Warn("found invalid Trac ticket id %s\n", ticketIDStr)
+			log.Warn("found invalid Trac ticket id %s", ticketIDStr)
 			return link
 		}
 
@@ -163,7 +163,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 			return link // not a recognised link - do not mark (error already logged)
 		}
 		if issueID == -1 {
-			log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+			log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", ticketID, link)
 			return link // not a recognised link - do not mark
 		}
 
@@ -172,7 +172,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 			return link // not a recognised link - do not mark (error already logged)
 		}
 		if uuid == "" {
-			log.Warn("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\" (error %\n", attachmentName, issueID, link)
+			log.Warn("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"", attachmentName, issueID, link)
 			return link // not a recognised link - do not mark
 		}
 
@@ -205,7 +205,7 @@ func (converter *DefaultConverter) resolveTicketLink(link string) string {
 	ticketIDStr := ticketLinkRegexp.ReplaceAllString(link, `$1`)
 	ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
 	if err != nil {
-		log.Warn("found invalid Trac ticket reference %s\n" + link)
+		log.Warn("found invalid Trac ticket reference %s" + link)
 		return link // not a recognised link - do not mark
 	}
 
@@ -215,7 +215,7 @@ func (converter *DefaultConverter) resolveTicketLink(link string) string {
 		return link // not a recognised link - do not mark (error already logged)
 	}
 	if issueID == -1 {
-		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"\n", ticketID, link)
+		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", ticketID, link)
 		return link // not a recognised link - do not mark
 	}
 

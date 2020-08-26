@@ -4,8 +4,6 @@
 
 package trac
 
-import "github.com/stevejefferson/trac2gitea/log"
-
 // GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 	ticketID int64, ticketType string, created int64,
@@ -31,7 +29,6 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 			COALESCE(t.description, '')
 		FROM ticket t ORDER BY id`)
 	if err != nil {
-		log.Error("Problem retrieving trac tickets: %v\n", err)
 		return err
 	}
 
@@ -40,13 +37,11 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 		var component, ticketType, severity, priority, owner, reporter, version, milestone, status, resolution, summary, description string
 		if err := rows.Scan(&ticketID, &ticketType, &created, &component, &severity, &priority, &owner, &reporter,
 			&version, &milestone, &status, &resolution, &summary, &description); err != nil {
-			log.Error("Problem extracting data on trac ticket: %v\n", err)
 			return err
 		}
 
-		err = handlerFn(ticketID, ticketType, created, component, severity, priority, owner, reporter,
-			version, milestone, status, resolution, summary, description)
-		if err != nil {
+		if err = handlerFn(ticketID, ticketType, created, component, severity, priority, owner, reporter,
+			version, milestone, status, resolution, summary, description); err != nil {
 			return err
 		}
 	}
