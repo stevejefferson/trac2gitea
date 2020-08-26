@@ -7,6 +7,8 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // AddComment adds a comment to Gitea, returns id of created comment
@@ -17,12 +19,14 @@ func (accessor *DefaultAccessor) AddComment(issueID int64, authorID int64, comme
 			VALUES ( 0, $1, $2, $3, $4, $4 )`,
 		issueID, authorID, comment, time)
 	if err != nil {
+		err = errors.Wrapf(err, "adding comment \"%s\" for issue %d", comment, issueID)
 		return -1, err
 	}
 
 	var commentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&commentID)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving id of new comment \"%s\" for issue %d", comment, issueID)
 		return -1, err
 	}
 
@@ -36,6 +40,7 @@ func (accessor *DefaultAccessor) GetCommentID(issueID int64, commentStr string) 
 		SELECT id FROM comment WHERE issue_id = $1 AND content = $2
 		`, issueID, commentStr).Scan(&commentID)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving id of comment \"%s\" for issue %d", commentStr, issueID)
 		return -1, err
 	}
 

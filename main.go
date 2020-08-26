@@ -150,34 +150,34 @@ func main() {
 
 	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
 	if err != nil {
-		log.Fatal("%v", err)
+		log.Fatal("%+v", err)
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
 		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir)
 	if err != nil {
-		log.Fatal("%v", err)
+		log.Fatal("%+v", err)
 	}
 
 	var userMap map[string]string
 	if userMapFile != "" && !writeUserMap {
 		userMap, err = readFromUserMap(userMapFile)
 		if err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 	} else {
 		userMap, err := tracAccessor.GetUserMap()
 		if err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 
 		if err = giteaAccessor.GenerateDefaultUserMappings(userMap, giteaUser); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 	}
 
 	if writeUserMap {
 		if err = writeToUserMap(userMap, userMapFile); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 
 		log.Info("Trac to Gitea user mapping generated in %s - no conversion performed", userMapFile)
@@ -187,43 +187,43 @@ func main() {
 	if !wikiOnly {
 		issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor, userMap)
 		if err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 
 		if err = issueImporter.ImportComponents(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportPriorities(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportSeverities(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportVersions(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportTypes(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportResolutions(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportMilestones(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 		if err = issueImporter.ImportTickets(); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 	}
 
 	if !dbOnly {
 		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiConvertPredefineds, userMap)
 		if err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 
 		if err = wikiImporter.ImportWiki(wikiPush); err != nil {
-			log.Fatal("%v", err)
+			log.Fatal("%+v", err)
 		}
 	}
 }

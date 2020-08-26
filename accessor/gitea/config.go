@@ -27,13 +27,10 @@ func (accessor *DefaultAccessor) GetStringConfig(sectionName string, configName 
 	mainConfigValue := getStringConfigValue(accessor.mainConfig, sectionName, configName)
 	if mainConfigValue != "" {
 		log.Debug("found value in Gitea main config section=%s, name=%s, value=%s", sectionName, configName, mainConfigValue)
-
 		return mainConfigValue
 	}
 
 	customConfigValue := getStringConfigValue(accessor.customConfig, sectionName, configName)
-
 	log.Debug("found value in Gitea custom config section=%s, name=%s, value=%s", sectionName, configName, customConfigValue)
-
 	return customConfigValue
 }

@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
@@ -20,23 +21,27 @@ func (accessor *DefaultAccessor) copyFile(externalFilePath string, giteaPath str
 
 	in, err := os.Open(externalFilePath)
 	if err != nil {
+		err = errors.Wrapf(err, "opening file %s", externalFilePath)
 		return err
 	}
 	defer in.Close()
 
 	out, err := os.Create(giteaPath)
 	if err != nil {
+		err = errors.Wrapf(err, "creating file %s", giteaPath)
 		return err
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, in)
 	if err != nil {
+		err = errors.Wrapf(err, "copying %s to %s", externalFilePath, giteaPath)
 		return err
 	}
 
 	err = out.Close()
 	if err != nil {
+		err = errors.Wrapf(err, "closing %s", giteaPath)
 		return err
 	}
 

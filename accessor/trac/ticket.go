@@ -4,6 +4,8 @@
 
 package trac
 
+import "github.com/pkg/errors"
+
 // GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 	ticketID int64, ticketType string, created int64,
@@ -29,6 +31,7 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 			COALESCE(t.description, '')
 		FROM ticket t ORDER BY id`)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving Trac tickets")
 		return err
 	}
 
@@ -37,6 +40,7 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 		var component, ticketType, severity, priority, owner, reporter, version, milestone, status, resolution, summary, description string
 		if err := rows.Scan(&ticketID, &ticketType, &created, &component, &severity, &priority, &owner, &reporter,
 			&version, &milestone, &status, &resolution, &summary, &description); err != nil {
+			err = errors.Wrapf(err, "retrieving Trac ticket")
 			return err
 		}
 

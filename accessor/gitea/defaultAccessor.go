@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 
 	"github.com/go-ini/ini"
@@ -36,12 +37,14 @@ type DefaultAccessor struct {
 func fetchConfig(configPath string) (*ini.File, error) {
 	_, err := os.Stat(configPath)
 	if err != nil {
+		err = errors.Wrapf(err, "looking for config file %s", configPath)
 		return nil, nil
 	}
 
 	config, err := ini.Load(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("unable to load config %s: %v", configPath, err)
+		err = errors.Wrapf(err, "loading config file %s", configPath)
+		return nil, err
 	}
 
 	return config, nil
@@ -57,10 +60,12 @@ func CreateDefaultAccessor(
 	giteaWikiRepoDir string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
-		return nil, fmt.Errorf("cannot access Gitea root directory %s: %v", giteaRootDir, err)
+		err = errors.Wrapf(err, "looking for root directory %s of Gitea instance", giteaRootDir)
+		return nil, err
 	}
 	if !stat.IsDir() {
-		return nil, fmt.Errorf("gitea root path %s is not a directory", giteaRootDir)
+		err = fmt.Errorf("gitea root path %s is not a directory", giteaRootDir)
+		return nil, err
 	}
 
 	giteaMainConfigPath := "/etc/gitea/conf/app.ini"
@@ -69,12 +74,14 @@ func CreateDefaultAccessor(
 		return nil, err
 	}
 	giteaCustomConfigPath := fmt.Sprintf("%s/custom/conf/app.ini", giteaRootDir)
+	giteaCustomConfig, err := fetchConfig(giteaCustomConfigPath)
 	if err != nil {
 		return nil, err
 	}
-	giteaCustomConfig, err := fetchConfig(giteaCustomConfigPath)
+
 	if giteaMainConfig == nil && giteaCustomConfig == nil {
-		return nil, fmt.Errorf("cannot find Gitea config in %s or %s", giteaMainConfigPath, giteaCustomConfigPath)
+		err = fmt.Errorf("cannot find Gitea config in %s or %s", giteaMainConfigPath, giteaCustomConfigPath)
+		return nil, err
 	}
 
 	giteaAccessor := DefaultAccessor{
@@ -94,6 +101,7 @@ func CreateDefaultAccessor(
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
 	giteaDb, err := sql.Open("sqlite3", giteaDbPath)
 	if err != nil {
+		err = errors.Wrapf(err, "opening sqlite database %s", giteaDbPath)
 		return nil, err
 	}
 
@@ -114,6 +122,7 @@ func CreateDefaultAccessor(
 	if giteaWikiRepoDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
+			err = errors.Wrapf(err, "getting cwd")
 			return nil, err
 		}
 

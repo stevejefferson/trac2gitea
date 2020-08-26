@@ -10,7 +10,7 @@ type Accessor interface {
 	 * Attachments
 	 */
 	// GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
-	GetAttachmentUUID(issueID int64, name string) (string, error)
+	GetAttachmentUUID(issueID int64, attachmentName string) (string, error)
 
 	// AddAttachment adds a new attachment to a given issue with the provided data - returns id of created attachment
 	AddAttachment(uuid string, issueID int64, commentID int64, attachmentName string, attachmentFile string, time int64) (int64, error)

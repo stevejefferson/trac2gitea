@@ -7,6 +7,8 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // AddMilestone adds a milestone to Gitea, returns id of created milestone
@@ -18,12 +20,14 @@ func (accessor *DefaultAccessor) AddMilestone(name string, content string, close
 				NOT EXISTS (SELECT * FROM milestone WHERE repo_id = $1 AND name = $2)`,
 		accessor.repoID, name, content, closed, deadlineTimestamp, closedTimestamp)
 	if err != nil {
+		err = errors.Wrapf(err, "adding milestone %s", name)
 		return -1, err
 	}
 
 	var milestoneID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&milestoneID)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving id of new milestone %s", name)
 		return -1, err
 	}
 
@@ -37,6 +41,7 @@ func (accessor *DefaultAccessor) GetMilestoneID(name string) (int64, error) {
 		SELECT id FROM milestone WHERE name = $1
 		`, name).Scan(&milestoneID)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving id of milestone %s", name)
 		return -1, err
 	}
 

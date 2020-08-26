@@ -6,6 +6,8 @@ package gitea
 
 import (
 	"database/sql"
+
+	"github.com/pkg/errors"
 )
 
 // GetIssueLabelID retrieves the id of the given Gitea issue and label - returns -1 if no such issue label.
@@ -15,6 +17,7 @@ func (accessor *DefaultAccessor) GetIssueLabelID(issueID int64, labelID int64) (
 		SELECT id FROM issue_label WHERE issue_id = $1 AND label_id = $2
 		`, issueID, labelID).Scan(&issueLabelID)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving id of issue label for issue %d, label %d", issueID, labelID)
 		return -1, err
 	}
 
@@ -27,12 +30,14 @@ func (accessor *DefaultAccessor) AddIssueLabel(issueID int64, labelID int64) (in
 		INSERT INTO issue_label(issue_id, label_id) VALUES ( $1, $2 )`,
 		issueID, labelID)
 	if err != nil {
+		err = errors.Wrapf(err, "adding issue label for issue %d, label %d", issueID, labelID)
 		return -1, err
 	}
 
 	var issueLabelID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueLabelID)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving id of new issue label for issue %d, label %d", issueID, labelID)
 		return -1, err
 	}
 

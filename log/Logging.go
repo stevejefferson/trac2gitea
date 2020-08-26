@@ -37,9 +37,9 @@ const (
 )
 
 func init() {
-	// systemlog.SetFlags(systemlog.Ldate)
-	// systemlog.SetFlags(systemlog.Ltime)
-	// systemlog.SetFlags(systemlog.Lshortfile)
+	systemlog.SetFlags(systemlog.Ldate)
+	systemlog.SetFlags(systemlog.Ltime)
+	systemlog.SetFlags(systemlog.Lshortfile)
 }
 
 var level = ERROR

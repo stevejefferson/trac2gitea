@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 
 	"github.com/go-ini/ini"
@@ -28,6 +29,7 @@ type DefaultAccessor struct {
 func CreateDefaultAccessor(tracRootDir string) (*DefaultAccessor, error) {
 	stat, err := os.Stat(tracRootDir)
 	if err != nil {
+		err = errors.Wrapf(err, "looking for root directory %s of Trac instance", tracRootDir)
 		return nil, err
 	}
 	if stat.IsDir() != true {
@@ -37,11 +39,13 @@ func CreateDefaultAccessor(tracRootDir string) (*DefaultAccessor, error) {
 	tracIniPath := fmt.Sprintf("%s/conf/trac.ini", tracRootDir)
 	stat, err = os.Stat(tracIniPath)
 	if err != nil {
+		err = errors.Wrapf(err, "looking for Trac config file %s", tracIniPath)
 		return nil, err
 	}
 
 	tracConfig, err := ini.Load(tracIniPath)
 	if err != nil {
+		err = errors.Wrapf(err, "loading Trac config file %s", tracIniPath)
 		return nil, err
 	}
 
@@ -59,6 +63,7 @@ func CreateDefaultAccessor(tracRootDir string) (*DefaultAccessor, error) {
 
 	tracDb, err := sql.Open("sqlite3", tracDatabasePath)
 	if err != nil {
+		err = errors.Wrapf(err, "opening Trac sqlite database %s", tracDatabasePath)
 		return nil, err
 	}
 	accessor.db = tracDb

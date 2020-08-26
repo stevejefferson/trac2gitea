@@ -4,6 +4,8 @@
 
 package trac
 
+import "github.com/pkg/errors"
+
 // GetMilestones retrieves all Trac milestones, passing data from each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetMilestones(
 	handlerFn func(name string, description string, due int64, completed int64) error) error {
@@ -15,6 +17,7 @@ func (accessor *DefaultAccessor) GetMilestones(
 				FROM ticket
 				WHERE COALESCE(milestone,'') NOT IN ( select COALESCE(name,'') from milestone )`)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving Trac milestones")
 		return err
 	}
 
@@ -22,6 +25,7 @@ func (accessor *DefaultAccessor) GetMilestones(
 		var completed, due int64
 		var name, description string
 		if err := rows.Scan(&name, &description, &due, &completed); err != nil {
+			err = errors.Wrapf(err, "retrieving Trac milestone")
 			return err
 		}
 

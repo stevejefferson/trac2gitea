@@ -6,6 +6,8 @@ package gitea
 
 import (
 	"database/sql"
+
+	"github.com/pkg/errors"
 )
 
 // GetLabelID retrieves the id of the given label, returns -1 if no such label
@@ -15,6 +17,7 @@ func (accessor *DefaultAccessor) GetLabelID(labelName string) (int64, error) {
 		SELECT id FROM label WHERE repo_id = $1 AND name = $2
 		`, accessor.repoID, labelName).Scan(&labelID)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving id label %s", labelName)
 		return -1, err
 	}
 
@@ -29,12 +32,14 @@ func (accessor *DefaultAccessor) AddLabel(labelName string, labelColor string) (
 			NOT EXISTS ( SELECT * FROM label WHERE repo_id = $1 AND name = $2 )`,
 		accessor.repoID, labelName, labelColor)
 	if err != nil {
+		err = errors.Wrapf(err, "adding label %s", labelName)
 		return -1, err
 	}
 
 	var labelID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&labelID)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving id of new label %s", labelName)
 		return -1, err
 	}
 

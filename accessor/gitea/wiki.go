@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -48,6 +49,7 @@ func (accessor *DefaultAccessor) CloneWiki() error {
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	if err != nil {
+		err = errors.Wrapf(err, "cloning repository %s into directory %s", accessor.wikiRepoURL, accessor.wikiRepoDir)
 		return err
 	}
 
@@ -69,6 +71,7 @@ func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
 
 	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFilename})
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving git log for file %s", wikiFilename)
 		return nil, err
 	}
 
@@ -87,6 +90,7 @@ func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
 func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, message string) error {
 	worktree, err := accessor.wikiRepo.Worktree()
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving git work tree for cloned wiki")
 		return err
 	}
 
@@ -96,6 +100,7 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 		if worktreeStatus == git.Untracked || worktreeStatus == git.Modified {
 			_, err = worktree.Add(file)
 			if err != nil {
+				err = errors.Wrapf(err, "adding file %s to git work tree", file)
 				return err
 			}
 		}
@@ -109,6 +114,7 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 		},
 	})
 	if err != nil {
+		err = errors.Wrapf(err, "committing changes to git for cloned wiki")
 		return err
 	}
 
@@ -128,6 +134,7 @@ func (accessor *DefaultAccessor) PushWiki() error {
 		Auth:       auth,
 	})
 	if err != nil && err != git.NoErrAlreadyUpToDate {
+		err = errors.Wrapf(err, "pushing cloned wiki to remote")
 		return err
 	}
 
@@ -147,6 +154,7 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 	giteaDir := path.Dir(giteaPath)
 	err = os.MkdirAll(giteaDir, 0775)
 	if err != nil {
+		err = errors.Wrapf(err, "creating directory %s in cloned wiki", giteaDir)
 		return err
 	}
 
@@ -166,11 +174,13 @@ func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText str
 	pageDir := path.Dir(pagePath)
 	err := os.MkdirAll(pageDir, 0775)
 	if err != nil {
+		err = errors.Wrapf(err, "creating directory %s for page in cloned wiki", pageDir)
 		return "", err
 	}
 
 	file, err := os.Create(pagePath)
 	if err != nil {
+		err = errors.Wrapf(err, "creating wiki page file %s", pagePath)
 		return "", err
 	}
 

@@ -6,6 +6,8 @@ package trac
 
 import (
 	"database/sql"
+
+	"github.com/pkg/errors"
 )
 
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
@@ -13,6 +15,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 	handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error) error {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving Trac wiki pages")
 		return err
 	}
 
@@ -24,6 +27,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 		var version int64
 		var updateTime int64
 		if err := rows.Scan(&pageName, &pageText, &author, &commentStr, &version, &updateTime); err != nil {
+			err = errors.Wrapf(err, "retrieving Trac wiki page")
 			return err
 		}
 
@@ -44,6 +48,7 @@ func (accessor *DefaultAccessor) GetWikiPages(
 func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string) error) error {
 	rows, err := accessor.db.Query(`SELECT id, filename FROM attachment WHERE type = 'wiki'`)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving attachments to Trac wiki pages")
 		return err
 	}
 
@@ -51,6 +56,7 @@ func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage stri
 		var pageName string
 		var filename string
 		if err := rows.Scan(&pageName, &filename); err != nil {
+			err = errors.Wrapf(err, "retrieving attachment to Trac wiki page")
 			return err
 		}
 

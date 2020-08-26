@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
@@ -22,6 +23,7 @@ func (accessor *DefaultAccessor) GetUserID(userName string) (int64, error) {
 	var id int64 = -1
 	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, userName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving id of user %s", userName)
 		return -1, err
 	}
 
@@ -33,6 +35,7 @@ func (accessor *DefaultAccessor) GetUserEMailAddress(userName string) (string, e
 	var emailAddress string = ""
 	err := accessor.db.QueryRow(`SELECT email FROM user WHERE lower_name = $1`, userName).Scan(&emailAddress)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving email address of user %s", userName)
 		return "", err
 	}
 
@@ -55,6 +58,7 @@ func (accessor *DefaultAccessor) matchUser(userName string, userEmail string) (s
 		OR full_name = $2 
 		OR email = $3`, lcUserName, userName, userEmail).Scan(&matchedUserName)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "trying to match user name %s, email %s", userName, userEmail)
 		return "", err
 	}
 

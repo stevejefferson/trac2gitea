@@ -9,16 +9,18 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
-func (accessor *DefaultAccessor) GetAttachmentUUID(issueID int64, name string) (string, error) {
+func (accessor *DefaultAccessor) GetAttachmentUUID(issueID int64, attachmentName string) (string, error) {
 	var uuid string = ""
 	err := accessor.db.QueryRow(`
 			select uuid from attachment where issue_id = $1 and name = $2
-			`, issueID, name).Scan(&uuid)
+			`, issueID, attachmentName).Scan(&uuid)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving attachment %s for issue %d", attachmentName, issueID)
 		return "", err
 	}
 
@@ -32,12 +34,14 @@ func (accessor *DefaultAccessor) AddAttachment(uuid string, issueID int64, comme
 			uuid, issue_id, comment_id, name, created_unix)
 			VALUES ($1, $2, $3, $4, $5)`, uuid, issueID, commentID, attachmentName, time)
 	if err != nil {
+		err = errors.Wrapf(err, "adding attachment %s for issue %d", attachmentName, issueID)
 		return -1, err
 	}
 
 	var attachmentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&attachmentID)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving id of new attachment %s for issue %d", attachmentName, issueID)
 		return -1, err
 	}
 

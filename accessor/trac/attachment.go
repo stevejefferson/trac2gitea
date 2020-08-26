@@ -9,6 +9,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"path"
+
+	"github.com/pkg/errors"
 )
 
 func encodeSha1(str string) string {
@@ -49,6 +51,7 @@ func (accessor *DefaultAccessor) GetAttachments(
 			WHERE type = 'ticket' AND id = $1
 			ORDER BY time asc`, ticketID)
 	if err != nil {
+		err = errors.Wrapf(err, "retrieving Trac attachments for ticket %d", ticketID)
 		return err
 	}
 
@@ -56,6 +59,7 @@ func (accessor *DefaultAccessor) GetAttachments(
 		var time, size int64
 		var author, filename, description string
 		if err := rows.Scan(&time, &author, &filename, &description, &size); err != nil {
+			err = errors.Wrapf(err, "retrieving Trac attachment for ticket %d", ticketID)
 			return err
 		}
 

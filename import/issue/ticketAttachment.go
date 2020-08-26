@@ -6,7 +6,6 @@ package issue
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/stevejefferson/trac2gitea/log"
@@ -21,10 +20,6 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 	}
 
 	tracPath := importer.tracAccessor.GetTicketAttachmentPath(ticketID, attachmentName)
-	_, err = os.Stat(tracPath)
-	if err != nil {
-		return "", err
-	}
 	elems := strings.Split(tracPath, "/")
 	tracDir := elems[len(elems)-2]
 	tracFile := elems[len(elems)-1]

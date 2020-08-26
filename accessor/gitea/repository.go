@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
@@ -16,6 +17,7 @@ func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (in
 	err := accessor.db.QueryRow(`SELECT r.id FROM repository r, user u WHERE r.owner_id =
 			u.id AND u.name = $1 AND r.name = $2`, userName, repoName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
+		err = errors.Wrapf(err, "retrieving id of repository %s for user %s", repoName, userName)
 		return -1, err
 	}
 
@@ -31,6 +33,7 @@ func (accessor *DefaultAccessor) UpdateRepoIssueCount(count int, closedCount int
 				WHERE id = $2`,
 			count, accessor.repoID)
 		if err != nil {
+			err = errors.Wrapf(err, "updating number of issues for repository %d", accessor.repoID)
 			return err
 		}
 	}
@@ -41,6 +44,7 @@ func (accessor *DefaultAccessor) UpdateRepoIssueCount(count int, closedCount int
 				WHERE id = $2`,
 			closedCount, accessor.repoID)
 		if err != nil {
+			err = errors.Wrapf(err, "updating number of closed issues for repository %d", accessor.repoID)
 			return err
 		}
 	}
