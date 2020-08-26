@@ -100,7 +100,8 @@ func (importer *Importer) importWikiPages() {
 		// have we already converted this version of the trac wiki page?
 		// - if so, skip it on the assumption that this is a re-import and that the only thing that is likely to have changed
 		// is the addition of later trac versions of wiki pages - these will get added to the wiki repo as later versions
-		tracPageVersionIdentifier := fmt.Sprintf("trac page %s (version %d)", pageName, version)
+		updateTimeStr := time.Unix(updateTime, 0)
+		tracPageVersionIdentifier := fmt.Sprintf("[Imported from Trac: page %s, version %d at %s]", pageName, version, updateTimeStr)
 		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
 		hasCommit, err := importer.pageCommitExists(translatedPageName, tracPageVersionIdentifier)
 		if err != nil {
@@ -131,11 +132,9 @@ func (importer *Importer) importWikiPages() {
 		}
 
 		// commit version of wiki page to local repository
-		updateTimeStr := time.Unix(updateTime, 0)
-		comment = fmt.Sprintf("%s\n[Imported: %s - updated at %s by Trac user %s]\n",
-			comment, tracPageVersionIdentifier, updateTimeStr, author)
-		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEmail, comment)
-		log.Info("Wiki page %s: converted from %s\n", translatedPageName, tracPageVersionIdentifier)
+		fullComment := tracPageVersionIdentifier + "\n\n" + comment
+		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEmail, fullComment)
+		log.Info("Wiki page %s: converted from Trac page %s, version %d\n", translatedPageName, pageName, version)
 		return err
 	})
 }

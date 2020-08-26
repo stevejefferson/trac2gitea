@@ -5,6 +5,9 @@
 package issue
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
@@ -23,4 +26,11 @@ func CreateImporter(
 	uMap map[string]string) (*Importer, error) {
 	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, userMap: uMap}
 	return &importer, nil
+}
+
+// addTracContext adds context information to the provided message giving the original Trac context of the data in the message.
+func addTracContext(tracContext string, tracUpdateTime int64, message string) string {
+	updateTimeStr := time.Unix(tracUpdateTime, 0)
+	contextMessage := fmt.Sprintf("[Imported from Trac: %s at %s]\n\n%s", tracContext, updateTimeStr, message)
+	return contextMessage
 }

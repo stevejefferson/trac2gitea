@@ -23,12 +23,12 @@ var wikiOnly bool
 var wikiPush bool
 var verbose bool
 var wikiConvertPredefineds bool
-var generatedUserMapFile string
-var userMapFile string
+var writeUserMap bool
 var tracRootDir string
 var giteaRootDir string
 var giteaUser string
 var giteaRepo string
+var userMapFile string
 var giteaWikiRepoURL string
 var giteaWikiRepoToken string
 var giteaWikiRepoDir string
@@ -43,10 +43,8 @@ func parseArgs() {
 	wikiConvertPredefinedsParam := pflag.Bool("wiki-convert-predefined", false,
 		"convert Trac predefined wiki pages - by default we skip these")
 
-	generateUserMapParam := pflag.String("generate-user-map", "",
-		"generate a or update map of trac users to gitea users into the specified file (note: no conversion will be performed if this param is provided)")
-	userMapParam := pflag.String("user-map", "",
-		"user provided mapping of trac users to gitea users for conversion")
+	writeUserMapParam := pflag.Bool("write-user-map", false,
+		"write default map of trac user to gitea user into the user map file (note: no conversion will be performed if this param is provided)")
 	dbOnlyParam := pflag.Bool("db-only", false,
 		"convert database only")
 	wikiOnlyParam := pflag.Bool("wiki-only", false,
@@ -58,7 +56,7 @@ func parseArgs() {
 
 	pflag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
-			"Usage: %s [options] <trac-root> <gitea-root> <gitea-user> <gitea-repo>\n",
+			"Usage: %s [options] <trac-root> <gitea-root> <gitea-user> <gitea-repo> [<user-map>]\n",
 			os.Args[0])
 		fmt.Fprintf(os.Stderr, "Options:\n")
 		pflag.PrintDefaults()
@@ -70,34 +68,37 @@ func parseArgs() {
 	dbOnly = *dbOnlyParam
 	wikiOnly = *wikiOnlyParam
 	wikiPush = !*wikiNoPushParam
-
-	generatedUserMapFile = *generateUserMapParam
-	userMapFile = *userMapParam
+	writeUserMap = *writeUserMapParam
 
 	if dbOnly && wikiOnly {
 		log.Fatal("Cannot generate only database AND only wiki!")
 	}
 	wikiConvertPredefineds = *wikiConvertPredefinedsParam
+	giteaWikiRepoURL = *wikiURLParam
+	giteaWikiRepoToken = *wikiTokenParam
+	giteaWikiRepoDir = *wikiDirParam
 
-	if pflag.NArg() < 4 {
+	if (pflag.NArg() < 4) || (pflag.NArg() > 5) {
 		pflag.Usage()
 		os.Exit(1)
+	}
+	if (pflag.NArg() == 4) && writeUserMap {
+		log.Fatal("Must provide user map file if writing user map")
 	}
 
 	tracRootDir = pflag.Arg(0)
 	giteaRootDir = pflag.Arg(1)
 	giteaUser = pflag.Arg(2)
 	giteaRepo = pflag.Arg(3)
-
-	giteaWikiRepoURL = *wikiURLParam
-	giteaWikiRepoToken = *wikiTokenParam
-	giteaWikiRepoDir = *wikiDirParam
+	if pflag.NArg() == 5 {
+		userMapFile = pflag.Arg(4)
+	}
 }
 
-func readUserMap(mapFile string) (map[string]string, error) {
+func readFromUserMap(mapFile string) (map[string]string, error) {
 	fd, err := os.Open(mapFile)
 	if err != nil {
-		log.Error("Cannot create user map file %s: %v\n", mapFile, err)
+		log.Error("Cannot open user map file %s: %v\n", mapFile, err)
 		return nil, err
 	}
 	defer fd.Close()
@@ -113,8 +114,8 @@ func readUserMap(mapFile string) (map[string]string, error) {
 			return nil, err
 		}
 
-		tracUserName := userMapLine[0:equalsPos]
-		giteaUserName := userMapLine[equalsPos+1:]
+		tracUserName := strings.Trim(userMapLine[0:equalsPos], " ")
+		giteaUserName := strings.Trim(userMapLine[equalsPos+1:], " ")
 		userMap[tracUserName] = giteaUserName
 	}
 
@@ -126,7 +127,7 @@ func readUserMap(mapFile string) (map[string]string, error) {
 	return userMap, nil
 }
 
-func writeUserMap(userMap map[string]string, mapFile string) error {
+func writeToUserMap(userMap map[string]string, mapFile string) error {
 	fd, err := os.Create(mapFile)
 	if err != nil {
 		log.Error("Cannot create user map file %s: %v\n", mapFile, err)
@@ -135,9 +136,9 @@ func writeUserMap(userMap map[string]string, mapFile string) error {
 	defer fd.Close()
 
 	for tracUserName, giteaUserName := range userMap {
-		_, err := fd.WriteString(tracUserName + "=" + giteaUserName + "\n")
+		_, err := fd.WriteString(tracUserName + " = " + giteaUserName + "\n")
 		if err != nil {
-			log.Error("Cannot write user mapping %s=%s to map file %s: %v\n", tracUserName, giteaUserName, mapFile, err)
+			log.Error("Cannot write user mapping %s = %s to map file %s: %v\n", tracUserName, giteaUserName, mapFile, err)
 			return err
 		}
 	}
@@ -165,8 +166,8 @@ func main() {
 	}
 
 	var userMap map[string]string
-	if userMapFile != "" {
-		userMap, err = readUserMap(userMapFile)
+	if userMapFile != "" && !writeUserMap {
+		userMap, err = readFromUserMap(userMapFile)
 	} else {
 		userMap, err = tracAccessor.GetUserMap()
 		giteaAccessor.GenerateDefaultUserMappings(userMap, giteaUser)
@@ -175,9 +176,9 @@ func main() {
 		log.Fatal("%v\n", err)
 	}
 
-	if generatedUserMapFile != "" {
-		writeUserMap(userMap, generatedUserMapFile)
-		log.Info("Trac -> Gitea user mapping generated in %s\n", generatedUserMapFile)
+	if writeUserMap {
+		writeToUserMap(userMap, userMapFile)
+		log.Info("Trac to Gitea user mapping generated in %s - no conversion performed\n", userMapFile)
 		return
 	}
 

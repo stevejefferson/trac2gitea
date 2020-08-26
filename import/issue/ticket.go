@@ -5,6 +5,8 @@
 package issue
 
 import (
+	"fmt"
+
 	"github.com/stevejefferson/trac2gitea/log"
 	"github.com/stevejefferson/trac2gitea/markdown"
 )
@@ -24,17 +26,16 @@ func (importer *Importer) importTicket(
 		return -1, err
 	}
 	if issueID != -1 {
+		// assume we have previously done this conversion
 		log.Info("Issue already exists for ticket %d - skipping...\n", ticketID)
 		return -1, nil
 	}
-
-	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
-	description = markdownConverter.Convert(description)
 
 	reporterID, _, err := importer.getUser(reporter)
 	if err != nil {
 		return -1, err
 	}
+	tracDetails := fmt.Sprintf("originally reported by %s", reporter)
 
 	var ownerID int64 = -1
 	var ownerName = ""
@@ -43,9 +44,15 @@ func (importer *Importer) importTicket(
 		if err != nil {
 			return -1, err
 		}
+		tracDetails = tracDetails + fmt.Sprintf(", originally assigned to %s", owner)
 	}
 
-	issueID, err = importer.giteaAccessor.AddIssue(ticketID, summary, reporterID, milestone, ownerID, ownerName, closed, description, created)
+	// Gitea comment consists of a header giving the original Trac context then the Trac description converted to markdown
+	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticketID)
+	convertedDescription := markdownConverter.Convert(description)
+	fullDescription := addTracContext(tracDetails, created, convertedDescription)
+
+	issueID, err = importer.giteaAccessor.AddIssue(ticketID, summary, reporterID, milestone, ownerID, ownerName, closed, fullDescription, created)
 	if err != nil {
 		return -1, err
 	}

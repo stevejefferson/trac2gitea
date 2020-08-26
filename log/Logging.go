@@ -71,7 +71,7 @@ func printf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 func sysprintf(reqdLevel Level, prefix string, format string, v ...interface{}) {
 	if level <= reqdLevel {
 		systemlog.Printf(prefix+format, v...)
-		debug.PrintStack()
+		// debug.PrintStack()
 	}
 }
 
