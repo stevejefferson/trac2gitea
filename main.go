@@ -44,7 +44,7 @@ func parseArgs() {
 		"convert Trac predefined wiki pages - by default we skip these")
 
 	writeUserMapParam := pflag.Bool("write-user-map", false,
-		"write default map of trac user to gitea user into the user map file (note: no conversion will be performed if this param is provided)")
+		"write default map of trac user to gitea user into the user map file (note: no conversion will be performed if this flag is provided)")
 	dbOnlyParam := pflag.Bool("db-only", false,
 		"convert database only")
 	wikiOnlyParam := pflag.Bool("wiki-only", false,

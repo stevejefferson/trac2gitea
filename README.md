@@ -4,7 +4,7 @@
 
 ## Scope
 At present the following Trac data is converted:
-* Trac users mapped onto Gitea usernames via a user-supplied mapping 
+* Trac users mapped onto Gitea usernames via a mapping 
 * Trac components, priorities, resolutions, severities, types and versions to Gitea labels
 * Trac milestones to Gitea milestones
 * Trac tickets to Gitea issues
@@ -60,7 +60,7 @@ Options:
       --wiki-only                 convert wiki only
       --wiki-token string         password/token for accessing wiki repository (ignored if wiki-url provided)
       --wiki-url string           URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git
-      --write-user-map            write default map of trac user to gitea user into the user map file (note: no conversion will be performed if this param is provided)
+      --write-user-map            write default map of trac user to gitea user into the user map file (note: no conversion will be performed if this flag is provided)
 ```
 
 * `<trac-root>` is the root of the Trac project filestore containing the Trac config file in subdirectory `conf/trac.ini`
@@ -79,10 +79,11 @@ The file can then be reviewed and edited as appropriate and the conversion proce
 
 If the `<user-map>` parameter is omitted, the conversion will proceed using the default mapping.
 
-The default mapping maps any Trac user onto a Gitea user which has any of the following:
+The default mapping maps a Trac user onto a Gitea user where the Gitea user has any of the following:
 * the same user name
 * the same "full" name
 * the same email address
+
 If no Gitea user with any of these characteristics can be found then the `<gitea-user>` provided on the command line will be used.
 
 ## Limitations
