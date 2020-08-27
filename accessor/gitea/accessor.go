@@ -105,14 +105,17 @@ type Accessor interface {
 	/*
 	 * Users
 	 */
+	// GetCurrentUser retrieves the name of the current user (owner of repository into which we are importing).
+	GetCurrentUser() string
+
 	// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
 	GetUserID(userName string) (int64, error)
 
 	// GetUserEMailAddress retrieves the email address of a given user
 	GetUserEMailAddress(userName string) (string, error)
 
-	// GenerateDefaultUserMappings populates the provided user map with a default mapping for each user in the map.
-	GenerateDefaultUserMappings(userMap map[string]string, defaultUserName string) error
+	// MatchUser retrieves the name of the user best matching a user name or email address
+	MatchUser(userName string, userEmail string) (string, error)
 
 	/*
 	 * Wiki

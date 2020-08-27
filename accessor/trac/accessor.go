@@ -76,11 +76,9 @@ type Accessor interface {
 	 */
 	// GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
 	GetTickets(handlerFn func(
-		ticketID int64, ticketType string, created int64,
-		component string, severity string, priority string,
-		owner string, reporter string, version string,
-		milestone string, status string, resolution string,
-		summary string, description string) error) error
+		ticketID int64, summary string, description string, owner string, reporter string, milestone string,
+		component string, priority string, resolution string, severity string, typ string, version string,
+		status string, created int64) error) error
 
 	/*
 	 * Types
@@ -91,8 +89,8 @@ type Accessor interface {
 	/*
 	 * Users
 	 */
-	// GetUserMap returns a blank user mapping mapping for every user name found in Trac database fields to be converted
-	GetUserMap() (map[string]string, error)
+	// GetUserNames retrieves the names of all users mentioned in Trac tickets, wiki pages etc., passing each one to the provided "handler" function.
+	GetUserNames(handlerFn func(userName string) error) error
 
 	/*
 	 * Versions

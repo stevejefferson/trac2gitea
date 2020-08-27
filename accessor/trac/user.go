@@ -6,28 +6,30 @@ package trac
 
 import "github.com/pkg/errors"
 
-// GetUserMap returns a blank user mapping mapping for every user name found in Trac database fields to be converted
-func (accessor *DefaultAccessor) GetUserMap() (map[string]string, error) {
+// GetUserNames retrieves the names of all users mentioned in Trac tickets, wiki pages etc., passing each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetUserNames(handlerFn func(userName string) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT owner FROM ticket
 		UNION SELECT author FROM attachment
 		UNION SELECT author FROM ticket_change
 		UNION SELECT author FROM wiki`)
 	if err != nil {
-		err = errors.Wrapf(err, "retrieving Trac users to be converted")
-		return nil, err
+		err = errors.Wrapf(err, "retrieving Trac users")
+		return err
 	}
 
-	userMap := make(map[string]string)
 	for rows.Next() {
 		var userName string
 		if err = rows.Scan(&userName); err != nil {
-			err = errors.Wrapf(err, "retrieving Trac user to be converted")
-			return nil, err
+			err = errors.Wrapf(err, "retrieving Trac user")
+			return err
 		}
 
-		userMap[userName] = ""
+		if err = handlerFn(userName); err != nil {
+			return err
+		}
+
 	}
 
-	return userMap, nil
+	return nil
 }

@@ -20,8 +20,8 @@ func truncateString(str string, maxlen int) string {
 }
 
 // importTicketComment imports a single ticket comment from Trac to Gitea, returns ID of created comment or -1 if comment already exists
-func (importer *Importer) importTicketComment(issueID int64, ticketID int64, time int64, author string, comment string) (int64, error) {
-	authorID, _, err := importer.getUser(author)
+func (importer *Importer) importTicketComment(issueID int64, ticketID int64, time int64, author string, comment string, userMap map[string]string) (int64, error) {
+	authorID, _, err := importer.getUser(author, userMap)
 	if err != nil {
 		return -1, err
 	}
@@ -51,9 +51,9 @@ func (importer *Importer) importTicketComment(issueID int64, ticketID int64, tim
 	return commentID, nil
 }
 
-func (importer *Importer) importTicketComments(ticketID int64, issueID int64, lastUpdate int64) error {
+func (importer *Importer) importTicketComments(ticketID int64, issueID int64, lastUpdate int64, userMap map[string]string) error {
 	err := importer.tracAccessor.GetComments(ticketID, func(ticketID int64, time int64, author string, comment string) error {
-		commentID, err := importer.importTicketComment(issueID, ticketID, time, author, comment)
+		commentID, err := importer.importTicketComment(issueID, ticketID, time, author, comment, userMap)
 		if err != nil {
 			return err
 		}

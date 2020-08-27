@@ -9,71 +9,138 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// label colors and prefixes - courtesy of `trac2gogs`
+// label colors - courtesy of `trac2gogs`
 const (
-	componentLabelPrefix  = "Component/"
-	componentLabelColor   = "#fbca04"
-	priorityLabelPrefix   = "Priority/"
-	priorityLabelColor    = "#207de5"
-	severityLabelPrefix   = "Severity/"
-	severityLabelColor    = "#eb6420"
-	versionLabelPrefix    = "Version/"
-	versionLabelColor     = "#009800"
-	typeLabelPrefix       = "Type/"
-	typeLabelColor        = "#e11d21"
-	resolutionLabelPrefix = "Resolution/"
-	resolutionLabelColor  = "#9e9e9e"
+	componentLabelColor  = "#fbca04"
+	priorityLabelColor   = "#207de5"
+	resolutionLabelColor = "#9e9e9e"
+	severityLabelColor   = "#eb6420"
+	typeLabelColor       = "#e11d21"
+	versionLabelColor    = "#009800"
 )
 
-// importLabels imports all labels returned by the provided Trac accessor method as Gitea labels with the provided prefix and color.
-func (importer *Importer) importLabels(tracMethod func(tAccessor trac.Accessor, handlerFn func(name string) error) error, labelPrefix string, labelColor string) error {
-	return tracMethod(importer.tracAccessor, func(name string) error {
-		labelName := labelPrefix + name
-		labelID, err := importer.giteaAccessor.GetLabelID(labelName)
-		if err != nil {
-			return err
-		}
-		if labelID != -1 {
-			log.Debug("label %s already exists, skipping...", labelName)
-			return nil
-		}
+// defaultLabelMap retrieves the default mapping between the Trac items returned by the provided function and Gitea labels
+func (importer *Importer) defaultLabelMap(tracMethod func(tAccessor trac.Accessor, handlerFn func(tracName string) error) error) (map[string]string, error) {
+	labelMap := make(map[string]string)
 
-		labelID, err = importer.giteaAccessor.AddLabel(labelName, labelColor)
-		if err != nil {
-			return err
+	err := tracMethod(importer.tracAccessor, func(tracName string) error {
+		// only interested in named trac items
+		if tracName != "" {
+			labelMap[tracName] = tracName
 		}
-
-		log.Debug("created label (id %d), name %s, color %s", labelID, labelName, labelColor)
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return labelMap, nil
+}
+
+// DefaultComponentLabelMap retrieves the default mapping between Trac components and Gitea labels
+func (importer *Importer) DefaultComponentLabelMap() (map[string]string, error) {
+	return importer.defaultLabelMap(trac.Accessor.GetComponentNames)
+}
+
+// DefaultPriorityLabelMap retrieves the default mapping between Trac priorities and Gitea labels
+func (importer *Importer) DefaultPriorityLabelMap() (map[string]string, error) {
+	return importer.defaultLabelMap(trac.Accessor.GetPriorityNames)
+}
+
+// DefaultResolutionLabelMap retrieves the default mapping between Trac resolutions and Gitea labels
+func (importer *Importer) DefaultResolutionLabelMap() (map[string]string, error) {
+	return importer.defaultLabelMap(trac.Accessor.GetResolutionNames)
+}
+
+// DefaultSeverityLabelMap retrieves the default mapping between Trac severities and Gitea labels
+func (importer *Importer) DefaultSeverityLabelMap() (map[string]string, error) {
+	return importer.defaultLabelMap(trac.Accessor.GetSeverityNames)
+}
+
+// DefaultTypeLabelMap retrieves the default mapping between Trac types and Gitea labels
+func (importer *Importer) DefaultTypeLabelMap() (map[string]string, error) {
+	return importer.defaultLabelMap(trac.Accessor.GetTypeNames)
+}
+
+// DefaultVersionLabelMap retrieves the default mapping between Trac versions and Gitea labels
+func (importer *Importer) DefaultVersionLabelMap() (map[string]string, error) {
+	return importer.defaultLabelMap(trac.Accessor.GetVersionNames)
+}
+
+// importLabels imports a single trac item as a Gitea label Gitea labels - any created label will have the provided color.
+// Returns ID of Gitea label.
+func (importer *Importer) importLabel(tracName string, labelMap map[string]string, labelColor string) (int64, error) {
+	if tracName == "" {
+		return -1, nil // ignore unnamed trac items
+	}
+
+	labelName := labelMap[tracName]
+	if labelName == "" {
+		return -1, nil // if no mapping provided, do not create a label
+	}
+
+	labelID, err := importer.giteaAccessor.GetLabelID(labelName)
+	if err != nil {
+		return -1, err
+	}
+	if labelID != -1 {
+		log.Debug("label %s already exists, skipping...", labelName)
+		return labelID, nil
+	}
+
+	labelID, err = importer.giteaAccessor.AddLabel(labelName, labelColor)
+	if err != nil {
+		return -1, err
+	}
+
+	log.Debug("created label (id %d), name %s, color %s", labelID, labelName, labelColor)
+	return labelID, nil
 }
 
 // ImportComponents imports Trac components as Gitea labels.
-func (importer *Importer) ImportComponents() error {
-	return importer.importLabels(trac.Accessor.GetComponentNames, componentLabelPrefix, componentLabelColor)
+func (importer *Importer) ImportComponents(componentNameMap map[string]string) error {
+	return importer.tracAccessor.GetComponentNames(func(componentName string) error {
+		_, err := importer.importLabel(componentName, componentNameMap, componentLabelColor)
+		return err
+	})
 }
 
 // ImportPriorities imports Trac priorities as Gitea labels.
-func (importer *Importer) ImportPriorities() error {
-	return importer.importLabels(trac.Accessor.GetPriorityNames, priorityLabelPrefix, priorityLabelColor)
-}
-
-// ImportSeverities imports Trac severities as Gitea labels.
-func (importer *Importer) ImportSeverities() error {
-	return importer.importLabels(trac.Accessor.GetSeverityNames, severityLabelPrefix, severityLabelColor)
-}
-
-// ImportVersions imports Trac versions as Gitea labels.
-func (importer *Importer) ImportVersions() error {
-	return importer.importLabels(trac.Accessor.GetVersionNames, versionLabelPrefix, versionLabelColor)
-}
-
-// ImportTypes imports Trac types as Gitea labels.
-func (importer *Importer) ImportTypes() error {
-	return importer.importLabels(trac.Accessor.GetTypeNames, typeLabelPrefix, typeLabelColor)
+func (importer *Importer) ImportPriorities(priorityNameMap map[string]string) error {
+	return importer.tracAccessor.GetPriorityNames(func(priorityName string) error {
+		_, err := importer.importLabel(priorityName, priorityNameMap, priorityLabelColor)
+		return err
+	})
 }
 
 // ImportResolutions imports Trac resolutions as Gitea labels.
-func (importer *Importer) ImportResolutions() error {
-	return importer.importLabels(trac.Accessor.GetResolutionNames, resolutionLabelPrefix, resolutionLabelColor)
+func (importer *Importer) ImportResolutions(resolutionNameMap map[string]string) error {
+	return importer.tracAccessor.GetResolutionNames(func(resolutionName string) error {
+		_, err := importer.importLabel(resolutionName, resolutionNameMap, resolutionLabelColor)
+		return err
+	})
+}
+
+// ImportSeverities imports Trac severities as Gitea labels.
+func (importer *Importer) ImportSeverities(severityNameMap map[string]string) error {
+	return importer.tracAccessor.GetSeverityNames(func(severityName string) error {
+		_, err := importer.importLabel(severityName, severityNameMap, severityLabelColor)
+		return err
+	})
+}
+
+// ImportTypes imports Trac types as Gitea labels.
+func (importer *Importer) ImportTypes(typeNameMap map[string]string) error {
+	return importer.tracAccessor.GetTypeNames(func(typeName string) error {
+		_, err := importer.importLabel(typeName, typeNameMap, typeLabelColor)
+		return err
+	})
+}
+
+// ImportVersions imports Trac versions as Gitea labels.
+func (importer *Importer) ImportVersions(versionNameMap map[string]string) error {
+	return importer.tracAccessor.GetVersionNames(func(versionName string) error {
+		_, err := importer.importLabel(versionName, versionNameMap, versionLabelColor)
+		return err
+	})
 }

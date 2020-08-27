@@ -21,33 +21,30 @@ type Importer struct {
 	tracAccessor       trac.Accessor
 	giteaAccessor      gitea.Accessor
 	convertPredefineds bool
-	userMap            map[string]string
 }
 
 // CreateImporter creates a Trac wiki to Gitea wiki repository importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
-	convertPredefs bool,
-	uMap map[string]string) (*Importer, error) {
+	convertPredefs bool) (*Importer, error) {
 
 	importer := Importer{
 		tracAccessor:       tAccessor,
 		giteaAccessor:      gAccessor,
-		convertPredefineds: convertPredefs,
-		userMap:            uMap}
+		convertPredefineds: convertPredefs}
 	return &importer, nil
 }
 
 // ImportWiki imports a Trac wiki into a Gitea wiki repository.
-func (importer *Importer) ImportWiki(push bool) error {
+func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error {
 	err := importer.giteaAccessor.CloneWiki()
 	if err != nil {
 		return err
 	}
 
 	importer.importWikiAttachments()
-	importer.importWikiPages()
+	importer.importWikiPages(userMap)
 
 	if push {
 		return importer.giteaAccessor.PushWiki()
@@ -89,7 +86,7 @@ func (importer *Importer) pageCommitExists(pageName string, commitString string)
 	return false, nil
 }
 
-func (importer *Importer) importWikiPages() {
+func (importer *Importer) importWikiPages(userMap map[string]string) {
 	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
@@ -119,7 +116,7 @@ func (importer *Importer) importWikiPages() {
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
 		// find Gitea equivalent of Trac author
-		giteaAuthor := importer.userMap[author]
+		giteaAuthor := userMap[author]
 		if giteaAuthor == "" {
 			// can only happen if provided with faulty user-supplied map
 			return fmt.Errorf("cannot find Gitea equivalent for trac author %s of wiki page %s", author, pageName)

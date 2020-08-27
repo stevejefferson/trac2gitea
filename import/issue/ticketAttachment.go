@@ -12,9 +12,9 @@ import (
 )
 
 // importTicketAttachment imports a single ticket attachment from Trac into Gitea, returns UUID if newly-created attachment or "" if attachment already existed
-func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, time int64, size int64, author string, attachmentName string, desc string) (string, error) {
+func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, time int64, size int64, author string, attachmentName string, desc string, userMap map[string]string) (string, error) {
 	comment := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s", attachmentName, size, desc)
-	commentID, err := importer.importTicketComment(issueID, ticketID, time, author, comment)
+	commentID, err := importer.importTicketComment(issueID, ticketID, time, author, comment, userMap)
 	if err != nil {
 		return "", err
 	}
@@ -51,11 +51,11 @@ func (importer *Importer) importTicketAttachment(issueID int64, ticketID int64, 
 	return uuid, nil
 }
 
-func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64, created int64) (int64, error) {
+func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64, created int64, userMap map[string]string) (int64, error) {
 	lastUpdate := created
 
 	err := importer.tracAccessor.GetAttachments(ticketID, func(ticketID int64, time int64, size int64, author string, filename string, description string) error {
-		uuid, err := importer.importTicketAttachment(issueID, ticketID, time, size, author, filename, description)
+		uuid, err := importer.importTicketAttachment(issueID, ticketID, time, size, author, filename, description, userMap)
 		if err != nil {
 			return err
 		}

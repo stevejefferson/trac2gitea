@@ -7,12 +7,10 @@ package trac
 import "github.com/pkg/errors"
 
 // GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetTickets(handlerFn func(
-	ticketID int64, ticketType string, created int64,
-	component string, severity string, priority string,
-	owner string, reporter string, version string,
-	milestone string, status string, resolution string,
-	summary string, description string) error) error {
+func (accessor *DefaultAccessor) GetTickets(
+	handlerFn func(ticketID int64, summary string, description string, owner string, reporter string, milestone string,
+		component string, priority string, resolution string, severity string, typ string, version string,
+		status string, created int64) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT
 			t.id,
@@ -37,15 +35,15 @@ func (accessor *DefaultAccessor) GetTickets(handlerFn func(
 
 	for rows.Next() {
 		var ticketID, created int64
-		var component, ticketType, severity, priority, owner, reporter, version, milestone, status, resolution, summary, description string
-		if err := rows.Scan(&ticketID, &ticketType, &created, &component, &severity, &priority, &owner, &reporter,
+		var summary, description, owner, reporter, milestone, component, priority, resolution, severity, typ, version, status string
+		if err := rows.Scan(&ticketID, &typ, &created, &component, &severity, &priority, &owner, &reporter,
 			&version, &milestone, &status, &resolution, &summary, &description); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac ticket")
 			return err
 		}
 
-		if err = handlerFn(ticketID, ticketType, created, component, severity, priority, owner, reporter,
-			version, milestone, status, resolution, summary, description); err != nil {
+		if err = handlerFn(ticketID, summary, description, owner, reporter, milestone,
+			component, priority, resolution, severity, typ, version, status, created); err != nil {
 			return err
 		}
 	}

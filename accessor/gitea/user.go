@@ -7,12 +7,15 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/stevejefferson/trac2gitea/log"
 )
+
+// GetCurrentUser retrieves the name of the current user (owner of repository into which we are importing).
+func (accessor *DefaultAccessor) GetCurrentUser() string {
+	return accessor.userName
+}
 
 // GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
 func (accessor *DefaultAccessor) GetUserID(userName string) (int64, error) {
@@ -48,8 +51,8 @@ func (accessor *DefaultAccessor) getUserRepoURL() string {
 	return fmt.Sprintf("%s/%s/%s", rootURL, accessor.userName, accessor.repoName)
 }
 
-// matchUser retrieves the name of the user best matching a user name or email address
-func (accessor *DefaultAccessor) matchUser(userName string, userEmail string) (string, error) {
+// MatchUser retrieves the name of the user best matching a user name or email address
+func (accessor *DefaultAccessor) MatchUser(userName string, userEmail string) (string, error) {
 	var matchedUserName = ""
 	lcUserName := strings.ToLower(userName)
 	err := accessor.db.QueryRow(`
@@ -63,31 +66,4 @@ func (accessor *DefaultAccessor) matchUser(userName string, userEmail string) (s
 	}
 
 	return matchedUserName, nil
-}
-
-// regexp for matching a user: $1=username (may have space padding) $2=user email (optional)
-var userRegexp = regexp.MustCompile(`([^<]*)(?:<([^>]+)>)?`)
-
-// GenerateDefaultUserMappings populates the provided user map with a default mapping for each user in the map.
-func (accessor *DefaultAccessor) GenerateDefaultUserMappings(userMap map[string]string, defaultUserName string) error {
-	for user := range userMap {
-		userName := userRegexp.ReplaceAllString(user, `$1`)
-		trimmedUserName := strings.Trim(userName, " ")
-		userEmail := userRegexp.ReplaceAllString(user, `$2`)
-
-		matchedUserName, err := accessor.matchUser(trimmedUserName, userEmail)
-		log.Debug("matched user \"%s\", email \"%s\" to \"%s\"", userName, userEmail, matchedUserName)
-		if err != nil {
-			return err
-		}
-
-		if matchedUserName == "" {
-			matchedUserName = defaultUserName
-			log.Debug("mapping unmatched user \"%s\" to default user \"%s\"", userName, defaultUserName)
-		}
-
-		userMap[user] = matchedUserName
-	}
-
-	return nil
 }

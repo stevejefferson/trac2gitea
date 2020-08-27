@@ -20,7 +20,8 @@ func (importer *Importer) importTicket(
 	milestone string,
 	closed bool,
 	summary string,
-	description string) (int64, error) {
+	description string,
+	userMap map[string]string) (int64, error) {
 	issueID, err := importer.giteaAccessor.GetIssueID(ticketID)
 	if err != nil {
 		return -1, err
@@ -31,7 +32,7 @@ func (importer *Importer) importTicket(
 		return -1, nil
 	}
 
-	reporterID, _, err := importer.getUser(reporter)
+	reporterID, _, err := importer.getUser(reporter, userMap)
 	if err != nil {
 		return -1, err
 	}
@@ -40,7 +41,7 @@ func (importer *Importer) importTicket(
 	var ownerID int64 = -1
 	var ownerName = ""
 	if owner != "" {
-		ownerID, ownerName, err = importer.getUser(owner)
+		ownerID, ownerName, err = importer.getUser(owner, userMap)
 		if err != nil {
 			return -1, err
 		}
@@ -62,18 +63,17 @@ func (importer *Importer) importTicket(
 }
 
 // ImportTickets imports Trac tickets as Gitea issues.
-func (importer *Importer) ImportTickets() error {
+func (importer *Importer) ImportTickets(
+	userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
 	count := 0
 	closedCount := 0
 
 	err := importer.tracAccessor.GetTickets(func(
-		ticketID int64, ticketType string, created int64,
-		component string, severity string, priority string,
-		owner string, reporter string, version string,
-		milestone string, status string, resolution string,
-		summary string, description string) error {
+		ticketID int64, summary string, description string, owner string, reporter string, milestone string,
+		component string, priority string, resolution string, severity string, typ string, version string,
+		status string, created int64) error {
 		closed := status == "closed"
-		issueID, err := importer.importTicket(ticketID, created, owner, reporter, milestone, closed, summary, description)
+		issueID, err := importer.importTicket(ticketID, created, owner, reporter, milestone, closed, summary, description, userMap)
 		if err != nil {
 			return err
 		}
@@ -81,16 +81,17 @@ func (importer *Importer) ImportTickets() error {
 			return nil
 		}
 
-		err = importer.importTicketLabels(issueID, component, severity, priority, version, resolution, ticketType)
+		err = importer.importTicketLabels(issueID,
+			component, componentMap, priority, priorityMap, resolution, resolutionMap, severity, severityMap, typ, typeMap, version, versionMap)
 		if err != nil {
 			return err
 		}
 
-		lastUpdate, err := importer.importTicketAttachments(ticketID, issueID, created)
+		lastUpdate, err := importer.importTicketAttachments(ticketID, issueID, created, userMap)
 		if err != nil {
 			return err
 		}
-		err = importer.importTicketComments(ticketID, issueID, lastUpdate)
+		err = importer.importTicketComments(ticketID, issueID, lastUpdate, userMap)
 		if err != nil {
 			return err
 		}
