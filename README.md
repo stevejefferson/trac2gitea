@@ -70,7 +70,7 @@ Options:
 * `<user-map>` is a file containing mappings from Trac users to Gitea user names - see below
 * `<label-map>` is a file containing mappings from Trac items to Gitea labels - see below
 
-## User Mappings
+### User Mappings
 A file mapping from Trac users onto Gitea usernames can be provided via the `<user-map>` parameter.
 This is a text file containing lines of the format: `<trac-user> = <gitea-username>`
 
@@ -87,7 +87,7 @@ The default mapping maps a Trac user onto a Gitea user where the Gitea user has 
 
 If no Gitea user with any of these characteristics can be found then the `<gitea-user>` provided on the command line will be used.
 
-## Label Mappings
+### Label Mappings
 A file mapping from Trac component, priority, resolution, severity, type and version names onto Gitea label names can be provided via the `<label-map>` parameter.
 This is a text file containing lines of the format: `<label-type>:<trac-item-name> = <gitea-label-name>` where `<label-type>` must be one of `component`, `priority`, `resolution`, `severity`, `type` and `version`.
 
