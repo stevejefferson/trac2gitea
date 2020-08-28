@@ -26,33 +26,24 @@ func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
 }
 
 // AddIssue adds a new issue to Gitea.
-func (accessor *DefaultAccessor) AddIssue(
-	issueIndex int64,
-	summary string,
-	reporterID int64,
-	milestone string,
-	ownerID int64,
-	owner string,
-	closed bool,
-	description string,
-	created int64) (int64, error) {
+func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
 	var nullableOwnerID sql.NullInt64
-	nullableOwnerID.Valid = (ownerID != -1)
-	nullableOwnerID.Int64 = ownerID
+	nullableOwnerID.Valid = (issue.OwnerID != -1)
+	nullableOwnerID.Int64 = issue.OwnerID
 
 	_, err := accessor.db.Exec(`
 		INSERT INTO issue("index", repo_id, name, poster_id, milestone_id, original_author_id, original_author, is_pull, is_closed, content, created_unix)
 			SELECT $1, $2, $3, $4, (SELECT id FROM milestone WHERE repo_id = $2 AND name = $5), $6, $7, false, $8, $9, $10`,
-		issueIndex, accessor.repoID, summary, reporterID, milestone, nullableOwnerID, owner, closed, description, created)
+		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID, issue.Milestone, nullableOwnerID, issue.Owner, issue.Closed, issue.Description, issue.Created)
 	if err != nil {
-		err = errors.Wrapf(err, "adding issue with index %d", issueIndex)
+		err = errors.Wrapf(err, "adding issue with index %d", issue.Index)
 		return -1, err
 	}
 
 	var issueID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueID)
 	if err != nil {
-		err = errors.Wrapf(err, "retrieving id of new issue with index %d", issueIndex)
+		err = errors.Wrapf(err, "retrieving id of new issue with index %d", issue.Index)
 		return -1, err
 	}
 

@@ -7,6 +7,7 @@ package issue
 import (
 	"fmt"
 
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
 	"github.com/stevejefferson/trac2gitea/markdown"
@@ -21,28 +22,29 @@ func truncateString(str string, maxlen int) string {
 }
 
 // importTicketComment imports a single ticket comment from Trac to Gitea, returns ID of created comment or -1 if comment already exists
-func (importer *Importer) importTicketComment(issueID int64, comment *trac.TicketComment, userMap map[string]string) (int64, error) {
-	authorID, _, err := importer.getUser(comment.Author, userMap)
+func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.TicketComment, userMap map[string]string) (int64, error) {
+	authorID, _, err := importer.getUser(tracComment.Author, userMap)
 	if err != nil {
 		return -1, err
 	}
 
-	tracDetails := fmt.Sprintf("original comment by %s", comment.Author)
-	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, comment.TicketID)
-	convertedText := markdownConverter.Convert(comment.Text)
-	fullText := addTracContext(tracDetails, comment.Time, convertedText)
-	commentID, err := importer.giteaAccessor.GetCommentID(issueID, fullText)
+	tracDetails := fmt.Sprintf("original comment by %s", tracComment.Author)
+	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, tracComment.TicketID)
+	convertedText := markdownConverter.Convert(tracComment.Text)
+	fullText := addTracContext(tracDetails, tracComment.Time, convertedText)
+	commentID, err := importer.giteaAccessor.GetIssueCommentID(issueID, fullText)
 	if err != nil {
 		return -1, err
 	}
 
-	truncatedText := truncateString(comment.Text, 16) // used for diagnostics
+	truncatedText := truncateString(tracComment.Text, 16) // used for diagnostics
 	if commentID != -1 {
 		log.Debug("comment \"%s\" for issue %d already exists - skipping...", truncatedText, issueID)
 		return -1, nil
 	}
 
-	commentID, err = importer.giteaAccessor.AddComment(issueID, authorID, fullText, comment.Time)
+	giteaComment := gitea.IssueComment{IssueID: issueID, AuthorID: authorID, Text: fullText, Time: tracComment.Time}
+	commentID, err = importer.giteaAccessor.AddIssueComment(&giteaComment)
 	if err != nil {
 		return -1, err
 	}

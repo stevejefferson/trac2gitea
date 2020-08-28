@@ -13,49 +13,49 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
-func (accessor *DefaultAccessor) GetAttachmentUUID(issueID int64, attachmentName string) (string, error) {
+// GetIssueAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
+func (accessor *DefaultAccessor) GetIssueAttachmentUUID(issueID int64, fileName string) (string, error) {
 	var uuid string = ""
-	err := accessor.db.QueryRow(`
-			select uuid from attachment where issue_id = $1 and name = $2
-			`, issueID, attachmentName).Scan(&uuid)
+	err := accessor.db.QueryRow(
+		`select uuid from attachment where issue_id = $1 and name = $2`,
+		issueID, fileName).Scan(&uuid)
 	if err != nil && err != sql.ErrNoRows {
-		err = errors.Wrapf(err, "retrieving attachment %s for issue %d", attachmentName, issueID)
+		err = errors.Wrapf(err, "retrieving attachment %s for issue %d", fileName, issueID)
 		return "", err
 	}
 
 	return uuid, nil
 }
 
-// AddAttachment adds a new attachment to a given issue with the provided data - returns id of created attachment.
-func (accessor *DefaultAccessor) AddAttachment(uuid string, issueID int64, commentID int64, attachmentName string, attachmentFile string, time int64) (int64, error) {
+// AddIssueAttachment adds a new attachment to an issue using the provided file - returns id of created attachment
+func (accessor *DefaultAccessor) AddIssueAttachment(attachment *IssueAttachment, attachmentFilePath string) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO attachment(
 			uuid, issue_id, comment_id, name, created_unix)
-			VALUES ($1, $2, $3, $4, $5)`, uuid, issueID, commentID, attachmentName, time)
+			VALUES ($1, $2, $3, $4, $5)`, attachment.UUID, attachment.IssueID, attachment.CommentID, attachment.FileName, attachment.Time)
 	if err != nil {
-		err = errors.Wrapf(err, "adding attachment %s for issue %d", attachmentName, issueID)
+		err = errors.Wrapf(err, "adding attachment %s for issue %d", attachment.FileName, attachment.IssueID)
 		return -1, err
 	}
 
 	var attachmentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&attachmentID)
 	if err != nil {
-		err = errors.Wrapf(err, "retrieving id of new attachment %s for issue %d", attachmentName, issueID)
+		err = errors.Wrapf(err, "retrieving id of new attachment %s for issue %d", attachment.FileName, attachment.IssueID)
 		return -1, err
 	}
 
-	log.Debug("issue:%d, comment:%d : added attachment %s", issueID, commentID, attachmentName)
+	log.Debug("issue:%d, comment:%d : added attachment %s", attachment.IssueID, attachment.CommentID, attachment.FileName)
 
 	giteaAttachmentsRootDir := accessor.GetStringConfig("attachment", "PATH")
 	if giteaAttachmentsRootDir == "" {
 		giteaAttachmentsRootDir = filepath.Join(accessor.rootDir, "data", "attachments")
 	}
 
-	d1 := uuid[0:1]
-	d2 := uuid[1:2]
-	giteaAttachmentsPath := filepath.Join(giteaAttachmentsRootDir, d1, d2, uuid)
-	err = accessor.copyFile(attachmentFile, giteaAttachmentsPath)
+	d1 := attachment.UUID[0:1]
+	d2 := attachment.UUID[1:2]
+	giteaAttachmentsPath := filepath.Join(giteaAttachmentsRootDir, d1, d2, attachment.UUID)
+	err = accessor.copyFile(attachmentFilePath, giteaAttachmentsPath)
 	if err != nil {
 		return -1, err
 	}
@@ -63,8 +63,8 @@ func (accessor *DefaultAccessor) AddAttachment(uuid string, issueID int64, comme
 	return attachmentID, nil
 }
 
-// GetAttachmentURL retrieves the URL for viewing a Gitea attachment
-func (accessor *DefaultAccessor) GetAttachmentURL(uuid string) string {
+// GetIssueAttachmentURL retrieves the URL for viewing a Gitea attachment
+func (accessor *DefaultAccessor) GetIssueAttachmentURL(uuid string) string {
 	baseURL := accessor.getUserRepoURL()
 	return fmt.Sprintf("%s/attachments/%s", baseURL, uuid)
 }

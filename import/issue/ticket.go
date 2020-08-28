@@ -7,6 +7,7 @@ package issue
 import (
 	"fmt"
 
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
 	"github.com/stevejefferson/trac2gitea/markdown"
@@ -45,8 +46,10 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	convertedDescription := markdownConverter.Convert(ticket.Description)
 	fullDescription := addTracContext(tracDetails, ticket.Created, convertedDescription)
 
-	issueID, err = importer.giteaAccessor.AddIssue(ticket.TicketID, ticket.Summary, reporterID,
-		ticket.MilestoneName, ownerID, ownerName, closed, fullDescription, ticket.Created)
+	issue := gitea.Issue{Index: ticket.TicketID, Summary: ticket.Summary, ReporterID: reporterID,
+		Milestone: ticket.MilestoneName, OwnerID: ownerID, Owner: ownerName,
+		Closed: closed, Description: fullDescription, Created: ticket.Created}
+	issueID, err = importer.giteaAccessor.AddIssue(&issue)
 	if err != nil {
 		return -1, err
 	}

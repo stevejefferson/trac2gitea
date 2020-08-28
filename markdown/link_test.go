@@ -247,21 +247,21 @@ func setUpTicketCommentLink(t *testing.T) {
 	// expect a call to lookup text of trac comment
 	mockTracAccessor.
 		EXPECT().
-		GetCommentString(gomock.Eq(ticketID), gomock.Eq(tracCommentNum)).
+		GetTicketCommentString(gomock.Eq(ticketID), gomock.Eq(tracCommentNum)).
 		Return(commentStr, nil).
 		AnyTimes()
 
 	// expect call to lookup gitea ID for trac comment
 	mockGiteaAccessor.
 		EXPECT().
-		GetCommentID(gomock.Eq(issueID), gomock.Eq(commentStr)).
+		GetIssueCommentID(gomock.Eq(issueID), gomock.Eq(commentStr)).
 		Return(commentID, nil).
 		AnyTimes()
 
 	// expect call to lookup URL of gitea comment
 	mockGiteaAccessor.
 		EXPECT().
-		GetCommentURL(gomock.Eq(issueID), gomock.Eq(commentID)).
+		GetIssueCommentURL(gomock.Eq(issueID), gomock.Eq(commentID)).
 		Return(commentURL).
 		AnyTimes()
 }
@@ -383,14 +383,14 @@ func setUpTicketAttachmentLink(t *testing.T) {
 	// expect call to get relative path of attachment within wiki repo
 	mockGiteaAccessor.
 		EXPECT().
-		GetAttachmentUUID(gomock.Eq(issueID), gomock.Eq(attachmentName)).
+		GetIssueAttachmentUUID(gomock.Eq(issueID), gomock.Eq(attachmentName)).
 		Return(ticketAttachmentUUID, nil).
 		AnyTimes()
 
 	// expect call to lookup URL for attachment file
 	mockGiteaAccessor.
 		EXPECT().
-		GetAttachmentURL(gomock.Eq(ticketAttachmentUUID)).
+		GetIssueAttachmentURL(gomock.Eq(ticketAttachmentUUID)).
 		Return(ticketAttachmentURL).
 		AnyTimes()
 }

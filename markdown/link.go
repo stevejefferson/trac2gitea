@@ -119,12 +119,12 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
-	commentID, err := converter.giteaAccessor.GetCommentID(issueID, commentStr)
+	commentID, err := converter.giteaAccessor.GetIssueCommentID(issueID, commentStr)
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
 
-	commentURL := converter.giteaAccessor.GetCommentURL(issueID, commentID)
+	commentURL := converter.giteaAccessor.GetIssueCommentURL(issueID, commentID)
 	return markLink(commentURL)
 }
 
@@ -167,7 +167,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 			return link // not a recognised link - do not mark
 		}
 
-		uuid, err := converter.giteaAccessor.GetAttachmentUUID(issueID, attachmentName)
+		uuid, err := converter.giteaAccessor.GetIssueAttachmentUUID(issueID, attachmentName)
 		if err != nil {
 			return link // not a recognised link - do not mark (error already logged)
 		}
@@ -176,7 +176,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 			return link // not a recognised link - do not mark
 		}
 
-		attachmentURL = converter.giteaAccessor.GetAttachmentURL(uuid)
+		attachmentURL = converter.giteaAccessor.GetIssueAttachmentURL(uuid)
 	} else {
 		if wikiPage == "" {
 			wikiPage = converter.wikiPage

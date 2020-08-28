@@ -105,7 +105,7 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 			return err
 		}
 		if hasCommit {
-			log.Info("wiki page %s: %s is already present in wiki - skipping...", translatedPageName, tracPageVersionIdentifier)
+			log.Info("wiki page %s, version %d is already present in wiki - skipping...", translatedPageName, page.Version)
 			return nil
 		}
 

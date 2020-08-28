@@ -5,29 +5,36 @@
 package issue
 
 import (
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // ImportMilestones imports Trac milestones as Gitea milestones.
 func (importer *Importer) ImportMilestones() error {
-	return importer.tracAccessor.GetMilestones(func(milestone *trac.Milestone) error {
-		milestoneID, err := importer.giteaAccessor.GetMilestoneID(milestone.Name)
+	return importer.tracAccessor.GetMilestones(func(tracMilestone *trac.Milestone) error {
+		milestoneID, err := importer.giteaAccessor.GetMilestoneID(tracMilestone.Name)
 		if err != nil {
 			return err
 		}
 		if milestoneID != -1 {
-			log.Debug("milestone %s already exists - skipping...", milestone.Name)
+			log.Debug("milestone %s already exists - skipping...", tracMilestone.Name)
 			return nil
 		}
 
-		milestoneID, err = importer.giteaAccessor.AddMilestone(
-			milestone.Name, milestone.Description, milestone.Completed != 0, milestone.Due, milestone.Completed)
+		giteaMilestone := gitea.Milestone{
+			Name:        tracMilestone.Name,
+			Description: tracMilestone.Description,
+			Closed:      tracMilestone.Completed != 0,
+			DueTime:     tracMilestone.Due,
+			ClosedTime:  tracMilestone.Completed}
+
+		milestoneID, err = importer.giteaAccessor.AddMilestone(&giteaMilestone)
 		if err != nil {
 			return err
 		}
 
-		log.Debug("added milestone (id %d) %s", milestoneID, milestone.Name)
+		log.Debug("added milestone (id %d) %s", milestoneID, tracMilestone.Name)
 		return nil
 	})
 }

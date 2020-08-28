@@ -4,32 +4,47 @@
 
 package gitea
 
+// Issue describes a Gitea issue.
+type Issue struct {
+	Index       int64
+	Summary     string
+	ReporterID  int64
+	Milestone   string
+	OwnerID     int64
+	Owner       string
+	Closed      bool
+	Description string
+	Created     int64
+}
+
+// IssueAttachment describes an attachment to a Gitea issue.
+type IssueAttachment struct {
+	IssueID   int64
+	UUID      string
+	CommentID int64
+	FileName  string
+	Time      int64
+}
+
+// IssueComment describes a comment on a Gitea issue.
+type IssueComment struct {
+	IssueID  int64
+	AuthorID int64
+	Text     string
+	Time     int64
+}
+
+// Milestone describes a Gitea milestone.
+type Milestone struct {
+	Name        string
+	Description string
+	Closed      bool
+	DueTime     int64
+	ClosedTime  int64
+}
+
 // Accessor is the interface to all of our interactions with a Gitea project.
 type Accessor interface {
-	/*
-	 * Attachments
-	 */
-	// GetAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
-	GetAttachmentUUID(issueID int64, attachmentName string) (string, error)
-
-	// AddAttachment adds a new attachment to a given issue with the provided data - returns id of created attachment
-	AddAttachment(uuid string, issueID int64, commentID int64, attachmentName string, attachmentFile string, time int64) (int64, error)
-
-	// GetAttachmentURL retrieves the URL for viewing a Gitea attachment
-	GetAttachmentURL(uuid string) string
-
-	/*
-	 * Comments
-	 */
-	// AddComment adds a comment to Gitea - returns id of created comment.
-	AddComment(issueID int64, authorID int64, comment string, time int64) (int64, error)
-
-	// GetCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
-	GetCommentURL(issueID int64, commentID int64) string
-
-	// GetCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
-	GetCommentID(issueID int64, commentStr string) (int64, error)
-
 	/*
 	 * Configuration
 	 */
@@ -43,22 +58,37 @@ type Accessor interface {
 	GetIssueID(issueIndex int64) (int64, error)
 
 	// AddIssue adds a new issue to Gitea - returns id of created issue.
-	AddIssue(
-		issueIndex int64,
-		summary string,
-		reporterID int64,
-		milestone string,
-		ownerID int64,
-		owner string,
-		closed bool,
-		description string,
-		created int64) (int64, error)
+	AddIssue(issue *Issue) (int64, error)
 
 	// SetIssueUpdateTime sets the update time on a given Gitea issue.
 	SetIssueUpdateTime(issueID int64, updateTime int64) error
 
 	// GetIssueURL retrieves a URL for viewing a given issue
 	GetIssueURL(issueID int64) string
+
+	/*
+	 * Issue Attachments
+	 */
+	// GetIssueAttachmentUUID returns the UUID for a named attachment of a given issue - returns empty string if cannot find issue/attachment.
+	GetIssueAttachmentUUID(issueID int64, fileName string) (string, error)
+
+	// AddIssueAttachment adds a new attachment to an issue using the provided file - returns id of created attachment
+	AddIssueAttachment(attachment *IssueAttachment, attachmentFilePath string) (int64, error)
+
+	// GetIssueAttachmentURL retrieves the URL for viewing a Gitea attachment
+	GetIssueAttachmentURL(uuid string) string
+
+	/*
+	 * Issue Comments
+	 */
+	// AddIssueComment adds a comment on a Gitea issue, returns id of created comment
+	AddIssueComment(comment *IssueComment) (int64, error)
+
+	// GetIssueCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
+	GetIssueCommentURL(issueID int64, commentID int64) string
+
+	// GetIssueCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
+	GetIssueCommentID(issueID int64, commentStr string) (int64, error)
 
 	/*
 	 * Issue Labels
@@ -82,7 +112,7 @@ type Accessor interface {
 	 * Milestones
 	 */
 	// AddMilestone adds a milestone to Gitea,  returns id of created milestone
-	AddMilestone(name string, content string, closed bool, deadlineTimestamp int64, closedTimestamp int64) (int64, error)
+	AddMilestone(milestone *Milestone) (int64, error)
 
 	// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
 	GetMilestoneID(name string) (int64, error)
