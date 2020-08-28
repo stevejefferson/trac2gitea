@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
-	"github.com/stevejefferson/trac2gitea/import/issue"
+	"github.com/stevejefferson/trac2gitea/import/data"
 	"github.com/stevejefferson/trac2gitea/import/wiki"
 	"github.com/stevejefferson/trac2gitea/log"
 )
@@ -26,8 +26,10 @@ var tracRootDir string
 var giteaRootDir string
 var giteaUser string
 var giteaRepo string
-var userMapFile string
-var labelMapFile string
+var userMapInputFile string
+var userMapOutputFile string
+var labelMapInputFile string
+var labelMapOutputFile string
 var giteaWikiRepoURL string
 var giteaWikiRepoToken string
 var giteaWikiRepoDir string
@@ -87,11 +89,52 @@ func parseArgs() {
 	giteaUser = pflag.Arg(2)
 	giteaRepo = pflag.Arg(3)
 	if pflag.NArg() > 4 {
-		userMapFile = pflag.Arg(4)
+		userMapFile := pflag.Arg(4)
+		if generateMaps {
+			userMapOutputFile = userMapFile
+		} else {
+			userMapInputFile = userMapFile
+		}
 	}
+
 	if pflag.NArg() > 5 {
-		labelMapFile = pflag.Arg(5)
+		labelMapFile := pflag.Arg(5)
+		if generateMaps {
+			labelMapOutputFile = labelMapFile
+		} else {
+			labelMapInputFile = labelMapFile
+		}
 	}
+}
+
+func importData(importer *data.Importer, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
+	var err error
+	if err = importer.ImportComponents(componentMap); err != nil {
+		return err
+	}
+	if err = importer.ImportPriorities(priorityMap); err != nil {
+		return err
+	}
+	if err = importer.ImportResolutions(resolutionMap); err != nil {
+		return err
+	}
+	if err = importer.ImportSeverities(severityMap); err != nil {
+		return err
+	}
+	if err = importer.ImportTypes(typeMap); err != nil {
+		return err
+	}
+	if err = importer.ImportVersions(versionMap); err != nil {
+		return err
+	}
+	if err = importer.ImportMilestones(); err != nil {
+		return err
+	}
+	if err = importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func main() {
@@ -112,101 +155,39 @@ func main() {
 	if err != nil {
 		log.Fatal("%+v", err)
 	}
-	issueImporter, err := issue.CreateImporter(tracAccessor, giteaAccessor)
+	dataImporter, err := data.CreateImporter(tracAccessor, giteaAccessor)
 	if err != nil {
 		log.Fatal("%+v", err)
 	}
 
-	var userMap map[string]string
-	if userMapFile == "" || generateMaps {
-		userMap, err = issueImporter.DefaultUserMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-	} else {
-		userMap, err = readUserMapFromFile(userMapFile)
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
+	userMap, err := readUserMap(userMapInputFile, dataImporter)
+	if err != nil {
+		log.Fatal("%+v", err)
 	}
 
-	var componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string
-	if labelMapFile == "" || generateMaps {
-		componentMap, err = issueImporter.DefaultComponentLabelMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-
-		priorityMap, err = issueImporter.DefaultPriorityLabelMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-
-		resolutionMap, err = issueImporter.DefaultResolutionLabelMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-
-		severityMap, err = issueImporter.DefaultSeverityLabelMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-
-		typeMap, err = issueImporter.DefaultTypeLabelMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-
-		versionMap, err = issueImporter.DefaultVersionLabelMap()
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-	} else {
-		componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap, err = readLabelMapsFromFile(labelMapFile)
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
+	componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap, err := readLabelMaps(labelMapInputFile, dataImporter)
+	if err != nil {
+		log.Fatal("%+v", err)
 	}
 
 	if generateMaps {
-		if userMapFile != "" {
-			if err = writeUserMapToFile(userMapFile, userMap); err != nil {
+		if userMapOutputFile != "" {
+			if err = writeUserMapToFile(userMapOutputFile, userMap); err != nil {
 				log.Fatal("%+v", err)
 			}
-			log.Info("wrote user map to %s", userMapFile)
+			log.Info("wrote user map to %s", userMapOutputFile)
 		}
-		if labelMapFile != "" {
-			if err = writeLabelMapsToFile(labelMapFile, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+		if labelMapOutputFile != "" {
+			if err = writeLabelMapsToFile(labelMapOutputFile, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
 				log.Fatal("%+v", err)
 			}
-			log.Info("wrote label map to %s", labelMapFile)
+			log.Info("wrote label map to %s", labelMapOutputFile)
 		}
 		return
 	}
 
 	if !wikiOnly {
-		if err = issueImporter.ImportComponents(componentMap); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportPriorities(priorityMap); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportResolutions(resolutionMap); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportSeverities(severityMap); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportTypes(typeMap); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportVersions(versionMap); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportMilestones(); err != nil {
-			log.Fatal("%+v", err)
-		}
-		if err = issueImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+		if err = importData(dataImporter, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
 			log.Fatal("%+v", err)
 		}
 	}

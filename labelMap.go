@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/stevejefferson/trac2gitea/import/data"
+	"github.com/stevejefferson/trac2gitea/import/issue"
 )
 
 const (
@@ -20,7 +23,46 @@ const (
 	versionTypeName    = "version"
 )
 
-func readLabelMapsFromFile(mapFile string) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
+func readDefaultLabelMaps(importer *data.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
+	componentMap, err = importer.DefaultComponentLabelMap()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	priorityMap, err = importer.DefaultPriorityLabelMap()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	resolutionMap, err = importer.DefaultResolutionLabelMap()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	severityMap, err = importer.DefaultSeverityLabelMap()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	typeMap, err = importer.DefaultTypeLabelMap()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	versionMap, err = importer.DefaultVersionLabelMap()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	return
+}
+
+// readLabelMaps reads the label maps from the provided file, if no file provided, import default maps using the provided importer
+func readLabelMaps(mapFile string, importer *issue.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
+	if mapFile == "" {
+		return readDefaultLabelMaps(importer)
+	}
+
 	fd, err := os.Open(mapFile)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err

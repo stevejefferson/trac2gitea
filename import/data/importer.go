@@ -12,13 +12,13 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
-// Importer of issue data from Trac tickets.
+// Importer of Gitea data from Trac data.
 type Importer struct {
 	giteaAccessor gitea.Accessor
 	tracAccessor  trac.Accessor
 }
 
-// CreateImporter returns a new Trac ticket to Gitea issue importer.
+// CreateImporter returns a new Trac to Gitea data importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor) (*Importer, error) {

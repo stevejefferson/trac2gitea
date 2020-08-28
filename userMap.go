@@ -9,9 +9,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/stevejefferson/trac2gitea/import/data"
 )
 
-func readUserMapFromFile(mapFile string) (map[string]string, error) {
+// readUserMap reads the user map from the provided file, if no file provided, import a default map using the provided importer
+func readUserMap(mapFile string, importer *data.Importer) (map[string]string, error) {
+	if mapFile == "" {
+		return importer.DefaultUserMap()
+	}
+
 	fd, err := os.Open(mapFile)
 	if err != nil {
 		return nil, err
