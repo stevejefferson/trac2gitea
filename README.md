@@ -4,8 +4,8 @@
 
 ## Scope
 At present the following Trac data is converted:
-* Trac users mapped onto Gitea usernames via a mapping 
-* Trac components, priorities, resolutions, severities, types and versions to Gitea labels
+* Trac users mapped onto Gitea usernames via user-specifiable mapping 
+* Trac components, priorities, resolutions, severities, types and versions to Gitea labels via user-specifiable mapping
 * Trac milestones to Gitea milestones
 * Trac tickets to Gitea issues
   * Trac ticket attachments to Gitea issue attachments
