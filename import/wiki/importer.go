@@ -55,9 +55,9 @@ func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error
 }
 
 func (importer *Importer) importWikiAttachments() {
-	importer.tracAccessor.GetWikiAttachments(func(pageName string, filename string) error {
-		tracAttachmentPath := importer.tracAccessor.GetWikiAttachmentPath(pageName, filename)
-		giteaAttachmentPath := importer.giteaAccessor.GetWikiAttachmentRelPath(pageName, filename)
+	importer.tracAccessor.GetWikiAttachments(func(attachment *trac.WikiAttachment) error {
+		tracAttachmentPath := importer.tracAccessor.GetWikiAttachmentPath(attachment)
+		giteaAttachmentPath := importer.giteaAccessor.GetWikiAttachmentRelPath(attachment.PageName, attachment.FileName)
 		return importer.giteaAccessor.CopyFileToWiki(tracAttachmentPath, giteaAttachmentPath)
 	})
 }
@@ -87,19 +87,19 @@ func (importer *Importer) pageCommitExists(pageName string, commitString string)
 }
 
 func (importer *Importer) importWikiPages(userMap map[string]string) {
-	importer.tracAccessor.GetWikiPages(func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error {
+	importer.tracAccessor.GetWikiPages(func(page *trac.WikiPage) error {
 		// skip predefined pages
-		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(pageName) {
-			log.Debug("skipping predefined Trac page %s", pageName)
+		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(page.Name) {
+			log.Debug("skipping predefined Trac page %s", page.Name)
 			return nil
 		}
 
 		// have we already converted this version of the trac wiki page?
 		// - if so, skip it on the assumption that this is a re-import and that the only thing that is likely to have changed
 		// is the addition of later trac versions of wiki pages - these will get added to the wiki repo as later versions
-		updateTimeStr := time.Unix(updateTime, 0)
-		tracPageVersionIdentifier := fmt.Sprintf("[Imported from Trac: page %s, version %d at %s]", pageName, version, updateTimeStr)
-		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(pageName)
+		updateTimeStr := time.Unix(page.UpdateTime, 0)
+		tracPageVersionIdentifier := fmt.Sprintf("[Imported from Trac: page %s, version %d at %s]", page.Name, page.Version, updateTimeStr)
+		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(page.Name)
 		hasCommit, err := importer.pageCommitExists(translatedPageName, tracPageVersionIdentifier)
 		if err != nil {
 			return err
@@ -111,15 +111,15 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 
 		// convert and write wiki page
 		tracToMarkdownConverter := markdown.CreateWikiDefaultConverter(
-			importer.tracAccessor, importer.giteaAccessor, pageName)
-		markdownText := tracToMarkdownConverter.Convert(pageText)
+			importer.tracAccessor, importer.giteaAccessor, page.Name)
+		markdownText := tracToMarkdownConverter.Convert(page.Text)
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
 		// find Gitea equivalent of Trac author
-		giteaAuthor := userMap[author]
+		giteaAuthor := userMap[page.Author]
 		if giteaAuthor == "" {
 			// can only happen if provided with faulty user-supplied map
-			return fmt.Errorf("cannot find Gitea equivalent for trac author %s of wiki page %s", author, pageName)
+			return fmt.Errorf("cannot find Gitea equivalent for trac author %s of wiki page %s", page.Author, page.Name)
 		}
 		giteaAuthorEmail, err := importer.giteaAccessor.GetUserEMailAddress(giteaAuthor)
 		if err != nil {
@@ -127,9 +127,9 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 		}
 
 		// commit version of wiki page to local repository
-		fullComment := tracPageVersionIdentifier + "\n\n" + comment
+		fullComment := tracPageVersionIdentifier + "\n\n" + page.Comment
 		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEmail, fullComment)
-		log.Info("wiki page %s: converted from Trac page %s, version %d", translatedPageName, pageName, version)
+		log.Info("wiki page %s: converted from Trac page %s, version %d", translatedPageName, page.Name, page.Version)
 		return err
 	})
 }

@@ -115,7 +115,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(link string) string 
 
 	// find gitea ID for trac comment
 	// - unfortunately the only real linkage between the trac comment number and gitea comment id here is the comment string itself
-	commentStr, err := converter.tracAccessor.GetCommentString(ticketID, ticketCommentNum)
+	commentStr, err := converter.tracAccessor.GetTicketCommentString(ticketID, ticketCommentNum)
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}

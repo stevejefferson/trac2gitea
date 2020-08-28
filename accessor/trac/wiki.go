@@ -11,8 +11,7 @@ import (
 )
 
 // GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetWikiPages(
-	handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error) error {
+func (accessor *DefaultAccessor) GetWikiPages(handlerFn func(page *WikiPage) error) error {
 	rows, err := accessor.db.Query(`SELECT name, text, author, comment, version, CAST(time*1e-6 AS int8) FROM wiki`)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac wiki pages")
@@ -36,7 +35,9 @@ func (accessor *DefaultAccessor) GetWikiPages(
 			comment = commentStr.String
 		}
 
-		if err = handlerFn(pageName, pageText, author, comment, version, updateTime); err != nil {
+		wikiPage := WikiPage{Name: pageName, Text: pageText, Author: author, Comment: comment, Version: version, UpdateTime: updateTime}
+
+		if err = handlerFn(&wikiPage); err != nil {
 			return err
 		}
 	}
@@ -44,8 +45,13 @@ func (accessor *DefaultAccessor) GetWikiPages(
 	return nil
 }
 
+// GetWikiAttachmentPath retrieves the path to a named attachment to a Trac wiki page.
+func (accessor *DefaultAccessor) GetWikiAttachmentPath(attachment *WikiAttachment) string {
+	return accessor.getAttachmentPath(attachment.PageName, attachment.FileName, "wiki")
+}
+
 // GetWikiAttachments retrieves all Trac wiki page attachments, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage string, filename string) error) error {
+func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(attachment *WikiAttachment) error) error {
 	rows, err := accessor.db.Query(`SELECT id, filename FROM attachment WHERE type = 'wiki'`)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving attachments to Trac wiki pages")
@@ -60,7 +66,9 @@ func (accessor *DefaultAccessor) GetWikiAttachments(handlerFn func(wikiPage stri
 			return err
 		}
 
-		if err = handlerFn(pageName, filename); err != nil {
+		attachment := WikiAttachment{PageName: pageName, FileName: filename}
+
+		if err = handlerFn(&attachment); err != nil {
 			return err
 		}
 	}

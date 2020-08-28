@@ -4,31 +4,68 @@
 
 package trac
 
+// Milestone describes a Trac milestone.
+type Milestone struct {
+	Name        string
+	Description string
+	Due         int64
+	Completed   int64
+}
+
+// Ticket describes a Trac milestone.
+type Ticket struct {
+	TicketID       int64
+	Summary        string
+	Description    string
+	Owner          string
+	Reporter       string
+	MilestoneName  string
+	ComponentName  string
+	PriorityName   string
+	ResolutionName string
+	SeverityName   string
+	TypeName       string
+	VersionName    string
+	Status         string
+	Created        int64
+}
+
+// TicketAttachment describes an attachment to a Trac ticket.
+type TicketAttachment struct {
+	TicketID    int64
+	Time        int64
+	Size        int64
+	Author      string
+	FileName    string
+	Description string
+}
+
+// TicketComment describes a comment on a Trac ticket.
+type TicketComment struct {
+	TicketID int64
+	Time     int64
+	Author   string
+	Text     string
+}
+
+// WikiPage describes a Trac wiki page.
+type WikiPage struct {
+	Name       string
+	Text       string
+	Author     string
+	Comment    string
+	Version    int64
+	UpdateTime int64
+}
+
+// WikiAttachment describes an attachment to a Trac wiki page.
+type WikiAttachment struct {
+	PageName string
+	FileName string
+}
+
 // Accessor is the interface through which we access all Trac data.
 type Accessor interface {
-	/*
-	 * Attachments
-	 */
-	// GetTicketAttachmentPath retrieves the path to a named attachment to a Trac ticket.
-	GetTicketAttachmentPath(ticketID int64, attachmentName string) string
-
-	// GetWikiAttachmentPath retrieves the path to a named attachment to a Trac wiki page.
-	GetWikiAttachmentPath(wikiPage string, attachmentName string) string
-
-	// GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
-	GetAttachments(ticketID int64,
-		handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string) error) error
-
-	/*
-	 * Comments
-	 */
-	// GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
-	GetComments(ticketID int64,
-		handlerFn func(ticketID int64, time int64, author string, comment string) error) error
-
-	// GetCommentString retrieves a given comment string for a given Trac ticket
-	GetCommentString(ticketID int64, commentNum int64) (string, error)
-
 	/*
 	 * Components
 	 */
@@ -45,7 +82,7 @@ type Accessor interface {
 	 * Milestones
 	 */
 	// GetMilestones retrieves all Trac milestones, passing data from each one to the provided "handler" function.
-	GetMilestones(handlerFn func(name string, description string, due int64, completed int64) error) error
+	GetMilestones(handlerFn func(milestone *Milestone) error) error
 
 	/*
 	 * Paths
@@ -75,10 +112,25 @@ type Accessor interface {
 	 * Tickets
 	 */
 	// GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
-	GetTickets(handlerFn func(
-		ticketID int64, summary string, description string, owner string, reporter string, milestone string,
-		component string, priority string, resolution string, severity string, typ string, version string,
-		status string, created int64) error) error
+	GetTickets(handlerFn func(ticket *Ticket) error) error
+
+	/*
+	 * Ticket Attachments
+	 */
+	// GetTicketAttachmentPath retrieves the path to a named attachment to a Trac ticket.
+	GetTicketAttachmentPath(attachment *TicketAttachment) string
+
+	// GetTicketAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
+	GetTicketAttachments(ticketID int64, handlerFn func(attachment *TicketAttachment) error) error
+
+	/*
+	 * Ticket Comments
+	 */
+	// GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
+	GetTicketComments(ticketID int64, handlerFn func(comment *TicketComment) error) error
+
+	// GetCommentString retrieves a given comment string for a given Trac ticket
+	GetTicketCommentString(ticketID int64, commentNum int64) (string, error)
 
 	/*
 	 * Types
@@ -102,10 +154,13 @@ type Accessor interface {
 	 * Wiki
 	 */
 	// GetWikiPages retrieves all Trac wiki pages, passing data from each one to the provided "handler" function.
-	GetWikiPages(handlerFn func(pageName string, pageText string, author string, comment string, version int64, updateTime int64) error) error
+	GetWikiPages(handlerFn func(page *WikiPage) error) error
+
+	// GetWikiAttachmentPath retrieves the path to a named attachment to a Trac wiki page.
+	GetWikiAttachmentPath(attachment *WikiAttachment) string
 
 	// GetWikiAttachments retrieves all Trac wiki page attachments, passing data from each one to the provided "handler" function.
-	GetWikiAttachments(handlerFn func(wikiPage string, filename string) error) error
+	GetWikiAttachments(handlerFn func(attachment *WikiAttachment) error) error
 
 	// IsPredefinedPage returns true if the provided page name is one of Trac's predefined ones - by default we ignore these
 	IsPredefinedPage(pageName string) bool

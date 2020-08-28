@@ -10,10 +10,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetComments(
-	ticketID int64,
-	handlerFn func(ticketID int64, time int64, author string, comment string) error) error {
+// GetTicketComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetTicketComments(ticketID int64, handlerFn func(comment *TicketComment) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, COALESCE(newvalue, '') newval
 			FROM ticket_change where ticket = $1 AND field = 'comment' AND trim(COALESCE(newvalue, ''), ' ') != ''
@@ -25,13 +23,14 @@ func (accessor *DefaultAccessor) GetComments(
 
 	for rows.Next() {
 		var time int64
-		var author, comment string
-		if err := rows.Scan(&time, &author, &comment); err != nil {
+		var author, text string
+		if err := rows.Scan(&time, &author, &text); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac comment for ticket %d", ticketID)
 			return err
 		}
 
-		if err = handlerFn(ticketID, time, author, comment); err != nil {
+		comment := TicketComment{TicketID: ticketID, Time: time, Author: author, Text: text}
+		if err = handlerFn(&comment); err != nil {
 			return err
 		}
 	}
@@ -39,8 +38,8 @@ func (accessor *DefaultAccessor) GetComments(
 	return nil
 }
 
-// GetCommentString retrieves a given comment string for a given Trac ticket
-func (accessor *DefaultAccessor) GetCommentString(ticketID int64, commentNum int64) (string, error) {
+// GetTicketCommentString retrieves a given comment string for a given Trac ticket
+func (accessor *DefaultAccessor) GetTicketCommentString(ticketID int64, commentNum int64) (string, error) {
 	var commentStr string
 	err := accessor.db.QueryRow(`
 		SELECT COALESCE(newvalue, '') FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,

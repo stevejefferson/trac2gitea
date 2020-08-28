@@ -131,4 +131,4 @@ make deps
 ```
 
 ## Acknowledgements
-The database migration code is largely derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).
+Significant parts of the database migration code were derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).

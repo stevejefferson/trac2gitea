@@ -7,8 +7,7 @@ package trac
 import "github.com/pkg/errors"
 
 // GetMilestones retrieves all Trac milestones, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetMilestones(
-	handlerFn func(name string, description string, due int64, completed int64) error) error {
+func (accessor *DefaultAccessor) GetMilestones(handlerFn func(milestone *Milestone) error) error {
 	// NOTE: trac timestamps are to the microseconds, we just need seconds
 	rows, err := accessor.db.Query(`
 		SELECT COALESCE(name,''), COALESCE(description,''), CAST(due*1e-6 AS int8), CAST(completed*1e-6 AS int8)
@@ -29,7 +28,8 @@ func (accessor *DefaultAccessor) GetMilestones(
 			return err
 		}
 
-		if err = handlerFn(name, description, due, completed); err != nil {
+		milestone := Milestone{Name: name, Description: description, Due: due, Completed: completed}
+		if err = handlerFn(&milestone); err != nil {
 			return err
 		}
 	}

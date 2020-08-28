@@ -7,10 +7,7 @@ package trac
 import "github.com/pkg/errors"
 
 // GetTickets retrieves all Trac tickets, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetTickets(
-	handlerFn func(ticketID int64, summary string, description string, owner string, reporter string, milestone string,
-		component string, priority string, resolution string, severity string, typ string, version string,
-		status string, created int64) error) error {
+func (accessor *DefaultAccessor) GetTickets(handlerFn func(ticket *Ticket) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT
 			t.id,
@@ -35,15 +32,18 @@ func (accessor *DefaultAccessor) GetTickets(
 
 	for rows.Next() {
 		var ticketID, created int64
-		var summary, description, owner, reporter, milestone, component, priority, resolution, severity, typ, version, status string
-		if err := rows.Scan(&ticketID, &typ, &created, &component, &severity, &priority, &owner, &reporter,
-			&version, &milestone, &status, &resolution, &summary, &description); err != nil {
+		var summary, description, owner, reporter, milestoneName, componentName, priorityName, resolutionName, severityName, typeName, versionName, status string
+		if err := rows.Scan(&ticketID, &typeName, &created, &componentName, &severityName, &priorityName, &owner, &reporter,
+			&versionName, &milestoneName, &status, &resolutionName, &summary, &description); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac ticket")
 			return err
 		}
 
-		if err = handlerFn(ticketID, summary, description, owner, reporter, milestone,
-			component, priority, resolution, severity, typ, version, status, created); err != nil {
+		ticket := Ticket{TicketID: ticketID, Summary: summary, Description: description, Owner: owner, Reporter: reporter,
+			MilestoneName: milestoneName, ComponentName: componentName, PriorityName: priorityName, ResolutionName: resolutionName,
+			SeverityName: severityName, TypeName: typeName, VersionName: versionName, Status: status, Created: created}
+
+		if err = handlerFn(&ticket); err != nil {
 			return err
 		}
 	}

@@ -4,26 +4,30 @@
 
 package issue
 
-import "github.com/stevejefferson/trac2gitea/log"
+import (
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
+	"github.com/stevejefferson/trac2gitea/log"
+)
 
 // ImportMilestones imports Trac milestones as Gitea milestones.
 func (importer *Importer) ImportMilestones() error {
-	return importer.tracAccessor.GetMilestones(func(name string, description string, due int64, completed int64) error {
-		milestoneID, err := importer.giteaAccessor.GetMilestoneID(name)
+	return importer.tracAccessor.GetMilestones(func(milestone *trac.Milestone) error {
+		milestoneID, err := importer.giteaAccessor.GetMilestoneID(milestone.Name)
 		if err != nil {
 			return err
 		}
 		if milestoneID != -1 {
-			log.Debug("milestone %s already exists - skipping...", name)
+			log.Debug("milestone %s already exists - skipping...", milestone.Name)
 			return nil
 		}
 
-		milestoneID, err = importer.giteaAccessor.AddMilestone(name, description, completed != 0, due, completed)
+		milestoneID, err = importer.giteaAccessor.AddMilestone(
+			milestone.Name, milestone.Description, milestone.Completed != 0, milestone.Due, milestone.Completed)
 		if err != nil {
 			return err
 		}
 
-		log.Debug("added milestone (id %d) %s", milestoneID, name)
+		log.Debug("added milestone (id %d) %s", milestoneID, milestone.Name)
 		return nil
 	})
 }

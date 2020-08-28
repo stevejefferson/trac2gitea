@@ -31,20 +31,13 @@ func (accessor *DefaultAccessor) getAttachmentPath(idStr string, attachmentName 
 }
 
 // GetTicketAttachmentPath retrieves the path to a named attachment to a Trac ticket.
-func (accessor *DefaultAccessor) GetTicketAttachmentPath(ticketID int64, attachmentName string) string {
-	ticketIDStr := fmt.Sprintf("%d", ticketID)
-	return accessor.getAttachmentPath(ticketIDStr, attachmentName, "ticket")
+func (accessor *DefaultAccessor) GetTicketAttachmentPath(attachment *TicketAttachment) string {
+	ticketIDStr := fmt.Sprintf("%d", attachment.TicketID)
+	return accessor.getAttachmentPath(ticketIDStr, attachment.FileName, "ticket")
 }
 
-// GetWikiAttachmentPath retrieves the path to a named attachment to a Trac wiki page.
-func (accessor *DefaultAccessor) GetWikiAttachmentPath(wikiPage string, attachmentName string) string {
-	return accessor.getAttachmentPath(wikiPage, attachmentName, "wiki")
-}
-
-// GetAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetAttachments(
-	ticketID int64,
-	handlerFn func(ticketID int64, time int64, size int64, author string, filename string, description string) error) error {
+// GetTicketAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetTicketAttachments(ticketID int64, handlerFn func(attachment *TicketAttachment) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT CAST(time*1e-6 AS int8) tim, COALESCE(author, '') author, filename, description, size
 			FROM attachment
@@ -63,7 +56,9 @@ func (accessor *DefaultAccessor) GetAttachments(
 			return err
 		}
 
-		if err = handlerFn(ticketID, time, size, author, filename, description); err != nil {
+		attachment := TicketAttachment{TicketID: ticketID, Time: time, Size: size, Author: author, FileName: filename, Description: description}
+
+		if err = handlerFn(&attachment); err != nil {
 			return err
 		}
 	}
