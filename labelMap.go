@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/stevejefferson/trac2gitea/import/data"
-	"github.com/stevejefferson/trac2gitea/import/issue"
 )
 
 const (
@@ -58,7 +57,7 @@ func readDefaultLabelMaps(importer *data.Importer) (componentMap, priorityMap, r
 }
 
 // readLabelMaps reads the label maps from the provided file, if no file provided, import default maps using the provided importer
-func readLabelMaps(mapFile string, importer *issue.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
+func readLabelMaps(mapFile string, importer *data.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
 	if mapFile == "" {
 		return readDefaultLabelMaps(importer)
 	}
