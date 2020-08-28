@@ -1,6 +1,6 @@
 # trac2gitea
 
-`trac2gitea` is a command-line utility for migrating [Trac](https://trac.edgewall.org/) projects into [Gitea](https://gitea.io/).
+`trac2gitea` is a command-line utility for migrating [Trac](https://trac.edgewall.org/) projects to [Gitea](https://gitea.io/).
 
 ## Scope
 At present the following Trac data is converted:
@@ -50,7 +50,7 @@ The Gitea project must have been created prior to the migration as must the Gite
 
 ## Usage
 ```
-Usage: ../trac2gitea/trac2gitea [options] <trac-root> <gitea-root> <gitea-user> <gitea-repo> [<user-map>] [<label-map>]
+Usage: trac2gitea [options] <trac-root> <gitea-root> <gitea-user> <gitea-repo> [<user-map>] [<label-map>]
 Options:
       --db-only                   convert database only
       --generate-maps             generate default user/label mappings into provided map files (note: no conversion will be performed in this case)
