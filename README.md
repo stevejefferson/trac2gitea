@@ -113,8 +113,8 @@ The current code is written for `sqlite` (for both the Trac and Gitea databases)
 Hopefully, the SQL used by the converter is fairly generic so porting to a different database type should hopefully not be particularly difficult.
 
 For anyone using a different database, the database connections are created in:
-  * Trac: `accessor.trac.defaultAccessor.go`, func `CreateDefaultAccessor`
-  * Gitea: `accessor.gitea.defaultAccessor.go`, func `CreateDefaultAccessor`
+  * Trac: `accessor/trac/defaultAccessor.go`, func `CreateDefaultAccessor`
+  * Gitea: `accessor/gitea/defaultAccessor.go`, func `CreateDefaultAccessor`
 
 Having changed these, try running the converter and see if any SQL breaks.
 
