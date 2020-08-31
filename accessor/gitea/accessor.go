@@ -19,16 +19,14 @@ type Issue struct {
 
 // IssueAttachment describes an attachment to a Gitea issue.
 type IssueAttachment struct {
-	IssueID   int64
 	UUID      string
 	CommentID int64
-	FileName  string
+	FilePath  string
 	Time      int64
 }
 
 // IssueComment describes a comment on a Gitea issue.
 type IssueComment struct {
-	IssueID  int64
 	AuthorID int64
 	Text     string
 	Time     int64
@@ -73,7 +71,7 @@ type Accessor interface {
 	GetIssueAttachmentUUID(issueID int64, fileName string) (string, error)
 
 	// AddIssueAttachment adds a new attachment to an issue using the provided file - returns id of created attachment
-	AddIssueAttachment(attachment *IssueAttachment, attachmentFilePath string) (int64, error)
+	AddIssueAttachment(issueID int64, fileName string, attachment *IssueAttachment) (int64, error)
 
 	// GetIssueAttachmentURL retrieves the URL for viewing a Gitea attachment
 	GetIssueAttachmentURL(uuid string) string
@@ -82,7 +80,7 @@ type Accessor interface {
 	 * Issue Comments
 	 */
 	// AddIssueComment adds a comment on a Gitea issue, returns id of created comment
-	AddIssueComment(comment *IssueComment) (int64, error)
+	AddIssueComment(issueID int64, comment *IssueComment) (int64, error)
 
 	// GetIssueCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
 	GetIssueCommentURL(issueID int64, commentID int64) string

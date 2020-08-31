@@ -41,8 +41,8 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 		return -1, nil
 	}
 
-	giteaComment := gitea.IssueComment{IssueID: issueID, AuthorID: authorID, Text: fullText, Time: tracComment.Time}
-	commentID, err = importer.giteaAccessor.AddIssueComment(&giteaComment)
+	giteaComment := gitea.IssueComment{AuthorID: authorID, Text: fullText, Time: tracComment.Time}
+	commentID, err = importer.giteaAccessor.AddIssueComment(issueID, &giteaComment)
 	if err != nil {
 		return -1, err
 	}

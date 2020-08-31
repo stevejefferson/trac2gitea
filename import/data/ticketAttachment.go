@@ -52,8 +52,8 @@ func (importer *Importer) importTicketAttachment(issueID int64, tracAttachment *
 		return "", nil
 	}
 
-	giteaAttachment := gitea.IssueAttachment{IssueID: issueID, UUID: uuid, CommentID: commentID, FileName: tracAttachment.FileName, Time: tracAttachment.Time}
-	_, err = importer.giteaAccessor.AddIssueAttachment(&giteaAttachment, tracPath)
+	giteaAttachment := gitea.IssueAttachment{UUID: uuid, CommentID: commentID, FilePath: tracPath, Time: tracAttachment.Time}
+	_, err = importer.giteaAccessor.AddIssueAttachment(issueID, tracAttachment.FileName, &giteaAttachment)
 	if err != nil {
 		return "", err
 	}

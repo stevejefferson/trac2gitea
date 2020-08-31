@@ -544,9 +544,8 @@ func expectIssueCommentRetrieval(t *testing.T, ticket *TicketImport, ticketComme
 	if !ticketComment.giteaIssueCommentExists {
 		mockGiteaAccessor.
 			EXPECT().
-			AddIssueComment(gomock.Any()).
-			DoAndReturn(func(issueComment *gitea.IssueComment) (int64, error) {
-				assertEquals(t, issueComment.IssueID, ticket.issueID)
+			AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
+			DoAndReturn(func(issueID int64, issueComment *gitea.IssueComment) (int64, error) {
 				assertEquals(t, issueComment.AuthorID, ticketComment.author.giteaUserID)
 				assertTrue(t, strings.Contains(issueComment.Text, ticketComment.markdownText))
 				assertEquals(t, issueComment.Time, ticketComment.time)
@@ -601,11 +600,10 @@ func expectAttachmentUUIDRetrieval(t *testing.T, ticket *TicketImport, ticketAtt
 func expectIssueAttachmentCreation(t *testing.T, ticket *TicketImport, ticketAttachment *TicketAttachmentImport) {
 	mockGiteaAccessor.
 		EXPECT().
-		AddIssueAttachment(gomock.Any(), gomock.Eq(ticketAttachment.attachmentPath)).
-		DoAndReturn(func(issueAttachment *gitea.IssueAttachment, path string) (int64, error) {
-			assertEquals(t, issueAttachment.IssueID, ticket.issueID)
+		AddIssueAttachment(gomock.Eq(ticket.issueID), gomock.Eq(ticketAttachment.filename), gomock.Any()).
+		DoAndReturn(func(issueID int64, filename string, issueAttachment *gitea.IssueAttachment) (int64, error) {
 			assertEquals(t, issueAttachment.CommentID, ticketAttachment.comment.issueCommentID)
-			assertEquals(t, issueAttachment.FileName, ticketAttachment.filename)
+			assertEquals(t, issueAttachment.FilePath, ticketAttachment.attachmentPath)
 			assertEquals(t, issueAttachment.Time, ticketAttachment.comment.time)
 			return ticketAttachment.issueAttachmentID, nil
 		})
@@ -915,14 +913,14 @@ func TestImportMultipleTicketsWithAttachmentsAndComments(t *testing.T) {
 	expectAllTicketActions(t, closedTicket)
 
 	// expect trac to return us attachments
-	expectTracAttachmentRetrievals(t, closedTicket, closedTicketAttachment1, closedTicketAttachment2)
 	expectTracAttachmentRetrievals(t, openTicket, openTicketAttachment1, openTicketAttachment2)
+	expectTracAttachmentRetrievals(t, closedTicket, closedTicketAttachment1, closedTicketAttachment2)
 
 	// expect all actions for creating Gitea issue attachments from Trac ticket attachments
-	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment1)
-	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment2)
 	expectAllTicketAttachmentActions(t, openTicket, openTicketAttachment1)
 	expectAllTicketAttachmentActions(t, openTicket, openTicketAttachment2)
+	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment1)
+	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment2)
 
 	// expect trac to return us comments
 	expectTracCommentRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
@@ -935,10 +933,10 @@ func TestImportMultipleTicketsWithAttachmentsAndComments(t *testing.T) {
 	expectAllTicketCommentActions(t, closedTicket, closedTicketComment2)
 
 	// expect issues update time to be updated
-	expectIssueUpdateTimeSetToLatestOf(t, closedTicket,
-		closedTicketComment1, closedTicketComment2, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket,
 		openTicketComment1, openTicketComment2, openTicketAttachment1.comment, openTicketAttachment2.comment)
+	expectIssueUpdateTimeSetToLatestOf(t, closedTicket,
+		closedTicketComment1, closedTicketComment2, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
 
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 2, 1)

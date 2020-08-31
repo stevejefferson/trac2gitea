@@ -12,21 +12,21 @@ import (
 )
 
 // AddIssueComment adds a comment on a Gitea issue, returns id of created comment
-func (accessor *DefaultAccessor) AddIssueComment(comment *IssueComment) (int64, error) {
+func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueComment) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(
 			type, issue_id, poster_id, content, created_unix, updated_unix)
 			VALUES ( 0, $1, $2, $3, $4, $4 )`,
-		comment.IssueID, comment.AuthorID, comment.Text, comment.Time)
+		issueID, comment.AuthorID, comment.Text, comment.Time)
 	if err != nil {
-		err = errors.Wrapf(err, "adding comment \"%s\" for issue %d", comment.Text, comment.IssueID)
+		err = errors.Wrapf(err, "adding comment \"%s\" for issue %d", comment.Text, issueID)
 		return -1, err
 	}
 
 	var commentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&commentID)
 	if err != nil {
-		err = errors.Wrapf(err, "retrieving id of new comment \"%s\" for issue %d", comment.Text, comment.IssueID)
+		err = errors.Wrapf(err, "retrieving id of new comment \"%s\" for issue %d", comment.Text, issueID)
 		return -1, err
 	}
 

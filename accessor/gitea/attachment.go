@@ -28,24 +28,24 @@ func (accessor *DefaultAccessor) GetIssueAttachmentUUID(issueID int64, fileName 
 }
 
 // AddIssueAttachment adds a new attachment to an issue using the provided file - returns id of created attachment
-func (accessor *DefaultAccessor) AddIssueAttachment(attachment *IssueAttachment, attachmentFilePath string) (int64, error) {
+func (accessor *DefaultAccessor) AddIssueAttachment(issueID int64, fileName string, attachment *IssueAttachment) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO attachment(
 			uuid, issue_id, comment_id, name, created_unix)
-			VALUES ($1, $2, $3, $4, $5)`, attachment.UUID, attachment.IssueID, attachment.CommentID, attachment.FileName, attachment.Time)
+			VALUES ($1, $2, $3, $4, $5)`, attachment.UUID, issueID, attachment.CommentID, fileName, attachment.Time)
 	if err != nil {
-		err = errors.Wrapf(err, "adding attachment %s for issue %d", attachment.FileName, attachment.IssueID)
+		err = errors.Wrapf(err, "adding attachment %s for issue %d", fileName, issueID)
 		return -1, err
 	}
 
 	var attachmentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&attachmentID)
 	if err != nil {
-		err = errors.Wrapf(err, "retrieving id of new attachment %s for issue %d", attachment.FileName, attachment.IssueID)
+		err = errors.Wrapf(err, "retrieving id of new attachment %s for issue %d", fileName, issueID)
 		return -1, err
 	}
 
-	log.Debug("issue:%d, comment:%d : added attachment %s", attachment.IssueID, attachment.CommentID, attachment.FileName)
+	log.Debug("issue:%d, comment:%d : added attachment %s", issueID, attachment.CommentID, fileName)
 
 	giteaAttachmentsRootDir := accessor.GetStringConfig("attachment", "PATH")
 	if giteaAttachmentsRootDir == "" {
@@ -55,7 +55,7 @@ func (accessor *DefaultAccessor) AddIssueAttachment(attachment *IssueAttachment,
 	d1 := attachment.UUID[0:1]
 	d2 := attachment.UUID[1:2]
 	giteaAttachmentsPath := filepath.Join(giteaAttachmentsRootDir, d1, d2, attachment.UUID)
-	err = accessor.copyFile(attachmentFilePath, giteaAttachmentsPath)
+	err = accessor.copyFile(attachment.FilePath, giteaAttachmentsPath)
 	if err != nil {
 		return -1, err
 	}
