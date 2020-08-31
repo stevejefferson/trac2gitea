@@ -71,7 +71,7 @@ func expectToNotAddLabels(t *testing.T) {
 	// do not expect to add new labels...
 }
 
-func TestComponentsWhereNoLabelsExist(t *testing.T) {
+func TestImportComponentsWhereNoLabelsExist(t *testing.T) {
 	setUpComponents(t)
 	defer tearDown(t)
 
@@ -80,7 +80,7 @@ func TestComponentsWhereNoLabelsExist(t *testing.T) {
 	importer.ImportComponents(labelMap)
 }
 
-func TestComponentsWhereLabelsExist(t *testing.T) {
+func TestImportComponentsWhereLabelsExist(t *testing.T) {
 	setUpComponents(t)
 	defer tearDown(t)
 
@@ -106,7 +106,7 @@ func setUpPriorities(t *testing.T) {
 		AnyTimes()
 }
 
-func TestPrioritiesWhereNoLabelsExist(t *testing.T) {
+func TestImportPrioritiesWhereNoLabelsExist(t *testing.T) {
 	setUpPriorities(t)
 	defer tearDown(t)
 
@@ -115,7 +115,7 @@ func TestPrioritiesWhereNoLabelsExist(t *testing.T) {
 	importer.ImportPriorities(labelMap)
 }
 
-func TestPrioritiesWhereLabelsExist(t *testing.T) {
+func TestImportPrioritiesWhereLabelsExist(t *testing.T) {
 	setUpPriorities(t)
 	defer tearDown(t)
 
@@ -141,7 +141,7 @@ func setUpResolutions(t *testing.T) {
 		AnyTimes()
 }
 
-func TestResolutionsWhereNoLabelsExist(t *testing.T) {
+func TestImportResolutionsWhereNoLabelsExist(t *testing.T) {
 	setUpResolutions(t)
 	defer tearDown(t)
 
@@ -150,7 +150,7 @@ func TestResolutionsWhereNoLabelsExist(t *testing.T) {
 	importer.ImportResolutions(labelMap)
 }
 
-func TestResolutionsWhereLabelsExist(t *testing.T) {
+func TestImportResolutionsWhereLabelsExist(t *testing.T) {
 	setUpResolutions(t)
 	defer tearDown(t)
 
@@ -176,7 +176,7 @@ func setUpSeverities(t *testing.T) {
 		AnyTimes()
 }
 
-func TestSeveritiesWhereNoLabelsExist(t *testing.T) {
+func TestImportSeveritiesWhereNoLabelsExist(t *testing.T) {
 	setUpSeverities(t)
 	defer tearDown(t)
 
@@ -185,7 +185,7 @@ func TestSeveritiesWhereNoLabelsExist(t *testing.T) {
 	importer.ImportSeverities(labelMap)
 }
 
-func TestSeveritiesWhereLabelsExist(t *testing.T) {
+func TestImportSeveritiesWhereLabelsExist(t *testing.T) {
 	setUpSeverities(t)
 	defer tearDown(t)
 
@@ -211,7 +211,7 @@ func setUpTypes(t *testing.T) {
 		AnyTimes()
 }
 
-func TestTypesWhereNoLabelsExist(t *testing.T) {
+func TestImportTypesWhereNoLabelsExist(t *testing.T) {
 	setUpTypes(t)
 	defer tearDown(t)
 
@@ -220,7 +220,7 @@ func TestTypesWhereNoLabelsExist(t *testing.T) {
 	importer.ImportTypes(labelMap)
 }
 
-func TestTypesWhereLabelsExist(t *testing.T) {
+func TestImportTypesWhereLabelsExist(t *testing.T) {
 	setUpTypes(t)
 	defer tearDown(t)
 
@@ -246,7 +246,7 @@ func setUpVersions(t *testing.T) {
 		AnyTimes()
 }
 
-func TestVersionsWhereNoLabelsExist(t *testing.T) {
+func TestImportVersionsWhereNoLabelsExist(t *testing.T) {
 	setUpVersions(t)
 	defer tearDown(t)
 
@@ -255,7 +255,7 @@ func TestVersionsWhereNoLabelsExist(t *testing.T) {
 	importer.ImportVersions(labelMap)
 }
 
-func TestVersionsWhereLabelsExist(t *testing.T) {
+func TestImportVersionsWhereLabelsExist(t *testing.T) {
 	setUpVersions(t)
 	defer tearDown(t)
 
