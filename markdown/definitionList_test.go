@@ -12,6 +12,6 @@ func TestDefinitionList(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(context, leadingText+"\n "+definition+"::"+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n "+definition+"::"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n*"+definition+"*  \n"+trailingText)
 }

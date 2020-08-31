@@ -28,6 +28,10 @@ func (importer *Importer) importTicketAttachment(issueID int64, tracAttachment *
 	tracDir := elems[len(elems)-2]
 	tracFile := elems[len(elems)-1]
 
+	if len(tracDir) < 12 {
+		return "", fmt.Errorf("Malformed trac attachment path \"%s\" - \"%s\" should be trac UUID (at least 12 chars)", tracPath, tracDir)
+	}
+
 	// use '78ac' to identify Trac UUIDs (from trac2gogs)
 	uuid := fmt.Sprintf("000078ac-%s-%s-%s-%s",
 		tracDir[0:4], tracDir[4:8], tracDir[8:12],

@@ -10,7 +10,6 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
-	"github.com/stevejefferson/trac2gitea/markdown"
 )
 
 func truncateString(str string, maxlen int) string {
@@ -29,8 +28,7 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	}
 
 	tracDetails := fmt.Sprintf("original comment by %s", tracComment.Author)
-	context := markdown.ConversionContext{TicketID: tracComment.TicketID, WikiPage: ""}
-	convertedText := importer.markdownConverter.Convert(&context, tracComment.Text)
+	convertedText := importer.markdownConverter.TicketConvert(tracComment.TicketID, tracComment.Text)
 	fullText := addTracContext(tracDetails, tracComment.Time, convertedText)
 	commentID, err := importer.giteaAccessor.GetIssueCommentID(issueID, fullText)
 	if err != nil {

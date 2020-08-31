@@ -143,7 +143,7 @@ func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 	return markLink(milestoneURL)
 }
 
-func (converter *DefaultConverter) resolveAttachmentLink(context *ConversionContext, link string) string {
+func (converter *DefaultConverter) resolveAttachmentLink(ticketID int64, wikiPage string, link string) string {
 	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
 	linkWikiPage := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
 	ticketIDStr := attachmentLinkRegexp.ReplaceAllString(link, `$3`)
@@ -178,7 +178,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(context *ConversionCont
 
 		attachmentURL = converter.giteaAccessor.GetIssueAttachmentURL(uuid)
 	} else {
-		attachmentWikiPage := context.WikiPage
+		attachmentWikiPage := wikiPage
 		if linkWikiPage != "" {
 			attachmentWikiPage = linkWikiPage
 		}
@@ -296,7 +296,7 @@ func (converter *DefaultConverter) convertBrackettedTracLinks(in string) string 
 }
 
 // convertUnbrackettedTracLinks converts Trac-style links after any surrounding Trac bracketting and link texts have been processed
-func (converter *DefaultConverter) convertUnbrackettedTracLinks(context *ConversionContext, in string) string {
+func (converter *DefaultConverter) convertUnbrackettedTracLinks(ticketID int64, wikiPage string, in string) string {
 	out := in
 
 	out = httpLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
@@ -316,7 +316,7 @@ func (converter *DefaultConverter) convertUnbrackettedTracLinks(context *Convers
 	})
 
 	out = attachmentLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveAttachmentLink(context, match)
+		return converter.resolveAttachmentLink(ticketID, wikiPage, match)
 	})
 
 	out = changesetLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
@@ -374,13 +374,13 @@ func (converter *DefaultConverter) unmarkLinks(in string) string {
 	return out
 }
 
-func (converter *DefaultConverter) convertLinks(context *ConversionContext, in string) string {
+func (converter *DefaultConverter) convertLinks(ticketID int64, wikiPage string, in string) string {
 	out := in
 
 	// conversion occurs in three distinct phases with each phase dealing with one part of the link syntax
 	// and leaving the remainder for the next stage
 	out = converter.convertBrackettedTracLinks(out)
-	out = converter.convertUnbrackettedTracLinks(context, out)
+	out = converter.convertUnbrackettedTracLinks(ticketID, wikiPage, out)
 	out = converter.unmarkLinks(out)
 	return out
 }

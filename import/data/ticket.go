@@ -10,7 +10,6 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
-	"github.com/stevejefferson/trac2gitea/markdown"
 )
 
 // importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or -1 if the issue was not created.
@@ -42,8 +41,7 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	}
 
 	// Gitea comment consists of a header giving the original Trac context then the Trac description converted to markdown
-	context := markdown.ConversionContext{TicketID: ticket.TicketID, WikiPage: ""}
-	convertedDescription := importer.markdownConverter.Convert(&context, ticket.Description)
+	convertedDescription := importer.markdownConverter.TicketConvert(ticket.TicketID, ticket.Description)
 	fullDescription := addTracContext(tracDetails, ticket.Created, convertedDescription)
 
 	issue := gitea.Issue{Index: ticket.TicketID, Summary: ticket.Summary, ReporterID: reporterID,

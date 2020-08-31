@@ -12,7 +12,7 @@ func TestSingleLineCodeBlock(t *testing.T) {
 
 	code := "this is some code"
 
-	conversion := converter.Convert(context, leadingText+"{{{"+code+"}}}"+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"{{{"+code+"}}}"+trailingText)
 	assertEquals(t, conversion, leadingText+"`"+code+"`"+trailingText)
 }
 
@@ -23,8 +23,8 @@ func TestMultiLineCodeBlock(t *testing.T) {
 	codeLine1 := "this is some code\n"
 	codeLine2 := "this is more code\n"
 
-	conversion := converter.Convert(
-		context,
+	conversion := converter.WikiConvert(
+		wikiPage,
 		leadingText+"\n"+
 			"{{{#!trac-stuff\n"+
 			codeLine1+
@@ -49,8 +49,8 @@ func TestNoConversionInsideCodeBlock(t *testing.T) {
 	codeLine3 := "- bullet point\n"
 	codeLine4 := "== Trac-style Subheading\n"
 
-	conversion := converter.Convert(
-		context,
+	conversion := converter.WikiConvert(
+		wikiPage,
 		leadingText+"\n"+
 			"{{{#!trac-stuff\n"+
 			codeLine1+

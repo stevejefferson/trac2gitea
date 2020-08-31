@@ -5,6 +5,7 @@
 package data_test
 
 import (
+	"runtime/debug"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -45,5 +46,6 @@ func assertTrue(t *testing.T, assertion bool) {
 func assertEquals(t *testing.T, got interface{}, expected interface{}) {
 	if got != expected {
 		t.Errorf("Expecting \"%v\", got \"%v\"\n", expected, got)
+		debug.PrintStack()
 	}
 }

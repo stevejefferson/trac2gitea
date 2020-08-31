@@ -15,8 +15,8 @@ func TestBlockQuote(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(
-		context,
+	conversion := converter.WikiConvert(
+		wikiPage,
 		leadingText+"\n"+
 			"  "+line1+
 			"  "+line2+

@@ -62,7 +62,7 @@ func verifyLink(t *testing.T, setUpFn func(t *testing.T), tearDownFn func(t *tes
 	setUpFn(t)
 	defer tearDownFn(t)
 
-	conversion := converter.Convert(context, leadingText+" "+tracFormatLink+" "+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+" "+tracFormatLink+" "+trailingText)
 	assertEquals(t, conversion, leadingText+" "+markdownFormatLink+" "+trailingText)
 }
 

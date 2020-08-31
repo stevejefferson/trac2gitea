@@ -26,7 +26,6 @@ const (
 
 var ctrl *gomock.Controller
 var converter *markdown.DefaultConverter
-var context *markdown.ConversionContext
 var mockTracAccessor *mock_trac.MockAccessor
 var mockGiteaAccessor *mock_gitea.MockAccessor
 
@@ -37,8 +36,7 @@ func setUp(t *testing.T) {
 	mockTracAccessor = mock_trac.NewMockAccessor(ctrl)
 	mockGiteaAccessor = mock_gitea.NewMockAccessor(ctrl)
 
-	// create converter to be tested and associated context
-	context = &markdown.ConversionContext{TicketID: ticketID, WikiPage: wikiPage}
+	// create converter to be tested
 	converter = markdown.CreateDefaultConverter(mockTracAccessor, mockGiteaAccessor)
 }
 

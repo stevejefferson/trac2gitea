@@ -32,8 +32,8 @@ import (
 // allocators - we give all items unique values so that we can spot any misallocations
 func resetAllocators(startID int64) {
 	idCounter = startID
-	unixTimeCounter = 1234567
-	intCounter = 76564
+	unixTimeCounter = 1000
+	intCounter = 2000
 }
 
 var idCounter int64
@@ -247,33 +247,34 @@ type TicketAttachmentImport struct {
 	comment           *TicketCommentImport
 	filename          string
 	attachmentPath    string
-	uuid              string
 	size              int64
-	time              int64
 }
 
 func createTicketAttachmentImport(prefix string, author *TicketUserImport) *TicketAttachmentImport {
 	// express part of attachment data in terms of the comment that will appear in Gitea to describe it
-	comment := createTicketCommentImport(prefix, author, false)
+	comment := createTicketCommentImport(prefix+"-comment-", author, false)
+
+	// trac attachment path must have final directory of at least 12 chars (the trac UUID)
+	attachmentFile := prefix + "-attachment.file"
+	attachmentPath := "/path/to/attachment/" + prefix + "123456789012/" + attachmentFile
+
 	return &TicketAttachmentImport{
 		issueAttachmentID: allocateID(),
 		comment:           comment,
-		filename:          prefix + "-attachment.file",
-		attachmentPath:    "/path/to/" + prefix + ".file",
-		uuid:              prefix + "-uuid",
+		filename:          attachmentFile,
+		attachmentPath:    attachmentPath,
 		size:              allocateInt(),
-		time:              allocateUnixTime(),
 	}
 }
 
 func createTracTicketAttachment(ticket *TicketImport, ticketAttachment *TicketAttachmentImport) *trac.TicketAttachment {
 	return &trac.TicketAttachment{
 		TicketID:    ticket.ticketID,
-		Time:        ticketAttachment.time,
 		Size:        ticketAttachment.size,
 		Author:      ticketAttachment.comment.author.tracUser,
 		FileName:    ticketAttachment.filename,
 		Description: ticketAttachment.comment.text,
+		Time:        ticketAttachment.comment.time,
 	}
 }
 
@@ -383,6 +384,7 @@ func setUpTickets(t *testing.T) {
 	setUpTicketUsers(t)
 	setUpTicketLabels(t)
 	setUpTicketComments(t)
+	setUpTicketAttachments(t)
 
 	closedTicket = createTicketImport(
 		"closed", true,
@@ -474,11 +476,13 @@ func expectLabelRetrieval(t *testing.T, label *TicketLabelImport) {
 }
 
 func expectDescriptionMarkdownConversion(t *testing.T, ticket *TicketImport) {
-	// expect to convert Trac text into markdown - for now we do now check the conversion context although maybe we should
 	mockMarkdownConverter.
 		EXPECT().
-		Convert(gomock.Any(), gomock.Eq(ticket.description)).
-		Return(ticket.descriptionMarkdown)
+		TicketConvert(gomock.Eq(ticket.ticketID), gomock.Any()).
+		DoAndReturn(func(ticketID int64, text string) string {
+			assertTrue(t, strings.Contains(text, ticket.description))
+			return ticket.descriptionMarkdown
+		})
 }
 
 func expectIssueCreation(t *testing.T, ticket *TicketImport) {
@@ -551,12 +555,14 @@ func expectIssueCommentRetrieval(t *testing.T, ticket *TicketImport, ticketComme
 	}
 }
 
-func expectTicketCommentMarkdownConversion(t *testing.T, ticketComment *TicketCommentImport) {
-	// expect to convert Trac text into markdown - for now we do now check the conversion context although maybe we should
+func expectTicketCommentMarkdownConversion(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
 	mockMarkdownConverter.
 		EXPECT().
-		Convert(gomock.Any(), gomock.Eq(ticketComment.text)).
-		Return(ticketComment.markdownText)
+		TicketConvert(gomock.Eq(ticket.ticketID), gomock.Any()).
+		DoAndReturn(func(ticketID int64, text string) string {
+			assertTrue(t, strings.Contains(text, ticketComment.text))
+			return ticketComment.markdownText
+		})
 }
 
 func expectAllTicketCommentActions(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
@@ -564,7 +570,7 @@ func expectAllTicketCommentActions(t *testing.T, ticket *TicketImport, ticketCom
 	expectUserLookup(t, ticketComment.author)
 
 	// expect to convert ticket comment text to markdown
-	expectTicketCommentMarkdownConversion(t, ticketComment)
+	expectTicketCommentMarkdownConversion(t, ticket, ticketComment)
 
 	// expect retrieval/creation of issue comment for ticket comment
 	expectIssueCommentRetrieval(t, ticket, ticketComment)
@@ -578,7 +584,7 @@ func expectTracAttachmentPathRetrieval(t *testing.T, ticket *TicketImport, ticke
 			assertEquals(t, tracAttachment.TicketID, ticket.ticketID)
 			assertEquals(t, tracAttachment.FileName, ticketAttachment.filename)
 			assertEquals(t, tracAttachment.Size, ticketAttachment.size)
-			assertEquals(t, tracAttachment.Time, ticketAttachment.time)
+			assertEquals(t, tracAttachment.Time, ticketAttachment.comment.time)
 			assertEquals(t, tracAttachment.Author, ticketAttachment.comment.author.tracUser)
 			assertTrue(t, strings.Contains(tracAttachment.Description, ticketAttachment.comment.text))
 			return ticketAttachment.attachmentPath
@@ -600,8 +606,7 @@ func expectIssueAttachmentCreation(t *testing.T, ticket *TicketImport, ticketAtt
 			assertEquals(t, issueAttachment.IssueID, ticket.issueID)
 			assertEquals(t, issueAttachment.CommentID, ticketAttachment.comment.issueCommentID)
 			assertEquals(t, issueAttachment.FileName, ticketAttachment.filename)
-			assertEquals(t, issueAttachment.Time, ticketAttachment.time)
-			assertEquals(t, issueAttachment.UUID, ticketAttachment.uuid)
+			assertEquals(t, issueAttachment.Time, ticketAttachment.comment.time)
 			return ticketAttachment.issueAttachmentID, nil
 		})
 }
@@ -788,6 +793,7 @@ func TestImportMultipleTicketsWithAttachments(t *testing.T) {
 
 	// expect trac to return us no comments
 	expectTracCommentRetrievals(t, closedTicket)
+	expectTracCommentRetrievals(t, openTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
@@ -840,6 +846,7 @@ func TestImportMultipleTicketsWithComments(t *testing.T) {
 	expectAllTicketActions(t, closedTicket)
 
 	// expect trac to return us no attachments
+	expectTracAttachmentRetrievals(t, openTicket)
 	expectTracAttachmentRetrievals(t, closedTicket)
 
 	// expect trac to return us comments
@@ -891,7 +898,7 @@ func TestImportTicketWithAttachmentsAndComments(t *testing.T) {
 		openTicketComment1, openTicketComment2, openTicketAttachment1.comment, openTicketAttachment2.comment)
 
 	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 1)
+	expectRepoIssueCountUpdate(t, 1, 0)
 
 	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }

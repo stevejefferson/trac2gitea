@@ -10,13 +10,13 @@ func TestUnlabelledAnchor(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(context, leadingText+"[=#anchor-name]"+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"[=#anchor-name]"+trailingText)
 	assertEquals(t, conversion, leadingText+"<a name=\"anchor-name\"></a>"+trailingText)
 }
 func TestLabelledAnchor(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(context, leadingText+"[=#anchor-name anchor label]"+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"[=#anchor-name anchor label]"+trailingText)
 	assertEquals(t, conversion, leadingText+"<a name=\"anchor-name\">anchor label</a>"+trailingText)
 }

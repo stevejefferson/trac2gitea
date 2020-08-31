@@ -24,11 +24,11 @@ type DefaultConverter struct {
 	giteaAccessor gitea.Accessor
 }
 
-func (converter *DefaultConverter) convertNonCodeBlockText(context *ConversionContext, in string) string {
+func (converter *DefaultConverter) convertNonCodeBlockText(ticketID int64, wikiPage string, in string) string {
 	out := in
 
 	// do simple one-line constructs first
-	out = converter.convertLinks(context, out)
+	out = converter.convertLinks(ticketID, wikiPage, out)
 	out = converter.convertAnchors(out)
 	out = converter.convertEscapes(out)
 	out = converter.convertLists(out)
@@ -51,8 +51,7 @@ func (converter *DefaultConverter) convertNonCodeBlockText(context *ConversionCo
 	return out
 }
 
-// Convert converts a Trac markdown string to Gitea markdown
-func (converter *DefaultConverter) Convert(context *ConversionContext, in string) string {
+func (converter *DefaultConverter) convert(ticketID int64, wikiPage string, in string) string {
 	out := in
 
 	// ensure we have Unix EOLs
@@ -60,7 +59,7 @@ func (converter *DefaultConverter) Convert(context *ConversionContext, in string
 
 	// perform conversions on text not in a code block using the ticket-specific link conversion
 	out = converter.convertNonCodeBlocks(out, func(in string) string {
-		return converter.convertNonCodeBlockText(context, in)
+		return converter.convertNonCodeBlockText(ticketID, wikiPage, in)
 	})
 
 	// finally, convert any code blocks
@@ -69,4 +68,14 @@ func (converter *DefaultConverter) Convert(context *ConversionContext, in string
 	out = converter.convertCodeBlocks(out)
 
 	return out
+}
+
+// TicketConvert converts a comment/description string associated with a Trac ticket to Gitea markdown
+func (converter *DefaultConverter) TicketConvert(ticketID int64, in string) string {
+	return converter.convert(ticketID, "", in)
+}
+
+// WikiConvert converts a comment/description string associated with a Trac wiki page to Gitea markdown
+func (converter *DefaultConverter) WikiConvert(wikiPage string, in string) string {
+	return converter.convert(-1, wikiPage, in)
 }

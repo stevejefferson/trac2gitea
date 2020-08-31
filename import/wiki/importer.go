@@ -113,8 +113,7 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 		}
 
 		// convert and write wiki page
-		context := markdown.ConversionContext{TicketID: -1, WikiPage: page.Name}
-		markdownText := importer.markdownConverter.Convert(&context, page.Text)
+		markdownText := importer.markdownConverter.WikiConvert(page.Name, page.Text)
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
 		// find Gitea equivalent of Trac author

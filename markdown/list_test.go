@@ -22,7 +22,7 @@ func TestAsteriskBulletedLists(t *testing.T) {
 			"* " + listItem3 + "\n"
 	markdownList := tracList // asterisk bullets work in both trac and markdown
 
-	conversion := converter.Convert(context, leadingText+"\n"+tracList+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n"+tracList+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownList+trailingText)
 }
 
@@ -36,7 +36,7 @@ func TestHyphenBulletedLists(t *testing.T) {
 			"- " + listItem3 + "\n"
 	markdownList := tracList // hyphen bullets work in both trac and markdown
 
-	conversion := converter.Convert(context, leadingText+"\n"+tracList+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n"+tracList+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownList+trailingText)
 }
 
@@ -50,7 +50,7 @@ func TestNumberedBulletedLists(t *testing.T) {
 			"3. " + listItem3 + "\n"
 	markdownList := tracList // numbered bullets work in both trac and markdown
 
-	conversion := converter.Convert(context, leadingText+"\n"+tracList+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n"+tracList+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownList+trailingText)
 }
 
@@ -67,7 +67,7 @@ func TestLetteredBulletedLists(t *testing.T) {
 			"2. " + listItem2 + "\n" +
 			"6. " + listItem3 + "\n"
 
-	conversion := converter.Convert(context, leadingText+"\n"+tracList+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n"+tracList+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownList+trailingText)
 }
 func TestRomanBulletedLists(t *testing.T) {
@@ -83,7 +83,7 @@ func TestRomanBulletedLists(t *testing.T) {
 			"4. " + listItem2 + "\n" +
 			"12. " + listItem3 + "\n"
 
-	conversion := converter.Convert(context, leadingText+"\n"+tracList+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n"+tracList+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownList+trailingText)
 }
 
@@ -100,6 +100,6 @@ func TestNestedLists(t *testing.T) {
 			"  4. " + listItem2 + "\n" +
 			"    * " + listItem3 + "\n"
 
-	conversion := converter.Convert(context, leadingText+"\n"+tracList+trailingText)
+	conversion := converter.WikiConvert(wikiPage, leadingText+"\n"+tracList+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownList+trailingText)
 }
