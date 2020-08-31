@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data
+package importer
 
 import (
 	"fmt"
@@ -16,17 +16,19 @@ import (
 
 // Importer of Gitea data from Trac data.
 type Importer struct {
-	giteaAccessor     gitea.Accessor
-	tracAccessor      trac.Accessor
-	markdownConverter markdown.Converter
+	giteaAccessor      gitea.Accessor
+	tracAccessor       trac.Accessor
+	markdownConverter  markdown.Converter
+	convertPredefineds bool
 }
 
-// CreateImporter returns a new Trac to Gitea data importer.
+// CreateImporter returns a new Trac to Gitea importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
-	converter markdown.Converter) (*Importer, error) {
-	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, markdownConverter: converter}
+	converter markdown.Converter,
+	convertPredefs bool) (*Importer, error) {
+	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, markdownConverter: converter, convertPredefineds: convertPredefs}
 	return &importer, nil
 }
 

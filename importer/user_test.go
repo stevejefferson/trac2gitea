@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data_test
+package importer_test
 
 import (
 	"testing"
@@ -59,7 +59,7 @@ func TestDefaultUserMapForUserWithNoEmail(t *testing.T) {
 
 	expectToRetrieveTracUsers(t, noEmailUser)
 	expectMatchUser(t, noEmailUserName, "", matchedNoEmailUser)
-	userMap, _ := importer.DefaultUserMap()
+	userMap, _ := dataImporter.DefaultUserMap()
 	assertEquals(t, userMap[noEmailUser], matchedNoEmailUser)
 }
 
@@ -69,7 +69,7 @@ func TestDefaultUserMapForUserWithEmail(t *testing.T) {
 
 	expectToRetrieveTracUsers(t, emailUser)
 	expectMatchUser(t, emailUserName, emailUserEmail, matchedEmailUser)
-	userMap, _ := importer.DefaultUserMap()
+	userMap, _ := dataImporter.DefaultUserMap()
 	assertEquals(t, userMap[emailUser], matchedEmailUser)
 }
 
@@ -81,7 +81,7 @@ func TestDefaultUserMapForUnmatchedUser(t *testing.T) {
 	expectMatchUser(t, noMatchUserName, noMatchUserEmail, "")
 	expectGetCurrentUser(t)
 
-	userMap, _ := importer.DefaultUserMap()
+	userMap, _ := dataImporter.DefaultUserMap()
 	assertEquals(t, userMap[noMatchUser], currentUser)
 }
 
@@ -95,7 +95,7 @@ func TestDefaultUserMapForMultipleUsers(t *testing.T) {
 	expectMatchUser(t, noMatchUserName, noMatchUserEmail, "")
 	expectGetCurrentUser(t)
 
-	userMap, _ := importer.DefaultUserMap()
+	userMap, _ := dataImporter.DefaultUserMap()
 	assertEquals(t, userMap[noEmailUser], matchedNoEmailUser)
 	assertEquals(t, userMap[emailUser], matchedEmailUser)
 	assertEquals(t, userMap[noMatchUser], currentUser)

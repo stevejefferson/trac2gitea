@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data
+package importer
 
 import "github.com/stevejefferson/trac2gitea/log"
 

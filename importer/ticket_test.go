@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data_test
+package importer_test
 
 import (
 	"strings"
@@ -682,7 +682,7 @@ func TestImportClosedTicketOnly(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 1, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportOpenTicketOnly(t *testing.T) {
@@ -707,7 +707,7 @@ func TestImportOpenTicketOnly(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 1, 0)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportMultipleTicketsOnly(t *testing.T) {
@@ -736,7 +736,7 @@ func TestImportMultipleTicketsOnly(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 2, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportTicketWithAttachments(t *testing.T) {
@@ -765,7 +765,7 @@ func TestImportTicketWithAttachments(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 1, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportMultipleTicketsWithAttachments(t *testing.T) {
@@ -800,7 +800,7 @@ func TestImportMultipleTicketsWithAttachments(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 2, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportTicketWithComments(t *testing.T) {
@@ -829,7 +829,7 @@ func TestImportTicketWithComments(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 1, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportMultipleTicketsWithComments(t *testing.T) {
@@ -864,7 +864,7 @@ func TestImportMultipleTicketsWithComments(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 2, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportTicketWithAttachmentsAndComments(t *testing.T) {
@@ -898,7 +898,7 @@ func TestImportTicketWithAttachmentsAndComments(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 1, 0)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
 func TestImportMultipleTicketsWithAttachmentsAndComments(t *testing.T) {
@@ -941,5 +941,5 @@ func TestImportMultipleTicketsWithAttachmentsAndComments(t *testing.T) {
 	// expect repository issue count to be updated
 	expectRepoIssueCountUpdate(t, 2, 1)
 
-	importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }

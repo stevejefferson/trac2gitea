@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data_test
+package importer_test
 
 import (
 	"testing"
@@ -108,7 +108,7 @@ func TestMilestonesWhereNoneExist(t *testing.T) {
 		}).
 		AnyTimes()
 
-	importer.ImportMilestones()
+	dataImporter.ImportMilestones()
 }
 
 func TestMilestonesWhereAlreadyExist(t *testing.T) {
@@ -121,5 +121,5 @@ func TestMilestonesWhereAlreadyExist(t *testing.T) {
 
 	// do not expect to add new milestones...
 
-	importer.ImportMilestones()
+	dataImporter.ImportMilestones()
 }

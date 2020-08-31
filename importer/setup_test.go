@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data_test
+package importer_test
 
 import (
 	"testing"
@@ -10,12 +10,12 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stevejefferson/trac2gitea/accessor/mock_gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/mock_trac"
-	"github.com/stevejefferson/trac2gitea/import/data"
+	"github.com/stevejefferson/trac2gitea/importer"
 	"github.com/stevejefferson/trac2gitea/mock_markdown"
 )
 
 var ctrl *gomock.Controller
-var importer *data.Importer
+var dataImporter *importer.Importer
 var mockTracAccessor *mock_trac.MockAccessor
 var mockGiteaAccessor *mock_gitea.MockAccessor
 var mockMarkdownConverter *mock_markdown.MockConverter
@@ -29,7 +29,7 @@ func setUp(t *testing.T) {
 	mockMarkdownConverter = mock_markdown.NewMockConverter(ctrl)
 
 	// create importer to be tested
-	importer, _ = data.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter)
+	dataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, false)
 }
 
 func tearDown(t *testing.T) {

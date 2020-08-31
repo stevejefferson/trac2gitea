@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package wiki
+package importer
 
 import (
 	"fmt"
@@ -10,34 +10,9 @@ import (
 	"time"
 
 	"github.com/stevejefferson/trac2gitea/log"
-	"github.com/stevejefferson/trac2gitea/markdown"
 
-	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
-
-// Importer imports Trac Wiki data into a Gitea wiki repository.
-type Importer struct {
-	tracAccessor       trac.Accessor
-	giteaAccessor      gitea.Accessor
-	markdownConverter  markdown.Converter
-	convertPredefineds bool
-}
-
-// CreateImporter creates a Trac wiki to Gitea wiki repository importer.
-func CreateImporter(
-	tAccessor trac.Accessor,
-	gAccessor gitea.Accessor,
-	converter markdown.Converter,
-	convertPredefs bool) (*Importer, error) {
-
-	importer := Importer{
-		tracAccessor:       tAccessor,
-		giteaAccessor:      gAccessor,
-		markdownConverter:  converter,
-		convertPredefineds: convertPredefs}
-	return &importer, nil
-}
 
 // ImportWiki imports a Trac wiki into a Gitea wiki repository.
 func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error {

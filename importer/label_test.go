@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPL-style
 // license that can be found in the LICENSE file.
 
-package data_test
+package importer_test
 
 import (
 	"testing"
@@ -77,7 +77,7 @@ func TestImportComponentsWhereNoLabelsExist(t *testing.T) {
 
 	expectToAddLabels(t)
 
-	importer.ImportComponents(labelMap)
+	dataImporter.ImportComponents(labelMap)
 }
 
 func TestImportComponentsWhereLabelsExist(t *testing.T) {
@@ -86,7 +86,7 @@ func TestImportComponentsWhereLabelsExist(t *testing.T) {
 
 	expectToNotAddLabels(t)
 
-	importer.ImportComponents(labelMap)
+	dataImporter.ImportComponents(labelMap)
 }
 
 func setUpPriorities(t *testing.T) {
@@ -112,7 +112,7 @@ func TestImportPrioritiesWhereNoLabelsExist(t *testing.T) {
 
 	expectToAddLabels(t)
 
-	importer.ImportPriorities(labelMap)
+	dataImporter.ImportPriorities(labelMap)
 }
 
 func TestImportPrioritiesWhereLabelsExist(t *testing.T) {
@@ -121,7 +121,7 @@ func TestImportPrioritiesWhereLabelsExist(t *testing.T) {
 
 	expectToNotAddLabels(t)
 
-	importer.ImportPriorities(labelMap)
+	dataImporter.ImportPriorities(labelMap)
 }
 
 func setUpResolutions(t *testing.T) {
@@ -147,7 +147,7 @@ func TestImportResolutionsWhereNoLabelsExist(t *testing.T) {
 
 	expectToAddLabels(t)
 
-	importer.ImportResolutions(labelMap)
+	dataImporter.ImportResolutions(labelMap)
 }
 
 func TestImportResolutionsWhereLabelsExist(t *testing.T) {
@@ -156,7 +156,7 @@ func TestImportResolutionsWhereLabelsExist(t *testing.T) {
 
 	expectToNotAddLabels(t)
 
-	importer.ImportResolutions(labelMap)
+	dataImporter.ImportResolutions(labelMap)
 }
 
 func setUpSeverities(t *testing.T) {
@@ -182,7 +182,7 @@ func TestImportSeveritiesWhereNoLabelsExist(t *testing.T) {
 
 	expectToAddLabels(t)
 
-	importer.ImportSeverities(labelMap)
+	dataImporter.ImportSeverities(labelMap)
 }
 
 func TestImportSeveritiesWhereLabelsExist(t *testing.T) {
@@ -191,7 +191,7 @@ func TestImportSeveritiesWhereLabelsExist(t *testing.T) {
 
 	expectToNotAddLabels(t)
 
-	importer.ImportSeverities(labelMap)
+	dataImporter.ImportSeverities(labelMap)
 }
 
 func setUpTypes(t *testing.T) {
@@ -217,7 +217,7 @@ func TestImportTypesWhereNoLabelsExist(t *testing.T) {
 
 	expectToAddLabels(t)
 
-	importer.ImportTypes(labelMap)
+	dataImporter.ImportTypes(labelMap)
 }
 
 func TestImportTypesWhereLabelsExist(t *testing.T) {
@@ -226,7 +226,7 @@ func TestImportTypesWhereLabelsExist(t *testing.T) {
 
 	expectToNotAddLabels(t)
 
-	importer.ImportTypes(labelMap)
+	dataImporter.ImportTypes(labelMap)
 }
 
 func setUpVersions(t *testing.T) {
@@ -252,7 +252,7 @@ func TestImportVersionsWhereNoLabelsExist(t *testing.T) {
 
 	expectToAddLabels(t)
 
-	importer.ImportVersions(labelMap)
+	dataImporter.ImportVersions(labelMap)
 }
 
 func TestImportVersionsWhereLabelsExist(t *testing.T) {
@@ -261,5 +261,5 @@ func TestImportVersionsWhereLabelsExist(t *testing.T) {
 
 	expectToNotAddLabels(t)
 
-	importer.ImportVersions(labelMap)
+	dataImporter.ImportVersions(labelMap)
 }

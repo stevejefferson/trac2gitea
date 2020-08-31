@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/stevejefferson/trac2gitea/importer"
 	"github.com/stevejefferson/trac2gitea/markdown"
 
 	"github.com/spf13/pflag"
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
-	"github.com/stevejefferson/trac2gitea/import/data"
-	"github.com/stevejefferson/trac2gitea/import/wiki"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
@@ -109,30 +108,30 @@ func parseArgs() {
 	}
 }
 
-func importData(importer *data.Importer, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
+func importData(dataImporter *importer.Importer, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
 	var err error
-	if err = importer.ImportComponents(componentMap); err != nil {
+	if err = dataImporter.ImportComponents(componentMap); err != nil {
 		return err
 	}
-	if err = importer.ImportPriorities(priorityMap); err != nil {
+	if err = dataImporter.ImportPriorities(priorityMap); err != nil {
 		return err
 	}
-	if err = importer.ImportResolutions(resolutionMap); err != nil {
+	if err = dataImporter.ImportResolutions(resolutionMap); err != nil {
 		return err
 	}
-	if err = importer.ImportSeverities(severityMap); err != nil {
+	if err = dataImporter.ImportSeverities(severityMap); err != nil {
 		return err
 	}
-	if err = importer.ImportTypes(typeMap); err != nil {
+	if err = dataImporter.ImportTypes(typeMap); err != nil {
 		return err
 	}
-	if err = importer.ImportVersions(versionMap); err != nil {
+	if err = dataImporter.ImportVersions(versionMap); err != nil {
 		return err
 	}
-	if err = importer.ImportMilestones(); err != nil {
+	if err = dataImporter.ImportMilestones(); err != nil {
 		return err
 	}
-	if err = importer.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+	if err = dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
 		return err
 	}
 
@@ -159,7 +158,7 @@ func main() {
 	}
 	markdownConverter := markdown.CreateDefaultConverter(tracAccessor, giteaAccessor)
 
-	dataImporter, err := data.CreateImporter(tracAccessor, giteaAccessor, markdownConverter)
+	dataImporter, err := importer.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, wikiConvertPredefineds)
 	if err != nil {
 		log.Fatal("%+v", err)
 	}
@@ -197,12 +196,7 @@ func main() {
 	}
 
 	if !dbOnly {
-		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, wikiConvertPredefineds)
-		if err != nil {
-			log.Fatal("%+v", err)
-		}
-
-		if err = wikiImporter.ImportWiki(userMap, wikiPush); err != nil {
+		if err = dataImporter.ImportWiki(userMap, wikiPush); err != nil {
 			log.Fatal("%+v", err)
 		}
 	}

@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/stevejefferson/trac2gitea/import/data"
+	"github.com/stevejefferson/trac2gitea/importer"
 )
 
 const (
@@ -22,33 +22,33 @@ const (
 	versionTypeName    = "version"
 )
 
-func readDefaultLabelMaps(importer *data.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
-	componentMap, err = importer.DefaultComponentLabelMap()
+func readDefaultLabelMaps(dataImporter *importer.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
+	componentMap, err = dataImporter.DefaultComponentLabelMap()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	priorityMap, err = importer.DefaultPriorityLabelMap()
+	priorityMap, err = dataImporter.DefaultPriorityLabelMap()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	resolutionMap, err = importer.DefaultResolutionLabelMap()
+	resolutionMap, err = dataImporter.DefaultResolutionLabelMap()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	severityMap, err = importer.DefaultSeverityLabelMap()
+	severityMap, err = dataImporter.DefaultSeverityLabelMap()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	typeMap, err = importer.DefaultTypeLabelMap()
+	typeMap, err = dataImporter.DefaultTypeLabelMap()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	versionMap, err = importer.DefaultVersionLabelMap()
+	versionMap, err = dataImporter.DefaultVersionLabelMap()
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
@@ -57,9 +57,9 @@ func readDefaultLabelMaps(importer *data.Importer) (componentMap, priorityMap, r
 }
 
 // readLabelMaps reads the label maps from the provided file, if no file provided, import default maps using the provided importer
-func readLabelMaps(mapFile string, importer *data.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
+func readLabelMaps(mapFile string, dataImporter *importer.Importer) (componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string, err error) {
 	if mapFile == "" {
-		return readDefaultLabelMaps(importer)
+		return readDefaultLabelMaps(dataImporter)
 	}
 
 	fd, err := os.Open(mapFile)
