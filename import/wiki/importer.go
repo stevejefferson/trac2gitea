@@ -20,6 +20,7 @@ import (
 type Importer struct {
 	tracAccessor       trac.Accessor
 	giteaAccessor      gitea.Accessor
+	markdownConverter  markdown.Converter
 	convertPredefineds bool
 }
 
@@ -27,11 +28,13 @@ type Importer struct {
 func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
+	converter markdown.Converter,
 	convertPredefs bool) (*Importer, error) {
 
 	importer := Importer{
 		tracAccessor:       tAccessor,
 		giteaAccessor:      gAccessor,
+		markdownConverter:  converter,
 		convertPredefineds: convertPredefs}
 	return &importer, nil
 }
@@ -110,9 +113,8 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 		}
 
 		// convert and write wiki page
-		tracToMarkdownConverter := markdown.CreateWikiDefaultConverter(
-			importer.tracAccessor, importer.giteaAccessor, page.Name)
-		markdownText := tracToMarkdownConverter.Convert(page.Text)
+		context := markdown.ConversionContext{TicketID: -1, WikiPage: page.Name}
+		markdownText := importer.markdownConverter.Convert(&context, page.Text)
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
 		// find Gitea equivalent of Trac author

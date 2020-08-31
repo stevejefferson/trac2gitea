@@ -8,21 +8,25 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/stevejefferson/trac2gitea/markdown"
+
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
 // Importer of Gitea data from Trac data.
 type Importer struct {
-	giteaAccessor gitea.Accessor
-	tracAccessor  trac.Accessor
+	giteaAccessor     gitea.Accessor
+	tracAccessor      trac.Accessor
+	markdownConverter markdown.Converter
 }
 
 // CreateImporter returns a new Trac to Gitea data importer.
 func CreateImporter(
 	tAccessor trac.Accessor,
-	gAccessor gitea.Accessor) (*Importer, error) {
-	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor}
+	gAccessor gitea.Accessor,
+	converter markdown.Converter) (*Importer, error) {
+	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, markdownConverter: converter}
 	return &importer, nil
 }
 

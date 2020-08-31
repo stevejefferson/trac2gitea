@@ -57,8 +57,8 @@ func (importer *Importer) importTicketAttachment(issueID int64, tracAttachment *
 	return uuid, nil
 }
 
-func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64, created int64, userMap map[string]string) (int64, error) {
-	lastUpdate := created
+func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64, lastUpdate int64, userMap map[string]string) (int64, error) {
+	attachmentLastUpdate := lastUpdate
 
 	err := importer.tracAccessor.GetTicketAttachments(ticketID, func(attachment *trac.TicketAttachment) error {
 		uuid, err := importer.importTicketAttachment(issueID, attachment, userMap)
@@ -66,8 +66,8 @@ func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64,
 			return err
 		}
 
-		if uuid != "" && lastUpdate < attachment.Time {
-			lastUpdate = attachment.Time
+		if uuid != "" && attachmentLastUpdate < attachment.Time {
+			attachmentLastUpdate = attachment.Time
 		}
 
 		return nil
@@ -76,5 +76,5 @@ func (importer *Importer) importTicketAttachments(ticketID int64, issueID int64,
 		return 0, err
 	}
 
-	return lastUpdate, nil
+	return attachmentLastUpdate, nil
 }

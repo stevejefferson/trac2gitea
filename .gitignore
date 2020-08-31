@@ -1,3 +1,4 @@
 accessor/mock_gitea
 accessor/mock_trac
+mock_markdown
 trac2gitea

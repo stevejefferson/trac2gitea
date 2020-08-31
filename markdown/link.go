@@ -143,9 +143,9 @@ func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 	return markLink(milestoneURL)
 }
 
-func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
+func (converter *DefaultConverter) resolveAttachmentLink(context *ConversionContext, link string) string {
 	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
-	wikiPage := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
+	linkWikiPage := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
 	ticketIDStr := attachmentLinkRegexp.ReplaceAllString(link, `$3`)
 
 	// there are two types of attachment: ticket attachments and wiki attachments...
@@ -178,11 +178,12 @@ func (converter *DefaultConverter) resolveAttachmentLink(link string) string {
 
 		attachmentURL = converter.giteaAccessor.GetIssueAttachmentURL(uuid)
 	} else {
-		if wikiPage == "" {
-			wikiPage = converter.wikiPage
+		attachmentWikiPage := context.WikiPage
+		if linkWikiPage != "" {
+			attachmentWikiPage = linkWikiPage
 		}
 
-		attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(wikiPage, attachmentName)
+		attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(attachmentWikiPage, attachmentName)
 		attachmentURL = converter.giteaAccessor.GetWikiFileURL(attachmentWikiRelPath)
 	}
 
@@ -295,7 +296,7 @@ func (converter *DefaultConverter) convertBrackettedTracLinks(in string) string 
 }
 
 // convertUnbrackettedTracLinks converts Trac-style links after any surrounding Trac bracketting and link texts have been processed
-func (converter *DefaultConverter) convertUnbrackettedTracLinks(in string) string {
+func (converter *DefaultConverter) convertUnbrackettedTracLinks(context *ConversionContext, in string) string {
 	out := in
 
 	out = httpLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
@@ -315,7 +316,7 @@ func (converter *DefaultConverter) convertUnbrackettedTracLinks(in string) strin
 	})
 
 	out = attachmentLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveAttachmentLink(match)
+		return converter.resolveAttachmentLink(context, match)
 	})
 
 	out = changesetLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
@@ -373,13 +374,13 @@ func (converter *DefaultConverter) unmarkLinks(in string) string {
 	return out
 }
 
-func (converter *DefaultConverter) convertLinks(in string) string {
+func (converter *DefaultConverter) convertLinks(context *ConversionContext, in string) string {
 	out := in
 
 	// conversion occurs in three distinct phases with each phase dealing with one part of the link syntax
 	// and leaving the remainder for the next stage
 	out = converter.convertBrackettedTracLinks(out)
-	out = converter.convertUnbrackettedTracLinks(out)
+	out = converter.convertUnbrackettedTracLinks(context, out)
 	out = converter.unmarkLinks(out)
 	return out
 }

@@ -5,6 +5,7 @@
 package markdown_test
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -61,7 +62,7 @@ func verifyLink(t *testing.T, setUpFn func(t *testing.T), tearDownFn func(t *tes
 	setUpFn(t)
 	defer tearDownFn(t)
 
-	conversion := converter.Convert(leadingText + " " + tracFormatLink + " " + trailingText)
+	conversion := converter.Convert(context, leadingText+" "+tracFormatLink+" "+trailingText)
 	assertEquals(t, conversion, leadingText+" "+markdownFormatLink+" "+trailingText)
 }
 
@@ -196,11 +197,11 @@ func TestWikiPrefixedLinkWithAnchor(t *testing.T) {
 }
 
 const (
-	ticketID    int64 = 314159
-	ticketIDStr       = "314159"
-	issueID     int64 = 26535
-	issueURL          = "url-for-viewing-issue=26535"
+	issueID  int64 = 26535
+	issueURL       = "url-for-viewing-issue=26535"
 )
+
+var ticketIDStr = fmt.Sprintf("%d", ticketID)
 
 func setUpAnyTicketLink(t *testing.T) {
 	setUp(t)

@@ -42,8 +42,8 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	}
 
 	// Gitea comment consists of a header giving the original Trac context then the Trac description converted to markdown
-	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, ticket.TicketID)
-	convertedDescription := markdownConverter.Convert(ticket.Description)
+	context := markdown.ConversionContext{TicketID: ticket.TicketID, WikiPage: ""}
+	convertedDescription := importer.markdownConverter.Convert(&context, ticket.Description)
 	fullDescription := addTracContext(tracDetails, ticket.Created, convertedDescription)
 
 	issue := gitea.Issue{Index: ticket.TicketID, Summary: ticket.Summary, ReporterID: reporterID,
@@ -108,7 +108,7 @@ func (importer *Importer) ImportTickets(
 		if err != nil {
 			return err
 		}
-		err = importer.importTicketComments(ticket.TicketID, issueID, lastUpdate, userMap)
+		lastUpdate, err = importer.importTicketComments(ticket.TicketID, issueID, lastUpdate, userMap)
 		if err != nil {
 			return err
 		}
@@ -117,6 +117,8 @@ func (importer *Importer) ImportTickets(
 		if closed {
 			closedCount++
 		}
+
+		err = importer.giteaAccessor.SetIssueUpdateTime(issueID, lastUpdate)
 
 		return nil
 	})

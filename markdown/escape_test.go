@@ -12,6 +12,6 @@ func TestEscape(t *testing.T) {
 
 	escaped := "NotWikiLinkInTrac"
 
-	conversion := converter.Convert(leadingText + "!" + escaped + trailingText)
+	conversion := converter.Convert(context, leadingText+"!"+escaped+trailingText)
 	assertEquals(t, conversion, leadingText+escaped+trailingText)
 }

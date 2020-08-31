@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/stevejefferson/trac2gitea/markdown"
+
 	"github.com/spf13/pflag"
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
@@ -155,7 +157,9 @@ func main() {
 	if err != nil {
 		log.Fatal("%+v", err)
 	}
-	dataImporter, err := data.CreateImporter(tracAccessor, giteaAccessor)
+	markdownConverter := markdown.CreateDefaultConverter(tracAccessor, giteaAccessor)
+
+	dataImporter, err := data.CreateImporter(tracAccessor, giteaAccessor, markdownConverter)
 	if err != nil {
 		log.Fatal("%+v", err)
 	}
@@ -193,7 +197,7 @@ func main() {
 	}
 
 	if !dbOnly {
-		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, wikiConvertPredefineds)
+		wikiImporter, err := wiki.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, wikiConvertPredefineds)
 		if err != nil {
 			log.Fatal("%+v", err)
 		}

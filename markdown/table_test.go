@@ -31,7 +31,7 @@ func TestSingleNonHeaderRowTableHasHeaderRowPrepended(t *testing.T) {
 		"| | | |\n" +
 		"|---|---|---|\n" +
 		"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n"
-	conversion := converter.Convert(leadingText + "\n\n" + tracTable + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n\n"+tracTable+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+trailingText)
 }
 
@@ -44,7 +44,7 @@ func TestSingleNonHeaderRowTableAtStartOfTextHasHeaderRowPrepended(t *testing.T)
 		"| | | |\n" +
 			"|---|---|---|\n" +
 			"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n"
-	conversion := converter.Convert(tracTable + trailingText)
+	conversion := converter.Convert(context, tracTable+trailingText)
 	assertEquals(t, conversion, markdownTable+trailingText)
 }
 
@@ -56,7 +56,7 @@ func TestSinglePartialHeaderRowTableBecomesAllHeaderRow(t *testing.T) {
 	markdownTable := "\n" +
 		"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n" +
 		"|---|---|---|\n"
-	conversion := converter.Convert(leadingText + "\n\n" + tracTable + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n\n"+tracTable+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+trailingText)
 }
 
@@ -68,7 +68,7 @@ func TestSingleAllHeaderRowTableRemainsAllHeaderRow(t *testing.T) {
 	markdownTable := "\n" +
 		"|" + row1Cell1 + "|" + row1Cell2 + "|" + row1Cell3 + "|\n" +
 		"|---|---|---|\n"
-	conversion := converter.Convert(leadingText + "\n\n" + tracTable + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n\n"+tracTable+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+trailingText)
 }
 
@@ -82,7 +82,7 @@ func TestBlankLineInsertedBetweenPrevLineAndTable(t *testing.T) {
 		"|---|---|---|\n"
 
 	// note omission of "\n" in text to convert compared to prev test
-	conversion := converter.Convert(leadingText + "\n" + tracTable + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+trailingText)
 }
 
@@ -102,7 +102,7 @@ func TestMultiRowTableWithNoHeader(t *testing.T) {
 		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
 		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|\n"
 
-	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable+"\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
 }
 
@@ -121,7 +121,7 @@ func TestMultiRowTableWithPartialHeader(t *testing.T) {
 		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
 		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|\n"
 
-	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable+"\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
 }
 
@@ -141,7 +141,7 @@ func TestMultiRowTableWithAllHeaders(t *testing.T) {
 		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
 		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|\n"
 
-	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable+"\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
 }
 
@@ -161,7 +161,7 @@ func TestTableAtStartOfText(t *testing.T) {
 		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
 		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|"
 
-	conversion := converter.Convert(leadingText + "\n" + tracTable)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable)
 }
 
@@ -181,7 +181,7 @@ func TestTableAtEndOfText(t *testing.T) {
 		"|" + row2Cell1 + "|" + row2Cell2 + "|" + row2Cell3 + "|\n" +
 		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|"
 
-	conversion := converter.Convert(leadingText + "\n" + tracTable)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable)
 }
 
@@ -203,6 +203,6 @@ func TestMultiRowTableWithCrazyHeadings(t *testing.T) {
 		"|" + row3Cell1 + "|" + row3Cell2 + "|" + row3Cell3 + "|\n" +
 		"||---||\n"
 
-	conversion := converter.Convert(leadingText + "\n" + tracTable + "\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n"+tracTable+"\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n"+markdownTable+"\n"+trailingText)
 }

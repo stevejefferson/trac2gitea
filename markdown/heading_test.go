@@ -14,7 +14,7 @@ func TestLevel1Heading(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n= " + headingText + " =\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n= "+headingText+" =\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n# "+headingText+"\n"+trailingText)
 }
 
@@ -22,7 +22,7 @@ func TestLevel2Heading(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n== " + headingText + " ==\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n== "+headingText+" ==\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n## "+headingText+"\n"+trailingText)
 }
 
@@ -30,7 +30,7 @@ func TestLevel3Heading(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n=== " + headingText + " ===\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n=== "+headingText+" ===\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n### "+headingText+"\n"+trailingText)
 }
 
@@ -38,7 +38,7 @@ func TestLevel4Heading(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n==== " + headingText + " ====\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n==== "+headingText+" ====\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n#### "+headingText+"\n"+trailingText)
 }
 
@@ -46,7 +46,7 @@ func TestLevel5Heading(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n===== " + headingText + " =====\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n===== "+headingText+" =====\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n##### "+headingText+"\n"+trailingText)
 }
 
@@ -54,7 +54,7 @@ func TestLevel6Heading(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n====== " + headingText + " ======\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n====== "+headingText+" ======\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n###### "+headingText+"\n"+trailingText)
 }
 
@@ -62,7 +62,7 @@ func TestHeadingWithNoTrailingPart(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "\n==== " + headingText + "\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n==== "+headingText+"\n"+trailingText)
 	assertEquals(t, conversion, leadingText+"\n#### "+headingText+"\n"+trailingText)
 }
 
@@ -71,7 +71,7 @@ func TestHeadingWithAnchor(t *testing.T) {
 	defer tearDown(t)
 
 	anchorName := "this-is-an-anchor"
-	conversion := converter.Convert(leadingText + "\n==== " + headingText + " ==== #" + anchorName + "\n" + trailingText)
+	conversion := converter.Convert(context, leadingText+"\n==== "+headingText+" ==== #"+anchorName+"\n"+trailingText)
 
 	// ideally we should test for a warning being issued
 	// unfortunately that would involve somehow intercepting/mocking our logging interface which is far from easy

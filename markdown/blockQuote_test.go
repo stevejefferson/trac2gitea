@@ -16,9 +16,10 @@ func TestBlockQuote(t *testing.T) {
 	defer tearDown(t)
 
 	conversion := converter.Convert(
-		leadingText + "\n" +
-			"  " + line1 +
-			"  " + line2 +
+		context,
+		leadingText+"\n"+
+			"  "+line1+
+			"  "+line2+
 			trailingText)
 	assertEquals(t, conversion,
 		leadingText+"\n"+

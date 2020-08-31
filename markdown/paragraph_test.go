@@ -10,7 +10,7 @@ func TestUpperCasePageBreak(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "[[BR]]" + trailingText)
+	conversion := converter.Convert(context, leadingText+"[[BR]]"+trailingText)
 	assertEquals(t, conversion, leadingText+"<br>"+trailingText)
 }
 
@@ -18,6 +18,6 @@ func TestLowerCasePageBreak(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
 
-	conversion := converter.Convert(leadingText + "[[br]]" + trailingText)
+	conversion := converter.Convert(context, leadingText+"[[br]]"+trailingText)
 	assertEquals(t, conversion, leadingText+"<br>"+trailingText)
 }

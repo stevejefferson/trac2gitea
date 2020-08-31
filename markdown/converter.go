@@ -4,8 +4,14 @@
 
 package markdown
 
+// ConversionContext provides the context for a conversion - either conversion of a ticket (comment) or a wiki page
+type ConversionContext struct {
+	TicketID int64
+	WikiPage string
+}
+
 // Converter is the interface for Trac markdown to Gitea markdown conversions
 type Converter interface {
-	// Convert converts a string of Trac markdown to Gitea markdown
-	Convert(in string) string
+	// Convert converts a Trac markdown string to Gitea markdown
+	Convert(context *ConversionContext, in string) string
 }

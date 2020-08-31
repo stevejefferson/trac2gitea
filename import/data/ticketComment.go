@@ -29,8 +29,8 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	}
 
 	tracDetails := fmt.Sprintf("original comment by %s", tracComment.Author)
-	markdownConverter := markdown.CreateTicketDefaultConverter(importer.tracAccessor, importer.giteaAccessor, tracComment.TicketID)
-	convertedText := markdownConverter.Convert(tracComment.Text)
+	context := markdown.ConversionContext{TicketID: tracComment.TicketID, WikiPage: ""}
+	convertedText := importer.markdownConverter.Convert(&context, tracComment.Text)
 	fullText := addTracContext(tracDetails, tracComment.Time, convertedText)
 	commentID, err := importer.giteaAccessor.GetIssueCommentID(issueID, fullText)
 	if err != nil {
@@ -54,23 +54,23 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	return commentID, nil
 }
 
-func (importer *Importer) importTicketComments(ticketID int64, issueID int64, lastUpdate int64, userMap map[string]string) error {
+func (importer *Importer) importTicketComments(ticketID int64, issueID int64, lastUpdate int64, userMap map[string]string) (int64, error) {
+	commentLastUpdate := lastUpdate
 	err := importer.tracAccessor.GetTicketComments(ticketID, func(comment *trac.TicketComment) error {
 		commentID, err := importer.importTicketComment(issueID, comment, userMap)
 		if err != nil {
 			return err
 		}
 
-		if commentID != -1 && lastUpdate < comment.Time {
-			lastUpdate = comment.Time
+		if commentID != -1 && commentLastUpdate < comment.Time {
+			commentLastUpdate = comment.Time
 		}
 
 		return nil
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	// Update issue modification time
-	return importer.giteaAccessor.SetIssueUpdateTime(issueID, lastUpdate)
+	return commentLastUpdate, nil
 }

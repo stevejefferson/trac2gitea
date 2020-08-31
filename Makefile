@@ -17,6 +17,7 @@ PACKAGES=$(shell go list ./...)
 ROOTPACKAGE=github.com/stevejefferson/trac2gitea
 
 MOCKFILES=\
+	mock_markdown/converter.go \
 	accessor/mock_gitea/accessor.go \
 	accessor/mock_trac/accessor.go
 
@@ -52,6 +53,9 @@ deps:
 mocks: $(MOCKFILES)
 
 # mock generation:
+mock_markdown/converter.go: markdown/converter.go
+	$(MOCKGEN) -destination=$@ $(ROOTPACKAGE)/$(<D) Converter
+
 accessor/mock_gitea/accessor.go: accessor/gitea/accessor.go
 	$(MOCKGEN) -destination=$@ $(ROOTPACKAGE)/$(<D) Accessor
 
@@ -62,7 +66,7 @@ mockdeps:
 	GO111MODULE=on go get github.com/golang/mock/mockgen@v1.4.3
 
 mockclean:
-	rm -rf accessor/mock_gitea accessor/mock_giteawiki accessor/mock_trac
+	rm -rf mock_markdown accessor/mock_gitea accessor/mock_giteawiki accessor/mock_trac
 
 .PHONY: lint lintdeps
 lint:
