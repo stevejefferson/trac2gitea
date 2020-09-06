@@ -14,24 +14,6 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
-// ImportWiki imports a Trac wiki into a Gitea wiki repository.
-func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error {
-	err := importer.giteaAccessor.CloneWiki()
-	if err != nil {
-		return err
-	}
-
-	importer.importWikiAttachments()
-	importer.importWikiPages(userMap)
-
-	if push {
-		return importer.giteaAccessor.PushWiki()
-	}
-
-	log.Info("trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.")
-	return nil
-}
-
 func (importer *Importer) importWikiAttachments() {
 	importer.tracAccessor.GetWikiAttachments(func(attachment *trac.WikiAttachment) error {
 		tracAttachmentPath := importer.tracAccessor.GetWikiAttachmentPath(attachment)
@@ -41,7 +23,7 @@ func (importer *Importer) importWikiAttachments() {
 }
 
 // cache of commit message list keyed by page name - use this because 'LogWiki' is potentially slow
-var commitMessagesByPage = make(map[string][]string)
+var commitMessagesByPage map[string][]string
 
 // pageCommitExists determines whether or not a commit of the given page exists with a commit message containing the provided string
 func (importer *Importer) pageCommitExists(pageName string, commitString string) (bool, error) {
@@ -65,6 +47,9 @@ func (importer *Importer) pageCommitExists(pageName string, commitString string)
 }
 
 func (importer *Importer) importWikiPages(userMap map[string]string) {
+	// reset page commit log cache
+	commitMessagesByPage = make(map[string][]string)
+
 	importer.tracAccessor.GetWikiPages(func(page *trac.WikiPage) error {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(page.Name) {
@@ -108,4 +93,22 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 		log.Info("wiki page %s: converted from Trac page %s, version %d", translatedPageName, page.Name, page.Version)
 		return err
 	})
+}
+
+// ImportWiki imports a Trac wiki into a Gitea wiki repository.
+func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error {
+	err := importer.giteaAccessor.CloneWiki()
+	if err != nil {
+		return err
+	}
+
+	importer.importWikiAttachments()
+	importer.importWikiPages(userMap)
+
+	if push {
+		return importer.giteaAccessor.PushWiki()
+	}
+
+	log.Info("trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.")
+	return nil
 }

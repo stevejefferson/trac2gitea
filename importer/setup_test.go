@@ -16,9 +16,11 @@ import (
 
 var ctrl *gomock.Controller
 var dataImporter *importer.Importer
+var predefinedPageDataImporter *importer.Importer
 var mockTracAccessor *mock_trac.MockAccessor
 var mockGiteaAccessor *mock_gitea.MockAccessor
 var mockMarkdownConverter *mock_markdown.MockConverter
+var userMap map[string]string
 
 func setUp(t *testing.T) {
 	ctrl = gomock.NewController(t)
@@ -28,8 +30,12 @@ func setUp(t *testing.T) {
 	mockGiteaAccessor = mock_gitea.NewMockAccessor(ctrl)
 	mockMarkdownConverter = mock_markdown.NewMockConverter(ctrl)
 
-	// create importer to be tested
+	// create user map - used by multiple tests
+	userMap = make(map[string]string)
+
+	// create importers to be tested
 	dataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, false)
+	predefinedPageDataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, true)
 }
 
 func tearDown(t *testing.T) {

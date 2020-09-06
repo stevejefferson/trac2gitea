@@ -59,8 +59,6 @@ func allocateInt() int64 {
 
 // Trac -> Gitea naming maps
 var (
-	userMap map[string]string
-
 	componentMap  map[string]string
 	priorityMap   map[string]string
 	resolutionMap map[string]string
@@ -70,8 +68,6 @@ var (
 )
 
 func initMaps() {
-	userMap = make(map[string]string)
-
 	componentMap = make(map[string]string)
 	priorityMap = make(map[string]string)
 	resolutionMap = make(map[string]string)
@@ -87,13 +83,13 @@ type TicketUserImport struct {
 	giteaUserID int64
 }
 
-func createTicketUserImport(prefix string, uMap map[string]string) *TicketUserImport {
+func createTicketUserImport(prefix string) *TicketUserImport {
 	user := TicketUserImport{
 		tracUser:    prefix + "-trac-user",
 		giteaUser:   prefix + "-gitea-user",
 		giteaUserID: allocateID(),
 	}
-	uMap[user.tracUser] = user.giteaUser
+	userMap[user.tracUser] = user.giteaUser
 	return &user
 }
 
@@ -105,10 +101,10 @@ var (
 )
 
 func setUpTicketUsers(t *testing.T) {
-	closedTicketOwner = createTicketUserImport("closed-owner", userMap)
-	closedTicketReporter = createTicketUserImport("closed-reporter", userMap)
-	openTicketOwner = createTicketUserImport("open-owner", userMap)
-	openTicketReporter = createTicketUserImport("open-reporter", userMap)
+	closedTicketOwner = createTicketUserImport("closed-owner")
+	closedTicketReporter = createTicketUserImport("closed-reporter")
+	openTicketOwner = createTicketUserImport("open-owner")
+	openTicketReporter = createTicketUserImport("open-reporter")
 }
 
 var (
@@ -119,10 +115,10 @@ var (
 )
 
 func setUpTicketCommentUsers(t *testing.T) {
-	closedTicketComment1Author = createTicketUserImport("closed-ticket-comment1-author", userMap)
-	closedTicketComment2Author = createTicketUserImport("closed-ticket-comment2-author", userMap)
-	openTicketComment1Author = createTicketUserImport("open-ticket-comment1-author", userMap)
-	openTicketComment2Author = createTicketUserImport("open-ticket-comment2-author", userMap)
+	closedTicketComment1Author = createTicketUserImport("closed-ticket-comment1-author")
+	closedTicketComment2Author = createTicketUserImport("closed-ticket-comment2-author")
+	openTicketComment1Author = createTicketUserImport("open-ticket-comment1-author")
+	openTicketComment2Author = createTicketUserImport("open-ticket-comment2-author")
 }
 
 var (
@@ -133,10 +129,10 @@ var (
 )
 
 func setUpTicketAttachmentUsers(t *testing.T) {
-	closedTicketAttachment1Author = createTicketUserImport("closed-ticket-attachment1-author", userMap)
-	closedTicketAttachment2Author = createTicketUserImport("closed-ticket-attachment2-author", userMap)
-	openTicketAttachment1Author = createTicketUserImport("open-ticket-attachment1-author", userMap)
-	openTicketAttachment2Author = createTicketUserImport("open-ticket-attachment2-author", userMap)
+	closedTicketAttachment1Author = createTicketUserImport("closed-ticket-attachment1-author")
+	closedTicketAttachment2Author = createTicketUserImport("closed-ticket-attachment2-author")
+	openTicketAttachment1Author = createTicketUserImport("open-ticket-attachment1-author")
+	openTicketAttachment2Author = createTicketUserImport("open-ticket-attachment2-author")
 }
 
 // TicketLabelImport holds the data on a label associated with an imported ticket
