@@ -29,8 +29,8 @@ var (
 	// regexp for trac 'htdocs:<link>': $1=link
 	htdocsLinkRegexp = regexp.MustCompile(`htdocs:([[:alnum:]\-._~:/?#@!$&'"()*+,;%=]+)`)
 
-	// regexp for a trac  'comment:<commentNum>:ticket:<ticketID>' link: $1=commentNum, $2=ticketID
-	ticketCommentLinkRegexp = regexp.MustCompile(`comment:([[:digit:]]+):ticket:([[:digit:]]+)`)
+	// regexp for a trac 'comment:<commentNum>' and 'comment:<commentNum>:ticket:<ticketID>' link: $1=commentNum, $2=ticketID
+	ticketCommentLinkRegexp = regexp.MustCompile(`comment:([[:digit:]]+)(?::ticket:([[:digit:]]+))?`)
 
 	// regexp for a trac 'milestone:<milestoneName>' link: $1=milestoneName
 	milestoneLinkRegexp = regexp.MustCompile(`milestone:([[:alnum:]\-._~:/?#@!$&'"()*+,;%=]+)`)
@@ -87,35 +87,44 @@ func (converter *DefaultConverter) resolveHtdocsLink(link string) string {
 	return markLink(wikiHtdocURL)
 }
 
-func (converter *DefaultConverter) resolveTicketCommentLink(link string) string {
-	ticketCommentNumStr := ticketCommentLinkRegexp.ReplaceAllString(link, `$1`)
-	var ticketCommentNum int64
-	ticketCommentNum, err := strconv.ParseInt(ticketCommentNumStr, 10, 64)
+func (converter *DefaultConverter) resolveTicketCommentLink(ticketID int64, link string) string {
+	commentNumStr := ticketCommentLinkRegexp.ReplaceAllString(link, `$1`)
+	var commentNum int64
+	commentNum, err := strconv.ParseInt(commentNumStr, 10, 64)
 	if err != nil {
-		log.Warn("found invalid Trac ticket comment number %s", ticketCommentNum)
+		log.Warn("found invalid Trac ticket comment number %s", commentNum)
 		return link
 	}
 
-	ticketIDStr := ticketCommentLinkRegexp.ReplaceAllString(link, `$2`)
-	var ticketID int64
-	ticketID, err = strconv.ParseInt(ticketIDStr, 10, 64)
-	if err != nil {
-		log.Warn("found invalid Trac ticket id %s", ticketIDStr)
-		return link
+	commentTicketIDStr := ticketCommentLinkRegexp.ReplaceAllString(link, `$2`)
+	var commentTicketID int64
+	if commentTicketIDStr != "" {
+		commentTicketID, err = strconv.ParseInt(commentTicketIDStr, 10, 64)
+		if err != nil {
+			log.Warn("found invalid Trac ticket id %s", commentTicketIDStr)
+			return link
+		}
+	} else {
+		// comment on current ticket
+		if ticketID == -1 {
+			log.Warn("found Trac reference to comment %d of unknown ticket", commentNum)
+			return link
+		}
+		commentTicketID = ticketID
 	}
 
-	issueID, err := converter.giteaAccessor.GetIssueID(ticketID)
+	issueID, err := converter.giteaAccessor.GetIssueID(commentTicketID)
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
 	if issueID == -1 {
-		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", ticketID, link)
+		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", commentTicketID, link)
 		return link // not a recognised link - do not mark
 	}
 
 	// find gitea ID for trac comment
 	// - unfortunately the only real linkage between the trac comment number and gitea comment id here is the comment string itself
-	commentStr, err := converter.tracAccessor.GetTicketCommentString(ticketID, ticketCommentNum)
+	commentStr, err := converter.tracAccessor.GetTicketCommentString(commentTicketID, commentNum)
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
@@ -143,51 +152,63 @@ func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 	return markLink(milestoneURL)
 }
 
+func (converter *DefaultConverter) resolveTicketAttachmentLink(ticketID int64, attachmentName string, link string) string {
+	issueID, err := converter.giteaAccessor.GetIssueID(ticketID)
+	if err != nil {
+		return link // not a recognised link - do not mark
+	}
+	if issueID == -1 {
+		log.Warn("cannot find Gitea issue for ticket %d for Trac link \"%s\"", ticketID, link)
+		return link // not a recognised link - do not mark
+	}
+
+	uuid, err := converter.giteaAccessor.GetIssueAttachmentUUID(issueID, attachmentName)
+	if err != nil {
+		return link // not a recognised link - do not mark
+	}
+	if uuid == "" {
+		log.Warn("cannot find attachment \"%s\" for issue %d for Trac link \"%s\"", attachmentName, issueID, link)
+		return link // not a recognised link - do not mark
+	}
+
+	attachmentURL := converter.giteaAccessor.GetIssueAttachmentURL(uuid)
+	return markLink(attachmentURL)
+}
+
+func (converter *DefaultConverter) resolveWikiAttachmentLink(wikiPage string, attachmentName string, link string) string {
+	attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(wikiPage, attachmentName)
+	attachmentURL := converter.giteaAccessor.GetWikiFileURL(attachmentWikiRelPath)
+	return markLink(attachmentURL)
+}
+
 func (converter *DefaultConverter) resolveAttachmentLink(ticketID int64, wikiPage string, link string) string {
 	attachmentName := attachmentLinkRegexp.ReplaceAllString(link, `$1`)
-	linkWikiPage := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
-	ticketIDStr := attachmentLinkRegexp.ReplaceAllString(link, `$3`)
+	attachmentWikiPage := attachmentLinkRegexp.ReplaceAllString(link, `$2`)
+	attachmentTicketIDStr := attachmentLinkRegexp.ReplaceAllString(link, `$3`)
 
 	// there are two types of attachment: ticket attachments and wiki attachments...
-	var attachmentURL string
-	if ticketIDStr != "" {
-		var ticketID int64
-		ticketID, err := strconv.ParseInt(ticketIDStr, 10, 64)
+	if attachmentTicketIDStr != "" {
+		var attachmentTicketID int64
+		attachmentTicketID, err := strconv.ParseInt(attachmentTicketIDStr, 10, 64)
 		if err != nil {
-			log.Warn("found invalid Trac ticket id %s", ticketIDStr)
+			log.Warn("found invalid Trac ticket id %s", attachmentTicketIDStr)
 			return link
 		}
 
-		issueID, err := converter.giteaAccessor.GetIssueID(ticketID)
-		if err != nil {
-			return link // not a recognised link - do not mark (error already logged)
-		}
-		if issueID == -1 {
-			log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", ticketID, link)
-			return link // not a recognised link - do not mark
-		}
-
-		uuid, err := converter.giteaAccessor.GetIssueAttachmentUUID(issueID, attachmentName)
-		if err != nil {
-			return link // not a recognised link - do not mark (error already logged)
-		}
-		if uuid == "" {
-			log.Warn("cannot find attachment \"%s\" for issue %d referenced by Trac link \"%s\"", attachmentName, issueID, link)
-			return link // not a recognised link - do not mark
-		}
-
-		attachmentURL = converter.giteaAccessor.GetIssueAttachmentURL(uuid)
-	} else {
-		attachmentWikiPage := wikiPage
-		if linkWikiPage != "" {
-			attachmentWikiPage = linkWikiPage
-		}
-
-		attachmentWikiRelPath := converter.giteaAccessor.GetWikiAttachmentRelPath(attachmentWikiPage, attachmentName)
-		attachmentURL = converter.giteaAccessor.GetWikiFileURL(attachmentWikiRelPath)
+		return converter.resolveTicketAttachmentLink(attachmentTicketID, attachmentName, link)
+	} else if attachmentWikiPage != "" {
+		return converter.resolveWikiAttachmentLink(attachmentWikiPage, attachmentName, link)
 	}
 
-	return markLink(attachmentURL)
+	// no explicit ticket or wiki provided for attachment - use whichever of `ticketID` and `wiki` has been provided
+	if ticketID != -1 {
+		return converter.resolveTicketAttachmentLink(ticketID, attachmentName, link)
+	} else if wikiPage != "" {
+		return converter.resolveWikiAttachmentLink(wikiPage, attachmentName, link)
+	}
+
+	log.Warn("Trac attachment link \"%s\" requires either ticket or wiki", link)
+	return link
 }
 
 func (converter *DefaultConverter) resolveChangesetLink(link string) string {
@@ -308,7 +329,7 @@ func (converter *DefaultConverter) convertUnbrackettedTracLinks(ticketID int64, 
 	})
 
 	out = ticketCommentLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {
-		return converter.resolveTicketCommentLink(match)
+		return converter.resolveTicketCommentLink(ticketID, match)
 	})
 
 	out = milestoneLinkRegexp.ReplaceAllStringFunc(out, func(match string) string {

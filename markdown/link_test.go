@@ -57,12 +57,26 @@ func markdownImageWithLink(image string, link string) string {
 	return "[![](" + image + ")](" + link + ")"
 }
 
+func ticketConvert(tracText string) string {
+	return converter.TicketConvert(ticketID, tracText)
+}
+
+func wikiConvert(tracText string) string {
+	return converter.WikiConvert(wikiPage, tracText)
+}
+
 // verifyLink verifies that the provided trac formatting for a link + text results in the corresponding markdown format
-func verifyLink(t *testing.T, setUpFn func(t *testing.T), tearDownFn func(t *testing.T), tracFormatLink string, markdownFormatLink string) {
+func verifyLink(
+	t *testing.T,
+	setUpFn func(t *testing.T),
+	tearDownFn func(t *testing.T),
+	convertFn func(tracText string) string,
+	tracFormatLink string,
+	markdownFormatLink string) {
 	setUpFn(t)
 	defer tearDownFn(t)
 
-	conversion := converter.WikiConvert(wikiPage, leadingText+" "+tracFormatLink+" "+trailingText)
+	conversion := convertFn(leadingText + " " + tracFormatLink + " " + trailingText)
 	assertEquals(t, conversion, leadingText+" "+markdownFormatLink+" "+trailingText)
 }
 
@@ -71,27 +85,33 @@ const (
 	additionalImageLink = "http://somewhere.com"
 )
 
-func verifyAllLinkTypes(t *testing.T, setUpFn func(t *testing.T), tearDownFn func(t *testing.T), tracLinkStr string, markdownLinkStr string) {
-	verifyLink(t, setUpFn, tearDownFn, tracPlainLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
-	verifyLink(t, setUpFn, tearDownFn, tracSingleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
-	verifyLink(t, setUpFn, tearDownFn, tracSingleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
-	verifyLink(t, setUpFn, tearDownFn, tracDoubleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
-	verifyLink(t, setUpFn, tearDownFn, tracDoubleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
-	verifyLink(t, setUpFn, tearDownFn, tracImage(tracLinkStr), markdownImage(markdownLinkStr))
-	verifyLink(t, setUpFn, tearDownFn, tracImageWithLink(tracLinkStr, additionalImageLink), markdownImageWithLink(markdownLinkStr, additionalImageLink))
-	verifyLink(t, setUpFn, tearDownFn, tracImageWithLink(additionalImageLink, tracLinkStr), markdownImageWithLink(additionalImageLink, markdownLinkStr))
+func verifyAllLinkTypes(
+	t *testing.T,
+	setUpFn func(t *testing.T),
+	tearDownFn func(t *testing.T),
+	convertFn func(tracText string) string,
+	tracLinkStr string,
+	markdownLinkStr string) {
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracPlainLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracSingleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracSingleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracDoubleBracketLink(tracLinkStr), markdownAutomaticLink(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracDoubleBracketLinkWithText(tracLinkStr, linkText), markdownLinkWithText(markdownLinkStr, linkText))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracImage(tracLinkStr), markdownImage(markdownLinkStr))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracImageWithLink(tracLinkStr, additionalImageLink), markdownImageWithLink(markdownLinkStr, additionalImageLink))
+	verifyLink(t, setUpFn, tearDownFn, convertFn, tracImageWithLink(additionalImageLink, tracLinkStr), markdownImageWithLink(additionalImageLink, markdownLinkStr))
 }
 
 const httpLink = "http://www.example.com"
 
 func TestHttpLinks(t *testing.T) {
-	verifyAllLinkTypes(t, setUp, tearDown, httpLink, httpLink)
+	verifyAllLinkTypes(t, setUp, tearDown, wikiConvert, httpLink, httpLink)
 }
 
 const httpsLink = "https://www.example.com"
 
 func TestHttpsLink(t *testing.T) {
-	verifyAllLinkTypes(t, setUp, tearDown, httpsLink, httpsLink)
+	verifyAllLinkTypes(t, setUp, tearDown, wikiConvert, httpsLink, httpsLink)
 }
 
 const (
@@ -133,6 +153,7 @@ func TestHtdocsLink(t *testing.T) {
 		t,
 		setUpHtdocs,
 		tearDown,
+		wikiConvert,
 		tracHtdocLink,
 		giteaHtdocURL)
 }
@@ -157,6 +178,7 @@ func TestWikiUnprefixedLink(t *testing.T) {
 		t,
 		setUpWikiLink,
 		tearDown,
+		wikiConvert,
 		wikiPageName,
 		transformedWikiPageName)
 }
@@ -166,6 +188,7 @@ func TestWikiPrefixedLink(t *testing.T) {
 		t,
 		setUpWikiLink,
 		tearDown,
+		wikiConvert,
 		"wiki:"+wikiPageName,
 		transformedWikiPageName)
 }
@@ -177,6 +200,7 @@ func TestWikiUnprefixedLinkWithAnchor(t *testing.T) {
 		t,
 		setUpWikiLink,
 		tearDown,
+		wikiConvert,
 		wikiPageName+"#"+wikiPageAnchor,
 		transformedWikiPageName+"#"+wikiPageAnchor)
 }
@@ -186,6 +210,7 @@ func TestWikiPrefixedLinkWithAnchor(t *testing.T) {
 		t,
 		setUpWikiLink,
 		tearDown,
+		wikiConvert,
 		"wiki:"+wikiPageName+"#"+wikiPageAnchor,
 		transformedWikiPageName+"#"+wikiPageAnchor)
 }
@@ -197,18 +222,18 @@ const (
 
 var ticketIDStr = fmt.Sprintf("%d", ticketID)
 
-func setUpAnyTicketLink(t *testing.T) {
+func setUpAnyTicketLink(t *testing.T, tktID int64) {
 	setUp(t)
 
 	// expect call to lookup gitea issue for trac ticket
 	mockGiteaAccessor.
 		EXPECT().
-		GetIssueID(gomock.Eq(ticketID)).
+		GetIssueID(gomock.Eq(tktID)).
 		Return(issueID, nil)
 }
 
 func setUpTicketOnlyLink(t *testing.T) {
-	setUpAnyTicketLink(t)
+	setUpAnyTicketLink(t, ticketID)
 
 	// expect call to lookup gitea issue URL
 	mockGiteaAccessor.
@@ -222,6 +247,7 @@ func TestTicketLink(t *testing.T) {
 		t,
 		setUpTicketOnlyLink,
 		tearDown,
+		wikiConvert,
 		"ticket:"+ticketIDStr,
 		issueURL)
 }
@@ -234,13 +260,13 @@ const (
 	commentURL        string = "url-of-comment-54321"
 )
 
-func setUpTicketCommentLink(t *testing.T) {
-	setUpAnyTicketLink(t)
+func setUpTicketCommentLink(t *testing.T, tktID int64) {
+	setUpAnyTicketLink(t, tktID)
 
 	// expect a call to lookup text of trac comment
 	mockTracAccessor.
 		EXPECT().
-		GetTicketCommentString(gomock.Eq(ticketID), gomock.Eq(tracCommentNum)).
+		GetTicketCommentString(gomock.Eq(tktID), gomock.Eq(tracCommentNum)).
 		Return(commentStr, nil)
 
 	// expect call to lookup gitea ID for trac comment
@@ -256,13 +282,37 @@ func setUpTicketCommentLink(t *testing.T) {
 		Return(commentURL)
 }
 
-func TestTicketCommentLink(t *testing.T) {
+func setUpImplicitTicketCommentLink(t *testing.T) {
+	setUpTicketCommentLink(t, ticketID)
+}
+
+func TestImplicitTicketCommentLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpMilestoneLink,
+		setUpImplicitTicketCommentLink,
 		tearDown,
-		"milestone:"+milestoneName,
-		milestoneURL)
+		ticketConvert,
+		"comment:"+tracCommentNumStr,
+		commentURL)
+}
+
+const (
+	otherTicketID    int64  = 234567
+	otherTicketIDStr string = "234567"
+)
+
+func setUpExplicitTicketCommentLink(t *testing.T) {
+	setUpTicketCommentLink(t, otherTicketID)
+}
+
+func TestExplicitTicketCommentLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpExplicitTicketCommentLink,
+		tearDown,
+		ticketConvert,
+		"comment:"+tracCommentNumStr+":ticket:"+otherTicketIDStr,
+		commentURL)
 }
 
 const (
@@ -290,10 +340,11 @@ func setUpMilestoneLink(t *testing.T) {
 func TestMilestoneLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpTicketCommentLink,
+		setUpMilestoneLink,
 		tearDown,
-		"comment:"+tracCommentNumStr+":ticket:"+ticketIDStr,
-		commentURL)
+		wikiConvert,
+		"milestone:"+milestoneName,
+		milestoneURL)
 }
 
 const (
@@ -302,13 +353,13 @@ const (
 	attachmentWikiURL     = "url-for-accessing-some-attachment-in-wiki"
 )
 
-func setUpAttachmentLink(t *testing.T) {
+func setUpWikiAttachmentLink(t *testing.T, page string) {
 	setUp(t)
 
 	// expect call to get relative path of attachment within wiki repo
 	mockGiteaAccessor.
 		EXPECT().
-		GetWikiAttachmentRelPath(gomock.Eq(wikiPage), gomock.Eq(attachmentName)).
+		GetWikiAttachmentRelPath(gomock.Eq(page), gomock.Eq(attachmentName)).
 		Return(attachmentWikiRelPath)
 
 	// expect call to lookup URL for attachment file
@@ -318,11 +369,16 @@ func setUpAttachmentLink(t *testing.T) {
 		Return(attachmentWikiURL)
 }
 
-func TestAttachmentLink(t *testing.T) {
+func setUpImplicitWikiAttachmentLink(t *testing.T) {
+	setUpWikiAttachmentLink(t, wikiPage)
+}
+
+func TestImplicitWikiAttachmentLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpAttachmentLink,
+		setUpImplicitWikiAttachmentLink,
 		tearDown,
+		wikiConvert,
 		"attachment:"+attachmentName,
 		attachmentWikiURL)
 }
@@ -331,27 +387,16 @@ const (
 	otherWikiPage = "SomeOtherWikiPage"
 )
 
-func setUpWikiAttachmentLink(t *testing.T) {
-	setUp(t)
-
-	// expect call to get relative path of attachment within wiki repo
-	mockGiteaAccessor.
-		EXPECT().
-		GetWikiAttachmentRelPath(gomock.Eq(otherWikiPage), gomock.Eq(attachmentName)).
-		Return(attachmentWikiRelPath)
-
-	// expect call to lookup URL for attachment file
-	mockGiteaAccessor.
-		EXPECT().
-		GetWikiFileURL(gomock.Eq(attachmentWikiRelPath)).
-		Return(attachmentWikiURL)
+func setUpExplicitWikiAttachmentLink(t *testing.T) {
+	setUpWikiAttachmentLink(t, otherWikiPage)
 }
 
-func TestWikiAttachmentLink(t *testing.T) {
+func TestExplicitWikiAttachmentLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpWikiAttachmentLink,
+		setUpExplicitWikiAttachmentLink,
 		tearDown,
+		wikiConvert,
 		"attachment:"+attachmentName+":wiki:"+otherWikiPage,
 		attachmentWikiURL)
 }
@@ -361,8 +406,8 @@ const (
 	ticketAttachmentURL  = "url-of-ticket-attachment"
 )
 
-func setUpTicketAttachmentLink(t *testing.T) {
-	setUpAnyTicketLink(t)
+func setUpTicketAttachmentLink(t *testing.T, tktID int64) {
+	setUpAnyTicketLink(t, tktID)
 
 	// expect call to get relative path of attachment within wiki repo
 	mockGiteaAccessor.
@@ -377,12 +422,31 @@ func setUpTicketAttachmentLink(t *testing.T) {
 		Return(ticketAttachmentURL)
 }
 
-func TestTicketAttachmentLink(t *testing.T) {
+func setUpImplicitTicketAttachmentLink(t *testing.T) {
+	setUpTicketAttachmentLink(t, ticketID)
+}
+
+func TestImplicitTicketAttachmentLink(t *testing.T) {
 	verifyAllLinkTypes(
 		t,
-		setUpTicketAttachmentLink,
+		setUpImplicitTicketAttachmentLink,
 		tearDown,
-		"attachment:"+attachmentName+":ticket:"+ticketIDStr,
+		ticketConvert,
+		"attachment:"+attachmentName,
+		ticketAttachmentURL)
+}
+
+func setUpExplicitTicketAttachmentLink(t *testing.T) {
+	setUpTicketAttachmentLink(t, otherTicketID)
+}
+
+func TestExplicitTicketAttachmentLink(t *testing.T) {
+	verifyAllLinkTypes(
+		t,
+		setUpExplicitTicketAttachmentLink,
+		tearDown,
+		ticketConvert,
+		"attachment:"+attachmentName+":ticket:"+otherTicketIDStr,
 		ticketAttachmentURL)
 }
 
@@ -406,6 +470,7 @@ func TestChangesetLink(t *testing.T) {
 		t,
 		setUpChangesetLink,
 		tearDown,
+		wikiConvert,
 		"changeset:\""+commitID+"/repository-name\"",
 		commitURL)
 }
@@ -430,6 +495,7 @@ func TestSourceLink(t *testing.T) {
 		t,
 		setUpSourceLink,
 		tearDown,
+		wikiConvert,
 		"source:\"repo-name/"+sourcePath+"\"",
 		sourceURL)
 }
