@@ -109,28 +109,23 @@ func setUpHtdocs(t *testing.T) {
 	mockTracAccessor.
 		EXPECT().
 		GetFullPath(gomock.Eq("htdocs"), gomock.Eq(htdocFile)).
-		Return(tracHtdocPath).
-		AnyTimes()
+		Return(tracHtdocPath)
 
 	// expect to retrieve path where trac "htdocs" file will be stored in the Wiki repo
 	mockGiteaAccessor.
 		EXPECT().
 		GetWikiHtdocRelPath(gomock.Eq(htdocFile)).
-		Return(giteaHtdocFile).
-		AnyTimes()
+		Return(giteaHtdocFile)
 
 	// expect to copy file into "htdocs" subdirectory of Wiki repo
 	mockGiteaAccessor.
 		EXPECT().
-		CopyFileToWiki(gomock.Eq(tracHtdocPath), gomock.Eq(giteaHtdocFile)).
-		AnyTimes()
-
+		CopyFileToWiki(gomock.Eq(tracHtdocPath), gomock.Eq(giteaHtdocFile))
 	// expect to retrieve URL for viewing htdocs file in wiki repo
 	mockGiteaAccessor.
 		EXPECT().
 		GetWikiFileURL(gomock.Eq(giteaHtdocFile)).
-		Return(giteaHtdocURL).
-		AnyTimes()
+		Return(giteaHtdocURL)
 }
 
 func TestHtdocsLink(t *testing.T) {
@@ -154,8 +149,7 @@ func setUpWikiLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		TranslateWikiPageName(gomock.Eq(wikiPageName)).
-		Return(transformedWikiPageName).
-		AnyTimes()
+		Return(transformedWikiPageName)
 }
 
 func TestWikiUnprefixedLink(t *testing.T) {
@@ -210,8 +204,7 @@ func setUpAnyTicketLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetIssueID(gomock.Eq(ticketID)).
-		Return(issueID, nil).
-		AnyTimes()
+		Return(issueID, nil)
 }
 
 func setUpTicketOnlyLink(t *testing.T) {
@@ -221,8 +214,7 @@ func setUpTicketOnlyLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetIssueURL(gomock.Eq(issueID)).
-		Return(issueURL).
-		AnyTimes()
+		Return(issueURL)
 }
 
 func TestTicketLink(t *testing.T) {
@@ -249,22 +241,19 @@ func setUpTicketCommentLink(t *testing.T) {
 	mockTracAccessor.
 		EXPECT().
 		GetTicketCommentString(gomock.Eq(ticketID), gomock.Eq(tracCommentNum)).
-		Return(commentStr, nil).
-		AnyTimes()
+		Return(commentStr, nil)
 
 	// expect call to lookup gitea ID for trac comment
 	mockGiteaAccessor.
 		EXPECT().
 		GetIssueCommentID(gomock.Eq(issueID), gomock.Eq(commentStr)).
-		Return(commentID, nil).
-		AnyTimes()
+		Return(commentID, nil)
 
 	// expect call to lookup URL of gitea comment
 	mockGiteaAccessor.
 		EXPECT().
 		GetIssueCommentURL(gomock.Eq(issueID), gomock.Eq(commentID)).
-		Return(commentURL).
-		AnyTimes()
+		Return(commentURL)
 }
 
 func TestTicketCommentLink(t *testing.T) {
@@ -289,15 +278,13 @@ func setUpMilestoneLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetMilestoneID(gomock.Eq(milestoneName)).
-		Return(milestoneID, nil).
-		AnyTimes()
+		Return(milestoneID, nil)
 
 	// expect call to lookup URL for milestone
 	mockGiteaAccessor.
 		EXPECT().
 		GetMilestoneURL(gomock.Eq(milestoneID)).
-		Return(milestoneURL).
-		AnyTimes()
+		Return(milestoneURL)
 }
 
 func TestMilestoneLink(t *testing.T) {
@@ -322,15 +309,13 @@ func setUpAttachmentLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetWikiAttachmentRelPath(gomock.Eq(wikiPage), gomock.Eq(attachmentName)).
-		Return(attachmentWikiRelPath).
-		AnyTimes()
+		Return(attachmentWikiRelPath)
 
 	// expect call to lookup URL for attachment file
 	mockGiteaAccessor.
 		EXPECT().
 		GetWikiFileURL(gomock.Eq(attachmentWikiRelPath)).
-		Return(attachmentWikiURL).
-		AnyTimes()
+		Return(attachmentWikiURL)
 }
 
 func TestAttachmentLink(t *testing.T) {
@@ -353,15 +338,13 @@ func setUpWikiAttachmentLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetWikiAttachmentRelPath(gomock.Eq(otherWikiPage), gomock.Eq(attachmentName)).
-		Return(attachmentWikiRelPath).
-		AnyTimes()
+		Return(attachmentWikiRelPath)
 
 	// expect call to lookup URL for attachment file
 	mockGiteaAccessor.
 		EXPECT().
 		GetWikiFileURL(gomock.Eq(attachmentWikiRelPath)).
-		Return(attachmentWikiURL).
-		AnyTimes()
+		Return(attachmentWikiURL)
 }
 
 func TestWikiAttachmentLink(t *testing.T) {
@@ -385,15 +368,13 @@ func setUpTicketAttachmentLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetIssueAttachmentUUID(gomock.Eq(issueID), gomock.Eq(attachmentName)).
-		Return(ticketAttachmentUUID, nil).
-		AnyTimes()
+		Return(ticketAttachmentUUID, nil)
 
 	// expect call to lookup URL for attachment file
 	mockGiteaAccessor.
 		EXPECT().
 		GetIssueAttachmentURL(gomock.Eq(ticketAttachmentUUID)).
-		Return(ticketAttachmentURL).
-		AnyTimes()
+		Return(ticketAttachmentURL)
 }
 
 func TestTicketAttachmentLink(t *testing.T) {
@@ -417,8 +398,7 @@ func setUpChangesetLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetCommitURL(gomock.Eq(commitID)).
-		Return(commitURL).
-		AnyTimes()
+		Return(commitURL)
 }
 
 func TestChangesetLink(t *testing.T) {
@@ -442,8 +422,7 @@ func setUpSourceLink(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetSourceURL(gomock.Eq("master"), gomock.Eq(sourcePath)).
-		Return(sourceURL).
-		AnyTimes()
+		Return(sourceURL)
 }
 
 func TestSourceLink(t *testing.T) {

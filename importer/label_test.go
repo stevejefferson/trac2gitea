@@ -49,25 +49,23 @@ func setUpComponents(t *testing.T) {
 			handlerFn(tracItemRemoved)
 			handlerFn(tracItemUnnamed)
 			return nil
-		}).
-		AnyTimes()
+		})
 }
 
 func expectToAddLabels(t *testing.T) {
 	// expect call to lookup ids of each of our (non-unnamed, non-removed) labels, return -1 as they don't exist
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName1).Return(int64(-1), nil).AnyTimes()
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName2).Return(int64(-1), nil).AnyTimes()
+	mockGiteaAccessor.EXPECT().GetLabelID(labelName1).Return(int64(-1), nil)
+	mockGiteaAccessor.EXPECT().GetLabelID(labelName2).Return(int64(-1), nil)
 
 	// expect to add new labels on the basis of them not existing above
-	mockGiteaAccessor.EXPECT().AddLabel(labelName1, gomock.Any()).Return(labelID1, nil).AnyTimes()
-	mockGiteaAccessor.EXPECT().AddLabel(labelName2, gomock.Any()).Return(labelID2, nil).AnyTimes()
+	mockGiteaAccessor.EXPECT().AddLabel(labelName1, gomock.Any()).Return(labelID1, nil)
+	mockGiteaAccessor.EXPECT().AddLabel(labelName2, gomock.Any()).Return(labelID2, nil)
 }
 
 func expectToNotAddLabels(t *testing.T) {
 	// expect call to lookup ids of each of our (non-unnamed, non-removed) labels, return ids because they exist
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName1).Return(labelID1, nil).AnyTimes()
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName2).Return(labelID2, nil).AnyTimes()
-
+	mockGiteaAccessor.EXPECT().GetLabelID(labelName1).Return(labelID1, nil)
+	mockGiteaAccessor.EXPECT().GetLabelID(labelName2).Return(labelID2, nil)
 	// do not expect to add new labels...
 }
 
@@ -102,8 +100,7 @@ func setUpPriorities(t *testing.T) {
 			handlerFn(tracItemRemoved)
 			handlerFn(tracItemUnnamed)
 			return nil
-		}).
-		AnyTimes()
+		})
 }
 
 func TestImportPrioritiesWhereNoLabelsExist(t *testing.T) {
@@ -137,8 +134,7 @@ func setUpResolutions(t *testing.T) {
 			handlerFn(tracItemRemoved)
 			handlerFn(tracItemUnnamed)
 			return nil
-		}).
-		AnyTimes()
+		})
 }
 
 func TestImportResolutionsWhereNoLabelsExist(t *testing.T) {
@@ -172,8 +168,7 @@ func setUpSeverities(t *testing.T) {
 			handlerFn(tracItemRemoved)
 			handlerFn(tracItemUnnamed)
 			return nil
-		}).
-		AnyTimes()
+		})
 }
 
 func TestImportSeveritiesWhereNoLabelsExist(t *testing.T) {
@@ -207,8 +202,7 @@ func setUpTypes(t *testing.T) {
 			handlerFn(tracItemRemoved)
 			handlerFn(tracItemUnnamed)
 			return nil
-		}).
-		AnyTimes()
+		})
 }
 
 func TestImportTypesWhereNoLabelsExist(t *testing.T) {
@@ -242,8 +236,7 @@ func setUpVersions(t *testing.T) {
 			handlerFn(tracItemRemoved)
 			handlerFn(tracItemUnnamed)
 			return nil
-		}).
-		AnyTimes()
+		})
 }
 
 func TestImportVersionsWhereNoLabelsExist(t *testing.T) {
