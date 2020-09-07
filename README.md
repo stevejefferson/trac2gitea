@@ -32,11 +32,12 @@ At present the following Trac data is converted:
     * `htdocs:...` (files are stored in a `htdocs` subdirectory of the Gitea wiki repository)
     * `CamelCase` inter-wiki links
     * `wiki:...` inter-wiki links
-    * `attachment:...` current wiki page attachment references (files are stored in a `attachments/<pageName>` subdirectory of the Gitea wiki repository)
+    * `attachment:...` current ticket or wiki page attachment references
+    * `attachment:...:ticket:...` ticket attachment references
     * `attachment:...:wiki:...` wiki attachment references (files are stored in a `attachments/<pageName>` subdirectory of the Gitea wiki repository)
     * `ticket:...` ticket references
+    * `comment:...` current ticket comment references
     * `comment:...:ticket:...` ticket comment references
-    * `attachment:...:ticket:...` ticket attachment references
     * `milestone:...` milestone references
     * `changeset:...` changeset references
     * `source:...` source file references
