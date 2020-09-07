@@ -14,13 +14,13 @@ import (
 )
 
 /*
- * The tests in here are (of necessity) complex.
+ * The tests in here are complex.
  *
- * They are driven from data expessed in terms of the Ticket*Import types below set up in the `setUp*` functions.
- * The Ticket*Import contain both data to be returned from Trac and data to be returned from Gitea in response to that Trac data.
+ * They are driven from data expessed in terms of the `Ticket*Import` types below, set up in the `setUp*` functions.
+ * The `Ticket*Import` types contain both data to be returned from Trac and data to be returned from Gitea in response to that Trac data.
  *
  * The data created by the `setUp*` functions is passed into the `expect*` functions to set up expections on the mock trac and gitea accessors
- * and on the mock markdown converter governed by the fields in the data.
+ * and on the mock markdown converter. These expectations are governed by the fields in the `Ticket*Import` data.
  *
  * The actual test methods call the top-level `setUp` method to set up all data followed by a selection of `expect` methods to create mock expections
  * for some or all of that data. Finally `importer.ImportTickets(...)` is called to trigger the actual importation we are testing.
