@@ -76,20 +76,21 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 		markdownText := importer.markdownConverter.WikiConvert(page.Name, page.Text)
 		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
 
-		// find Gitea equivalent of Trac author
+		// find Gitea equivalent of Trac author if any
+		author := page.Author
+		authorEmail := ""
 		giteaAuthor := userMap[page.Author]
-		if giteaAuthor == "" {
-			// can only happen if provided with faulty user-supplied map
-			return fmt.Errorf("cannot find Gitea equivalent for trac author %s of wiki page %s", page.Author, page.Name)
-		}
-		giteaAuthorEmail, err := importer.giteaAccessor.GetUserEMailAddress(giteaAuthor)
-		if err != nil {
-			return err
+		if giteaAuthor != "" {
+			author = giteaAuthor
+			authorEmail, err = importer.giteaAccessor.GetUserEMailAddress(giteaAuthor)
+			if err != nil {
+				return err
+			}
 		}
 
 		// commit version of wiki page to local repository
 		fullComment := tracPageVersionIdentifier + "\n\n" + page.Comment
-		err = importer.giteaAccessor.CommitWiki(giteaAuthor, giteaAuthorEmail, fullComment)
+		err = importer.giteaAccessor.CommitWiki(author, authorEmail, fullComment)
 		log.Info("wiki page %s: converted from Trac page %s, version %d", translatedPageName, page.Name, page.Version)
 		return err
 	})

@@ -116,6 +116,7 @@ func TestImportPrioritiesWhereLabelsExist(t *testing.T) {
 	setUpPriorities(t)
 	defer tearDown(t)
 
+	expectLookupOfDefaultUser(t)
 	expectToNotAddLabels(t)
 
 	dataImporter.ImportPriorities(labelMap)

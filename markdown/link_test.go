@@ -255,7 +255,7 @@ func TestTicketLink(t *testing.T) {
 const (
 	tracCommentNum    int64  = 12
 	tracCommentNumStr        = "12"
-	commentStr               = "this is the text of a comment"
+	commentTime       int64  = 112233
 	commentID         int64  = 54321
 	commentURL        string = "url-of-comment-54321"
 )
@@ -266,13 +266,13 @@ func setUpTicketCommentLink(t *testing.T, tktID int64) {
 	// expect a call to lookup text of trac comment
 	mockTracAccessor.
 		EXPECT().
-		GetTicketCommentString(gomock.Eq(tktID), gomock.Eq(tracCommentNum)).
-		Return(commentStr, nil)
+		GetTicketCommentTime(gomock.Eq(tktID), gomock.Eq(tracCommentNum)).
+		Return(commentTime, nil)
 
 	// expect call to lookup gitea ID for trac comment
 	mockGiteaAccessor.
 		EXPECT().
-		GetIssueCommentID(gomock.Eq(issueID), gomock.Eq(commentStr)).
+		GetTimedIssueCommentID(gomock.Eq(issueID), gomock.Eq(commentTime)).
 		Return(commentID, nil)
 
 	// expect call to lookup URL of gitea comment

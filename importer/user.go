@@ -5,7 +5,6 @@
 package importer
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -46,19 +45,18 @@ func (importer *Importer) DefaultUserMap() (map[string]string, error) {
 	return userMap, nil
 }
 
-// getUserID retrieves the Gitea user ID and name corresponding to a Trac user name
-func (importer *Importer) getUser(tracUser string, userMap map[string]string) (int64, string, error) {
-	// lookup Gitea user in map - the only reason for there not to be a mapping is with a faulty user-supplied map
+// getUserID retrieves the Gitea user ID corresponding to a Trac user name
+func (importer *Importer) getUser(tracUser string, userMap map[string]string) (int64, error) {
 	giteaUserName := userMap[tracUser]
 	if giteaUserName == "" {
-		return -1, "", fmt.Errorf("cannot find mapping from Trac user %s to Gitea", tracUser)
+		return -1, nil
 	}
 
 	userID, err := importer.giteaAccessor.GetUserID(giteaUserName)
 	if err != nil {
-		return -1, "", err
+		return -1, err
 	}
 
 	log.Debug("mapped Trac user %s onto Gitea user %s", tracUser, giteaUserName)
-	return userID, giteaUserName, nil
+	return userID, nil
 }

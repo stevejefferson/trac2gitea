@@ -19,6 +19,7 @@ type Importer struct {
 	giteaAccessor      gitea.Accessor
 	tracAccessor       trac.Accessor
 	markdownConverter  markdown.Converter
+	defaultUserID      int64
 	convertPredefineds bool
 }
 
@@ -27,8 +28,15 @@ func CreateImporter(
 	tAccessor trac.Accessor,
 	gAccessor gitea.Accessor,
 	converter markdown.Converter,
+	dfltUser string,
 	convertPredefs bool) (*Importer, error) {
-	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, markdownConverter: converter, convertPredefineds: convertPredefs}
+
+	dfltUserID, err := gAccessor.GetUserID(dfltUser)
+	if err != nil {
+		return nil, err
+	}
+	importer := Importer{tracAccessor: tAccessor, giteaAccessor: gAccessor, markdownConverter: converter, defaultUserID: dfltUserID, convertPredefineds: convertPredefs}
+
 	return &importer, nil
 }
 

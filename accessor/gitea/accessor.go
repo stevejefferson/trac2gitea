@@ -6,15 +6,15 @@ package gitea
 
 // Issue describes a Gitea issue.
 type Issue struct {
-	Index       int64
-	Summary     string
-	ReporterID  int64
-	Milestone   string
-	OwnerID     int64
-	Owner       string
-	Closed      bool
-	Description string
-	Created     int64
+	Index              int64
+	Summary            string
+	ReporterID         int64
+	Milestone          string
+	OriginalAuthorID   int64
+	OriginalAuthorName string
+	Closed             bool
+	Description        string
+	Created            int64
 }
 
 // IssueAttachment describes an attachment to a Gitea issue.
@@ -27,9 +27,11 @@ type IssueAttachment struct {
 
 // IssueComment describes a comment on a Gitea issue.
 type IssueComment struct {
-	AuthorID int64
-	Text     string
-	Time     int64
+	AuthorID           int64
+	OriginalAuthorID   int64
+	OriginalAuthorName string
+	Text               string
+	Time               int64
 }
 
 // Milestone describes a Gitea milestone.
@@ -58,6 +60,9 @@ type Accessor interface {
 	// AddIssue adds a new issue to Gitea - returns id of created issue.
 	AddIssue(issue *Issue) (int64, error)
 
+	// AddIssueAssignee adds an assignee to a Gitea issue
+	AddIssueAssignee(issueID int64, assigneeID int64) error
+
 	// SetIssueUpdateTime sets the update time on a given Gitea issue.
 	SetIssueUpdateTime(issueID int64, updateTime int64) error
 
@@ -85,8 +90,8 @@ type Accessor interface {
 	// GetIssueCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
 	GetIssueCommentURL(issueID int64, commentID int64) string
 
-	// GetIssueCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
-	GetIssueCommentID(issueID int64, commentStr string) (int64, error)
+	// GetTimedIssueCommentID retrives the ID of a comment created at a given time for a given issue or -1 if no such issue/comment
+	GetTimedIssueCommentID(issueID int64, createdTime int64) (int64, error)
 
 	/*
 	 * Issue Labels

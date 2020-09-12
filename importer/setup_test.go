@@ -5,6 +5,7 @@
 package importer_test
 
 import (
+	"runtime/debug"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -12,6 +13,11 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/mock_trac"
 	"github.com/stevejefferson/trac2gitea/importer"
 	"github.com/stevejefferson/trac2gitea/mock_markdown"
+)
+
+const (
+	defaultUser   = "default-user"
+	defaultUserID = int64(1234)
 )
 
 var ctrl *gomock.Controller
@@ -33,13 +39,22 @@ func setUp(t *testing.T) {
 	// create user map - used by multiple tests
 	userMap = make(map[string]string)
 
-	// create importers to be tested
-	dataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, false)
-	predefinedPageDataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, true)
+	// create importers to be tested - as part of this we must expect the default user to be validated
+	expectLookupOfDefaultUser(t)
+	dataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, defaultUser, false)
+	predefinedPageDataImporter, _ = importer.CreateImporter(mockTracAccessor, mockGiteaAccessor, mockMarkdownConverter, defaultUser, true)
 }
 
 func tearDown(t *testing.T) {
 	ctrl.Finish()
+}
+
+func expectLookupOfDefaultUser(t *testing.T) {
+	mockGiteaAccessor.
+		EXPECT().
+		GetUserID(gomock.Eq(defaultUser)).
+		Return(defaultUserID, nil).
+		AnyTimes()
 }
 
 func assertTrue(t *testing.T, assertion bool) {
@@ -51,6 +66,6 @@ func assertTrue(t *testing.T, assertion bool) {
 func assertEquals(t *testing.T, got interface{}, expected interface{}) {
 	if got != expected {
 		t.Errorf("Expecting \"%v\", got \"%v\"\n", expected, got)
-		//debug.PrintStack()
+		debug.PrintStack()
 	}
 }

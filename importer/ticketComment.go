@@ -5,7 +5,7 @@
 package importer
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
@@ -22,32 +22,31 @@ func truncateString(str string, maxlen int) string {
 
 // importTicketComment imports a single ticket comment from Trac to Gitea, returns ID of created comment or -1 if comment already exists
 func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.TicketComment, userMap map[string]string) (int64, error) {
-	authorID, _, err := importer.getUser(tracComment.Author, userMap)
+	authorID, err := importer.getUser(tracComment.Author, userMap)
 	if err != nil {
 		return -1, err
 	}
+	if authorID == -1 {
+		authorID = importer.defaultUserID
+	}
 
-	tracDetails := fmt.Sprintf("original comment by %s", tracComment.Author)
 	convertedText := importer.markdownConverter.TicketConvert(tracComment.TicketID, tracComment.Text)
-	fullText := addTracContext(tracDetails, tracComment.Time, convertedText)
-	commentID, err := importer.giteaAccessor.GetIssueCommentID(issueID, fullText)
+	commentID, err := importer.giteaAccessor.GetTimedIssueCommentID(issueID, tracComment.Time)
 	if err != nil {
 		return -1, err
 	}
-
-	truncatedText := truncateString(tracComment.Text, 16) // used for diagnostics
 	if commentID != -1 {
-		log.Debug("comment \"%s\" for issue %d already exists - skipping...", truncatedText, issueID)
+		log.Debug("comment for issue %d, created at %s already exists - skipping...", issueID, time.Unix(tracComment.Time, 0))
 		return -1, nil
 	}
 
-	giteaComment := gitea.IssueComment{AuthorID: authorID, Text: fullText, Time: tracComment.Time}
+	giteaComment := gitea.IssueComment{AuthorID: authorID, OriginalAuthorID: 0, OriginalAuthorName: tracComment.Author, Text: convertedText, Time: tracComment.Time}
 	commentID, err = importer.giteaAccessor.AddIssueComment(issueID, &giteaComment)
 	if err != nil {
 		return -1, err
 	}
 
-	log.Debug("issue %d: added comment \"%s\" (id %d)", issueID, truncatedText, commentID)
+	log.Debug("issue %d: added comment \"%s\" (id %d)", issueID, truncateString(convertedText, 20), commentID)
 
 	return commentID, nil
 }

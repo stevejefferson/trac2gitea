@@ -7,6 +7,7 @@ package gitea
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -15,9 +16,9 @@ import (
 func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueComment) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(
-			type, issue_id, poster_id, content, created_unix, updated_unix)
+			type, issue_id, poster_id, original_author_id, original_author, content, created_unix, updated_unix)
 			VALUES ( 0, $1, $2, $3, $4, $4 )`,
-		issueID, comment.AuthorID, comment.Text, comment.Time)
+		issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName, comment.Text, comment.Time)
 	if err != nil {
 		err = errors.Wrapf(err, "adding comment \"%s\" for issue %d", comment.Text, issueID)
 		return -1, err
@@ -33,14 +34,14 @@ func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueCo
 	return commentID, nil
 }
 
-// GetIssueCommentID retrives the ID of a given comment for a given issue or -1 if no such issue/comment
-func (accessor *DefaultAccessor) GetIssueCommentID(issueID int64, commentStr string) (int64, error) {
+// GetTimedIssueCommentID retrives the ID of a comment created at a given time for a given issue or -1 if no such issue/comment
+func (accessor *DefaultAccessor) GetTimedIssueCommentID(issueID int64, createdTime int64) (int64, error) {
 	var commentID int64 = -1
 	err := accessor.db.QueryRow(`
-		SELECT id FROM comment WHERE issue_id = $1 AND content = $2
-		`, issueID, commentStr).Scan(&commentID)
+		SELECT id FROM comment WHERE issue_id = $1 AND created_unix = $2
+		`, issueID, createdTime).Scan(&commentID)
 	if err != nil && err != sql.ErrNoRows {
-		err = errors.Wrapf(err, "retrieving id of comment \"%s\" for issue %d", commentStr, issueID)
+		err = errors.Wrapf(err, "retrieving id of comment created at \"%s\" for issue %d", time.Unix(createdTime, 0), issueID)
 		return -1, err
 	}
 

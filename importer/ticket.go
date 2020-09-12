@@ -5,8 +5,6 @@
 package importer
 
 import (
-	"fmt"
-
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
@@ -24,34 +22,37 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 		return -1, nil
 	}
 
-	reporterID, _, err := importer.getUser(ticket.Reporter, userMap)
+	reporterID, err := importer.getUser(ticket.Reporter, userMap)
 	if err != nil {
 		return -1, err
 	}
-	tracDetails := fmt.Sprintf("originally reported by %s", ticket.Reporter)
-
-	var ownerID int64 = -1
-	var ownerName = ""
-	if ticket.Owner != "" {
-		ownerID, ownerName, err = importer.getUser(ticket.Owner, userMap)
-		if err != nil {
-			return -1, err
-		}
-		tracDetails = tracDetails + fmt.Sprintf(", originally assigned to %s", ticket.Owner)
+	if reporterID == -1 {
+		reporterID = importer.defaultUserID
 	}
 
-	// Gitea comment consists of a header giving the original Trac context then the Trac description converted to markdown
 	convertedDescription := importer.markdownConverter.TicketConvert(ticket.TicketID, ticket.Description)
-	fullDescription := addTracContext(tracDetails, ticket.Created, convertedDescription)
-
 	issue := gitea.Issue{Index: ticket.TicketID, Summary: ticket.Summary, ReporterID: reporterID,
-		Milestone: ticket.MilestoneName, OwnerID: ownerID, Owner: ownerName,
-		Closed: closed, Description: fullDescription, Created: ticket.Created}
+		Milestone: ticket.MilestoneName, OriginalAuthorID: 0, OriginalAuthorName: ticket.Owner,
+		Closed: closed, Description: convertedDescription, Created: ticket.Created}
 	issueID, err = importer.giteaAccessor.AddIssue(&issue)
 	if err != nil {
 		return -1, err
 	}
 	log.Info("created issue %d: %s", issueID, ticket.Summary)
+
+	// if we have a Gitea user for the Trac ticket owner then assign the Gitea issue to that user
+	if ticket.Owner != "" {
+		ownerID, err := importer.getUser(ticket.Owner, userMap)
+		if err != nil {
+			return -1, err
+		}
+		if ownerID != -1 {
+			err = importer.giteaAccessor.AddIssueAssignee(issueID, ownerID)
+			if err != nil {
+				return -1, err
+			}
+		}
+	}
 
 	return issueID, nil
 }

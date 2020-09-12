@@ -28,13 +28,13 @@ func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
 // AddIssue adds a new issue to Gitea.
 func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
 	var nullableOwnerID sql.NullInt64
-	nullableOwnerID.Valid = (issue.OwnerID != -1)
-	nullableOwnerID.Int64 = issue.OwnerID
+	nullableOwnerID.Valid = (issue.OriginalAuthorID != -1)
+	nullableOwnerID.Int64 = issue.OriginalAuthorID
 
 	_, err := accessor.db.Exec(`
 		INSERT INTO issue("index", repo_id, name, poster_id, milestone_id, original_author_id, original_author, is_pull, is_closed, content, created_unix)
 			SELECT $1, $2, $3, $4, (SELECT id FROM milestone WHERE repo_id = $2 AND name = $5), $6, $7, false, $8, $9, $10`,
-		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID, issue.Milestone, nullableOwnerID, issue.Owner, issue.Closed, issue.Description, issue.Created)
+		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID, issue.Milestone, nullableOwnerID, issue.OriginalAuthorName, issue.Closed, issue.Description, issue.Created)
 	if err != nil {
 		err = errors.Wrapf(err, "adding issue with index %d", issue.Index)
 		return -1, err
@@ -48,6 +48,19 @@ func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
 	}
 
 	return issueID, nil
+}
+
+// AddIssueAssignee adds an assignee to a Gitea issue
+func (accessor *DefaultAccessor) AddIssueAssignee(issueID int64, assigneeID int64) error {
+	_, err := accessor.db.Exec(`
+		INSERT INTO issue_assignees(issue_id, assignee_id) VALUES ($1, $2)`,
+		issueID, assigneeID)
+	if err != nil {
+		err = errors.Wrapf(err, "adding user %d as assignee for issue id %d", assigneeID, issueID)
+		return err
+	}
+
+	return nil
 }
 
 // SetIssueUpdateTime sets the update time on a given Gitea issue.

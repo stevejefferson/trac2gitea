@@ -38,16 +38,16 @@ func (accessor *DefaultAccessor) GetTicketComments(ticketID int64, handlerFn fun
 	return nil
 }
 
-// GetTicketCommentString retrieves a given comment string for a given Trac ticket
-func (accessor *DefaultAccessor) GetTicketCommentString(ticketID int64, commentNum int64) (string, error) {
-	var commentStr string
+// GetTicketCommentTime retrieves the timestamp for a given comment string for a given Trac ticket
+func (accessor *DefaultAccessor) GetTicketCommentTime(ticketID int64, commentNum int64) (int64, error) {
+	timestamp := int64(0)
 	err := accessor.db.QueryRow(`
-		SELECT COALESCE(newvalue, '') FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,
-		ticketID, commentNum).Scan(&commentStr)
+		SELECT time FROM ticket_change where ticket = $1 AND oldvalue = $2 AND field = 'comment'`,
+		ticketID, commentNum).Scan(&timestamp)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving Trac comment number %d for ticket %d", commentNum, ticketID)
-		return "", err
+		return 0, err
 	}
 
-	return commentStr, nil
+	return timestamp, nil
 }

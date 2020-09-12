@@ -158,7 +158,7 @@ func main() {
 	}
 	markdownConverter := markdown.CreateDefaultConverter(tracAccessor, giteaAccessor)
 
-	dataImporter, err := importer.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, wikiConvertPredefineds)
+	dataImporter, err := importer.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, giteaUser, wikiConvertPredefineds)
 	if err != nil {
 		log.Fatal("%+v", err)
 	}

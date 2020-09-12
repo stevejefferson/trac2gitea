@@ -123,12 +123,11 @@ func (converter *DefaultConverter) resolveTicketCommentLink(ticketID int64, link
 	}
 
 	// find gitea ID for trac comment
-	// - unfortunately the only real linkage between the trac comment number and gitea comment id here is the comment string itself
-	commentStr, err := converter.tracAccessor.GetTicketCommentString(commentTicketID, commentNum)
-	if err != nil {
+	timestamp, err := converter.tracAccessor.GetTicketCommentTime(commentTicketID, commentNum)
+	if err != nil || timestamp == int64(0) {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
-	commentID, err := converter.giteaAccessor.GetIssueCommentID(issueID, commentStr)
+	commentID, err := converter.giteaAccessor.GetTimedIssueCommentID(issueID, timestamp)
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}

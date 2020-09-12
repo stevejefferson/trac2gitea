@@ -126,11 +126,11 @@ type Accessor interface {
 	/*
 	 * Ticket Comments
 	 */
-	// GetComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
+	// GetTicketComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
 	GetTicketComments(ticketID int64, handlerFn func(comment *TicketComment) error) error
 
-	// GetCommentString retrieves a given comment string for a given Trac ticket
-	GetTicketCommentString(ticketID int64, commentNum int64) (string, error)
+	// GetTicketCommentTime retrieves the timestamp for a given comment string for a given Trac ticket
+	GetTicketCommentTime(ticketID int64, commentNum int64) (int64, error)
 
 	/*
 	 * Types
