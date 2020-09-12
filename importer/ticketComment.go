@@ -46,6 +46,12 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 		return -1, err
 	}
 
+	// add association between issue and comment author
+	err = importer.giteaAccessor.AddIssueUser(issueID, authorID)
+	if err != nil {
+		return -1, err
+	}
+
 	log.Debug("issue %d: added comment \"%s\" (id %d)", issueID, truncateString(convertedText, 20), commentID)
 
 	return commentID, nil

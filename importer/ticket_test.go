@@ -565,6 +565,13 @@ func expectDescriptionMarkdownConversion(t *testing.T, ticket *TicketImport) {
 		})
 }
 
+func expectIssueUserToBeAdded(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
+	mockGiteaAccessor.
+		EXPECT().
+		AddIssueUser(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
+		Return(nil)
+}
+
 func expectIssueAssigneeToBeAdded(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
 	if user.giteaUser != "" {
 		mockGiteaAccessor.
@@ -592,6 +599,10 @@ func expectIssueCreation(t *testing.T, ticket *TicketImport) {
 		})
 
 	expectIssueAssigneeToBeAdded(t, ticket, ticket.owner)
+	expectIssueUserToBeAdded(t, ticket, ticket.reporter)
+	if ticket.owner.giteaUser != "" {
+		expectIssueUserToBeAdded(t, ticket, ticket.owner)
+	}
 }
 
 func expectIssueLabelRetrieval(t *testing.T, ticket *TicketImport, ticketLabel *TicketLabelImport) {
@@ -616,7 +627,7 @@ func expectIssueLabelRetrieval(t *testing.T, ticket *TicketImport, ticketLabel *
 	}
 }
 
-func expectIssueCommentRetrieval(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
+func expectIssueCommentCreation(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
 	// expect to lookup issue comment by id - return -1 if we expect to create issue comment
 	returnedIssueCommentID := ticketComment.issueCommentID
 	if !ticketComment.giteaIssueCommentExists {
@@ -638,6 +649,7 @@ func expectIssueCommentRetrieval(t *testing.T, ticket *TicketImport, ticketComme
 				assertEquals(t, issueComment.Time, ticketComment.time)
 				return ticketComment.issueCommentID, nil
 			})
+		expectIssueUserToBeAdded(t, ticket, ticketComment.author)
 	}
 }
 
@@ -659,7 +671,7 @@ func expectAllTicketCommentActions(t *testing.T, ticket *TicketImport, ticketCom
 	expectTicketCommentMarkdownConversion(t, ticket, ticketComment)
 
 	// expect retrieval/creation of issue comment for ticket comment
-	expectIssueCommentRetrieval(t, ticket, ticketComment)
+	expectIssueCommentCreation(t, ticket, ticketComment)
 }
 
 func expectTracAttachmentPathRetrieval(t *testing.T, ticket *TicketImport, ticketAttachment *TicketAttachmentImport) {

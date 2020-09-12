@@ -60,14 +60,17 @@ type Accessor interface {
 	// AddIssue adds a new issue to Gitea - returns id of created issue.
 	AddIssue(issue *Issue) (int64, error)
 
-	// AddIssueAssignee adds an assignee to a Gitea issue
-	AddIssueAssignee(issueID int64, assigneeID int64) error
-
 	// SetIssueUpdateTime sets the update time on a given Gitea issue.
 	SetIssueUpdateTime(issueID int64, updateTime int64) error
 
 	// GetIssueURL retrieves a URL for viewing a given issue
 	GetIssueURL(issueID int64) string
+
+	/*
+	 * Issue Assignees
+	 */
+	// AddIssueAssignee adds an assignee to a Gitea issue
+	AddIssueAssignee(issueID int64, assigneeID int64) error
 
 	/*
 	 * Issue Attachments
@@ -101,6 +104,12 @@ type Accessor interface {
 
 	// AddIssueLabel adds an issue label to Gitea, returns issue label ID
 	AddIssueLabel(issueID int64, labelID int64) (int64, error)
+
+	/*
+	 * Issue Users
+	 */
+	// AddIssueUser adds a user as being associated with a Gitea issue
+	AddIssueUser(issueID int64, userID int64) error
 
 	/*
 	 * Labels

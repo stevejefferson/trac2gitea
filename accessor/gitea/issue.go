@@ -50,19 +50,6 @@ func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
 	return issueID, nil
 }
 
-// AddIssueAssignee adds an assignee to a Gitea issue
-func (accessor *DefaultAccessor) AddIssueAssignee(issueID int64, assigneeID int64) error {
-	_, err := accessor.db.Exec(`
-		INSERT INTO issue_assignees(issue_id, assignee_id) VALUES ($1, $2)`,
-		issueID, assigneeID)
-	if err != nil {
-		err = errors.Wrapf(err, "adding user %d as assignee for issue id %d", assigneeID, issueID)
-		return err
-	}
-
-	return nil
-}
-
 // SetIssueUpdateTime sets the update time on a given Gitea issue.
 func (accessor *DefaultAccessor) SetIssueUpdateTime(issueID int64, updateTime int64) error {
 	_, err := accessor.db.Exec(`UPDATE issue SET updated_unix = MAX(updated_unix,$1) WHERE id = $2`, updateTime, issueID)

@@ -41,8 +41,9 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	log.Info("created issue %d: %s", issueID, ticket.Summary)
 
 	// if we have a Gitea user for the Trac ticket owner then assign the Gitea issue to that user
+	ownerID := int64(-1)
 	if ticket.Owner != "" {
-		ownerID, err := importer.getUser(ticket.Owner, userMap)
+		ownerID, err = importer.getUser(ticket.Owner, userMap)
 		if err != nil {
 			return -1, err
 		}
@@ -51,6 +52,18 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 			if err != nil {
 				return -1, err
 			}
+		}
+	}
+
+	// add associations between our issue and its reporter and its owner (if a different user)
+	err = importer.giteaAccessor.AddIssueUser(issueID, reporterID)
+	if err != nil {
+		return -1, err
+	}
+	if ownerID != -1 && ownerID != reporterID {
+		err = importer.giteaAccessor.AddIssueUser(issueID, ownerID)
+		if err != nil {
+			return -1, err
 		}
 	}
 
