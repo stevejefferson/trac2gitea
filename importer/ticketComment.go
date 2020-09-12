@@ -27,7 +27,7 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 		return -1, err
 	}
 	if authorID == -1 {
-		authorID = importer.defaultUserID
+		authorID = importer.defaultAuthorID
 	}
 
 	convertedText := importer.markdownConverter.TicketConvert(tracComment.TicketID, tracComment.Text)

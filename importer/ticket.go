@@ -27,7 +27,7 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 		return -1, err
 	}
 	if reporterID == -1 {
-		reporterID = importer.defaultUserID
+		reporterID = importer.defaultAuthorID
 	}
 
 	convertedDescription := importer.markdownConverter.TicketConvert(ticket.TicketID, ticket.Description)
