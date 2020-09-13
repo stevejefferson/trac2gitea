@@ -53,36 +53,15 @@ func setUpComponents(t *testing.T) {
 }
 
 func expectToAddLabels(t *testing.T) {
-	// expect call to lookup ids of each of our (non-unnamed, non-removed) labels, return -1 as they don't exist
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName1).Return(int64(-1), nil)
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName2).Return(int64(-1), nil)
-
-	// expect to add new labels on the basis of them not existing above
 	mockGiteaAccessor.EXPECT().AddLabel(labelName1, gomock.Any()).Return(labelID1, nil)
 	mockGiteaAccessor.EXPECT().AddLabel(labelName2, gomock.Any()).Return(labelID2, nil)
 }
 
-func expectToNotAddLabels(t *testing.T) {
-	// expect call to lookup ids of each of our (non-unnamed, non-removed) labels, return ids because they exist
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName1).Return(labelID1, nil)
-	mockGiteaAccessor.EXPECT().GetLabelID(labelName2).Return(labelID2, nil)
-	// do not expect to add new labels...
-}
-
-func TestImportComponentsWhereNoLabelsExist(t *testing.T) {
+func TestImportComponents(t *testing.T) {
 	setUpComponents(t)
 	defer tearDown(t)
 
 	expectToAddLabels(t)
-
-	dataImporter.ImportComponents(labelMap)
-}
-
-func TestImportComponentsWhereLabelsExist(t *testing.T) {
-	setUpComponents(t)
-	defer tearDown(t)
-
-	expectToNotAddLabels(t)
 
 	dataImporter.ImportComponents(labelMap)
 }
@@ -103,21 +82,11 @@ func setUpPriorities(t *testing.T) {
 		})
 }
 
-func TestImportPrioritiesWhereNoLabelsExist(t *testing.T) {
+func TestImportPriorities(t *testing.T) {
 	setUpPriorities(t)
 	defer tearDown(t)
 
 	expectToAddLabels(t)
-
-	dataImporter.ImportPriorities(labelMap)
-}
-
-func TestImportPrioritiesWhereLabelsExist(t *testing.T) {
-	setUpPriorities(t)
-	defer tearDown(t)
-
-	expectLookupOfDefaultUser(t)
-	expectToNotAddLabels(t)
 
 	dataImporter.ImportPriorities(labelMap)
 }
@@ -138,20 +107,11 @@ func setUpResolutions(t *testing.T) {
 		})
 }
 
-func TestImportResolutionsWhereNoLabelsExist(t *testing.T) {
+func TestImportResolutions(t *testing.T) {
 	setUpResolutions(t)
 	defer tearDown(t)
 
 	expectToAddLabels(t)
-
-	dataImporter.ImportResolutions(labelMap)
-}
-
-func TestImportResolutionsWhereLabelsExist(t *testing.T) {
-	setUpResolutions(t)
-	defer tearDown(t)
-
-	expectToNotAddLabels(t)
 
 	dataImporter.ImportResolutions(labelMap)
 }
@@ -172,20 +132,11 @@ func setUpSeverities(t *testing.T) {
 		})
 }
 
-func TestImportSeveritiesWhereNoLabelsExist(t *testing.T) {
+func TestImportSeverities(t *testing.T) {
 	setUpSeverities(t)
 	defer tearDown(t)
 
 	expectToAddLabels(t)
-
-	dataImporter.ImportSeverities(labelMap)
-}
-
-func TestImportSeveritiesWhereLabelsExist(t *testing.T) {
-	setUpSeverities(t)
-	defer tearDown(t)
-
-	expectToNotAddLabels(t)
 
 	dataImporter.ImportSeverities(labelMap)
 }
@@ -206,20 +157,11 @@ func setUpTypes(t *testing.T) {
 		})
 }
 
-func TestImportTypesWhereNoLabelsExist(t *testing.T) {
+func TestImportTypes(t *testing.T) {
 	setUpTypes(t)
 	defer tearDown(t)
 
 	expectToAddLabels(t)
-
-	dataImporter.ImportTypes(labelMap)
-}
-
-func TestImportTypesWhereLabelsExist(t *testing.T) {
-	setUpTypes(t)
-	defer tearDown(t)
-
-	expectToNotAddLabels(t)
 
 	dataImporter.ImportTypes(labelMap)
 }
@@ -240,20 +182,11 @@ func setUpVersions(t *testing.T) {
 		})
 }
 
-func TestImportVersionsWhereNoLabelsExist(t *testing.T) {
+func TestImportVersions(t *testing.T) {
 	setUpVersions(t)
 	defer tearDown(t)
 
 	expectToAddLabels(t)
-
-	dataImporter.ImportVersions(labelMap)
-}
-
-func TestImportVersionsWhereLabelsExist(t *testing.T) {
-	setUpVersions(t)
-	defer tearDown(t)
-
-	expectToNotAddLabels(t)
 
 	dataImporter.ImportVersions(labelMap)
 }

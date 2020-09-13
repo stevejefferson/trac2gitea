@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // GetIssueID retrieves the id of the Gitea issue corresponding to a given issue index - returns -1 if no such issue.
@@ -25,16 +26,52 @@ func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
 	return issueID, nil
 }
 
-// AddIssue adds a new issue to Gitea.
-func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
-	var nullableOwnerID sql.NullInt64
-	nullableOwnerID.Valid = (issue.OriginalAuthorID != -1)
-	nullableOwnerID.Int64 = issue.OriginalAuthorID
+func toNullInt64(value int64) sql.NullInt64 {
+	var nullValue sql.NullInt64
+	nullValue.Valid = (value != -1)
+	nullValue.Int64 = value
+	return nullValue
+}
 
-	_, err := accessor.db.Exec(`
+// updateIssue updates an existing issue in Gitea
+func (accessor *DefaultAccessor) updateIssue(issueID int64, issue *Issue) error {
+	nullOwnerID := toNullInt64(issue.OriginalAuthorID)
+	milestoneID, err := accessor.GetMilestoneID(issue.Milestone)
+	if err != nil {
+		return err
+	}
+
+	_, err = accessor.db.Exec(`
+		UPDATE issue SET "index"=?, repo_id=?, name=?, poster_id=?,
+			milestone_id=?, original_author_id=?, original_author=?, 
+			is_pull=0, is_closed=?, content=?, created_unix=?, updated_unix=?
+			WHERE id=?`,
+		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID,
+		milestoneID, nullOwnerID, issue.OriginalAuthorName,
+		issue.Closed, issue.Description, issue.Created, issue.Updated,
+		issueID)
+	if err != nil {
+		err = errors.Wrapf(err, "updating issue with index %d", issue.Index)
+		return err
+	}
+
+	log.Info("updated issue %d: %s", issue.Index, issue.Summary)
+
+	return nil
+}
+
+// insertIssue adds a new issue to Gitea, returns id of added issue.
+func (accessor *DefaultAccessor) insertIssue(issue *Issue) (int64, error) {
+	nullOwnerID := toNullInt64(issue.OriginalAuthorID)
+	milestoneID, err := accessor.GetMilestoneID(issue.Milestone)
+	if err != nil {
+		return -1, err
+	}
+
+	_, err = accessor.db.Exec(`
 		INSERT INTO issue("index", repo_id, name, poster_id, milestone_id, original_author_id, original_author, is_pull, is_closed, content, created_unix)
-			SELECT $1, $2, $3, $4, (SELECT id FROM milestone WHERE repo_id = $2 AND name = $5), $6, $7, false, $8, $9, $10`,
-		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID, issue.Milestone, nullableOwnerID, issue.OriginalAuthorName, issue.Closed, issue.Description, issue.Created)
+			SELECT $1, $2, $3, $4, $5, $6, $7, 0, $8, $9, $10`,
+		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID, milestoneID, nullOwnerID, issue.OriginalAuthorName, issue.Closed, issue.Description, issue.Created)
 	if err != nil {
 		err = errors.Wrapf(err, "adding issue with index %d", issue.Index)
 		return -1, err
@@ -45,6 +82,31 @@ func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new issue with index %d", issue.Index)
 		return -1, err
+	}
+
+	log.Info("created issue %d: %s", issue.Index, issue.Summary)
+
+	return issueID, nil
+}
+
+// AddIssue adds a new issue to Gitea.
+func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
+	issueID, err := accessor.GetIssueID(issue.Index)
+	if err != nil {
+		return -1, err
+	}
+
+	if issueID == -1 {
+		return accessor.insertIssue(issue)
+	}
+
+	if accessor.overwrite {
+		err = accessor.updateIssue(issueID, issue)
+		if err != nil {
+			return -1, err
+		}
+	} else {
+		log.Info("issue %d already exists - ignored", issue.Index)
 	}
 
 	return issueID, nil

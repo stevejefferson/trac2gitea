@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
@@ -175,26 +174,11 @@ func expectToTranslateWikiPageName(t *testing.T, tracWikiPage *trac.WikiPage, gi
 		Return(giteaWikiPage)
 }
 
-func expectTracWikiPagesToHaveAlreadyBeenCommitted(t *testing.T, giteaWikiPage string, tracWikiPagesAlreadyCommittedToGitea ...*trac.WikiPage) {
-	log := []string{"initial version of page " + giteaWikiPage}
-	for _, tracWikiPage := range tracWikiPagesAlreadyCommittedToGitea {
-		// note: log message header is used to determine whether a Trac wiki page has already been committed to Gitea
-		// - format of this is entirely dependent on the implementation so we are forced to copy the relevant code here
-		updateTimeStr := time.Unix(tracWikiPage.UpdateTime, 0)
-		message := fmt.Sprintf("[Imported from Trac: page %s, version %d at %s]\n%s", tracWikiPage.Name, tracWikiPage.Version, updateTimeStr, tracWikiPage.Comment)
-		log = append(log, message)
-	}
-
-	mockGiteaAccessor.
-		EXPECT().
-		LogWiki(giteaWikiPage).
-		Return(log, nil)
-}
-
-func expectToWriteAndCommitGiteaWikiPage(
+func expectToWriteGiteaWikiPage(
 	t *testing.T,
 	tracWikiPage *trac.WikiPage,
-	giteaWikiPage string, giteaPageAuthor string, giteaAuthorEmail string) {
+	giteaWikiPage string,
+	pageWritten bool) {
 	// expect to convert Trac page to markdown
 	markdownText := "trac wiki " + tracWikiPage.Text + "converted to markdown"
 	mockMarkdownConverter.
@@ -202,12 +186,18 @@ func expectToWriteAndCommitGiteaWikiPage(
 		WikiConvert(tracWikiPage.Name, tracWikiPage.Text).
 		Return(markdownText)
 
-	// expect to write translated page to Gitea
+	// expect to write translated page to Gitea, returning provided status
 	mockGiteaAccessor.
 		EXPECT().
-		WriteWikiPage(giteaWikiPage, markdownText).
-		Return("path-to-wiki-file", nil)
+		WriteWikiPage(giteaWikiPage, markdownText, gomock.Any()).
+		Return(pageWritten, nil)
+}
 
+func expectToCommitGiteaWikiPage(
+	t *testing.T,
+	tracWikiPage *trac.WikiPage,
+	giteaPageAuthor string,
+	giteaAuthorEmail string) {
 	// expect to lookup email address of Gitea user as author of commit
 	mockGiteaAccessor.
 		EXPECT().
@@ -268,11 +258,9 @@ func TestImportWithoutPushOfPredefinedSingleVersionWikiPageWhenConvertingPredefi
 	// translate to markdown
 	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
 
-	// no trac wiki page versions have yet been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1)
-
-	// commit wiki page
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
+	// write and commit wiki page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
 
 	// ...do not expect wiki to be pushed
 
@@ -296,11 +284,9 @@ func TestImportWithoutPushOfSingleVersionWikiPage(t *testing.T) {
 	// translate to markdown
 	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
 
-	// no trac wiki page versions have yet been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1)
-
-	// commit wiki page
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
+	// write and commit wiki page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
 
 	// ...do not expect wiki to be pushed
 
@@ -324,11 +310,9 @@ func TestImportWithPushOfSingleVersionWikiPage(t *testing.T) {
 	// translate to markdown
 	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
 
-	// no trac wiki page versions have yet been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1)
-
-	// commit wiki page
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
+	// write and commit wiki page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
 
 	// push wiki page
 	expectToPushGiteaWiki(t)
@@ -355,12 +339,11 @@ func TestImportOfMultiVersionWikiPage(t *testing.T) {
 	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
 	expectToTranslateWikiPageName(t, tracWikiPage1v2, giteaWikiPage1)
 
-	// no trac wiki page versions have yet been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1)
-
-	// commit wiki pages
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
+	// write and commit wiki page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
 
 	// ...do not expect wiki to be pushed
 
@@ -390,15 +373,15 @@ func TestImportOfMultipleMultiVersionWikiPages(t *testing.T) {
 	expectToTranslateWikiPageName(t, tracWikiPage2v1, giteaWikiPage2)
 	expectToTranslateWikiPageName(t, tracWikiPage2v2, giteaWikiPage2)
 
-	// no trac wiki page versions have yet been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1)
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage2)
-
-	// commit wiki pages
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage2v1, giteaWikiPage2, giteaWikiPage2v1Author, giteaWikiPage2v1Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2, giteaWikiPage2v2Author, giteaWikiPage2v2Author)
+	// write and commit wiki pages
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage2v1, giteaWikiPage2, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage2v1, giteaWikiPage2v1Author, giteaWikiPage2v1Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2v2Author, giteaWikiPage2v2Author)
 
 	// ...do not expect wiki to be pushed
 
@@ -422,8 +405,8 @@ func TestImportOfAlreadyImportedWikiPage(t *testing.T) {
 	// translate to markdown
 	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
 
-	// trac wiki page version has already been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1, tracWikiPage1v1)
+	// fail to write wiki page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, false)
 
 	// ...do not expect to commit wiki page
 
@@ -451,11 +434,12 @@ func TestImportOfMultiVersionWikiPageWithOneAlreadyImportedVersion(t *testing.T)
 	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
 	expectToTranslateWikiPageName(t, tracWikiPage1v2, giteaWikiPage1)
 
-	// one trac wiki page version has already been committed to produce the Gitea wiki page
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1, tracWikiPage1v1)
+	// fail top write first version of wiki page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, false)
 
-	// commit version of wiki page that has not already been imported
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
+	// successfully write and commit second version of page
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
 
 	// ...do not expect wiki to be pushed
 
@@ -549,15 +533,15 @@ func TestImportAndPushOfMultipleVersionsOfMultipleWikiPagesWithMultipleAttachmen
 	expectToTranslateWikiPageName(t, tracWikiPage2v1, giteaWikiPage2)
 	expectToTranslateWikiPageName(t, tracWikiPage2v2, giteaWikiPage2)
 
-	// no trac wiki page versions have yet been committed to produce any Gitea wiki pages
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage1)
-	expectTracWikiPagesToHaveAlreadyBeenCommitted(t, giteaWikiPage2)
-
-	// commit wiki pages
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage2v1, giteaWikiPage2, giteaWikiPage2v1Author, giteaWikiPage2v1Author)
-	expectToWriteAndCommitGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2, giteaWikiPage2v2Author, giteaWikiPage2v2Author)
+	// write and commit wiki pages
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage2v1, giteaWikiPage2, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage2v1, giteaWikiPage2v1Author, giteaWikiPage2v1Author)
+	expectToWriteGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2, true)
+	expectToCommitGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2v2Author, giteaWikiPage2v2Author)
 
 	// push changes
 	expectToPushGiteaWiki(t)

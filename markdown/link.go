@@ -127,7 +127,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(ticketID int64, link
 	if err != nil || timestamp == int64(0) {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
-	commentID, err := converter.giteaAccessor.GetTimedIssueCommentID(issueID, timestamp)
+	commentID, err := converter.giteaAccessor.GetIssueCommentIDByTime(issueID, timestamp)
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
@@ -170,7 +170,7 @@ func (converter *DefaultConverter) resolveTicketAttachmentLink(ticketID int64, a
 		return link // not a recognised link - do not mark
 	}
 
-	attachmentURL := converter.giteaAccessor.GetIssueAttachmentURL(uuid)
+	attachmentURL := converter.giteaAccessor.GetIssueAttachmentURL(issueID, uuid)
 	return markLink(attachmentURL)
 }
 

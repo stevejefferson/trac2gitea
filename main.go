@@ -20,6 +20,7 @@ import (
 var dbOnly bool
 var wikiOnly bool
 var wikiPush bool
+var overwrite bool
 var verbose bool
 var wikiConvertPredefineds bool
 var generateMaps bool
@@ -53,6 +54,8 @@ func parseArgs() {
 		"convert wiki only")
 	wikiNoPushParam := pflag.Bool("no-wiki-push", false,
 		"do not push wiki on completion")
+	overwriteParam := pflag.Bool("overwrite", false,
+		"overwrite existing data")
 	verboseParam := pflag.Bool("verbose", false,
 		"verbose output")
 
@@ -67,6 +70,7 @@ func parseArgs() {
 	pflag.Parse()
 
 	verbose = *verboseParam
+	overwrite = *overwriteParam
 	dbOnly = *dbOnlyParam
 	wikiOnly = *wikiOnlyParam
 	wikiPush = !*wikiNoPushParam
@@ -152,7 +156,7 @@ func main() {
 		log.Fatal("%+v", err)
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
-		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir)
+		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, overwrite)
 	if err != nil {
 		log.Fatal("%+v", err)
 	}

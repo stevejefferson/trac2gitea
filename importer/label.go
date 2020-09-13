@@ -6,7 +6,6 @@ package importer
 
 import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // label colors - courtesy of `trac2gogs`
@@ -79,21 +78,11 @@ func (importer *Importer) importLabel(tracName string, labelMap map[string]strin
 		return -1, nil // if no mapping provided, do not create a label
 	}
 
-	labelID, err := importer.giteaAccessor.GetLabelID(labelName)
-	if err != nil {
-		return -1, err
-	}
-	if labelID != -1 {
-		log.Debug("label %s already exists, skipping...", labelName)
-		return labelID, nil
-	}
-
-	labelID, err = importer.giteaAccessor.AddLabel(labelName, labelColor)
+	labelID, err := importer.giteaAccessor.AddLabel(labelName, labelColor)
 	if err != nil {
 		return -1, err
 	}
 
-	log.Debug("created label (id %d), name %s, color %s", labelID, labelName, labelColor)
 	return labelID, nil
 }
 

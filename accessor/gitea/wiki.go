@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -16,6 +17,9 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
+
+// cache of commit message list keyed by page name - use this because retrieving the git commit log is potentially slow
+var commitMessagesByPage map[string][]string
 
 func wikiPageFileName(pageName string) string {
 	return pageName + ".md"
@@ -54,34 +58,11 @@ func (accessor *DefaultAccessor) CloneWiki() error {
 	}
 
 	accessor.wikiRepo = repository
+
+	// reset the commit log cache
+	commitMessagesByPage = make(map[string][]string)
+
 	return nil
-}
-
-// LogWiki returns the log of commits for the given wiki file.
-func (accessor *DefaultAccessor) LogWiki(pageName string) ([]string, error) {
-	wikiFilename := wikiPageFileName(pageName)
-	wikiFile := filepath.Join(accessor.wikiRepoDir, wikiFilename)
-
-	// if file does not exist then we needn't look for its log...
-	_, err := os.Stat(wikiFile)
-	if os.IsNotExist(err) {
-		noCommits := []string{}
-		return noCommits, nil
-	}
-
-	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFilename})
-	if err != nil {
-		err = errors.Wrapf(err, "retrieving git log for file %s", wikiFilename)
-		return nil, err
-	}
-
-	var commitMessages []string
-	err = commitIter.ForEach(func(commit *object.Commit) error {
-		commitMessages = append(commitMessages, commit.Message)
-		return nil
-	})
-
-	return commitMessages, nil
 }
 
 // CommitWiki stages any files added or updated since the last commit then commits them to our cloned wiki repo.
@@ -158,35 +139,93 @@ func (accessor *DefaultAccessor) CopyFileToWiki(externalFilePath string, giteaWi
 		return err
 	}
 
-	// determine whether file already exists - if it does we'll just assume we've already copied it earlier in the conversion
 	_, err = os.Stat(giteaPath)
-	if !os.IsExist(err) {
-		accessor.copyFile(externalFilePath, giteaPath)
+	if accessor.overwrite || !os.IsExist(err) {
+		copyFile(externalFilePath, giteaPath)
 		log.Debug("copied file %s to wiki path %s", externalFilePath, giteaWikiRelPath)
 	}
 
 	return nil
 }
 
+// commitLog returns the log of commits for the given file.
+func (accessor *DefaultAccessor) commitLog(pageName string) ([]string, error) {
+	wikiFilename := wikiPageFileName(pageName)
+	wikiFile := filepath.Join(accessor.wikiRepoDir, wikiFilename)
+
+	// if file does not exist then we needn't look for its log...
+	_, err := os.Stat(wikiFile)
+	if os.IsNotExist(err) {
+		noCommits := []string{}
+		return noCommits, nil
+	}
+
+	commitIter, err := accessor.wikiRepo.Log(&git.LogOptions{FileName: &wikiFilename})
+	if err != nil {
+		err = errors.Wrapf(err, "retrieving git log for file %s", wikiFilename)
+		return nil, err
+	}
+
+	var commitMessages []string
+	err = commitIter.ForEach(func(commit *object.Commit) error {
+		commitMessages = append(commitMessages, commit.Message)
+		return nil
+	})
+
+	return commitMessages, nil
+}
+
+// pageCommitExists determines whether or not a commit of the given page exists with a commit message containing the provided string
+func (accessor *DefaultAccessor) pageCommitExists(pageName string, commitString string) (bool, error) {
+	commitMessages, haveCommitMessages := commitMessagesByPage[pageName]
+	if !haveCommitMessages {
+		pageCommitMessages, err := accessor.commitLog(pageName)
+		if err != nil {
+			return false, err
+		}
+		commitMessagesByPage[pageName] = pageCommitMessages
+		commitMessages = pageCommitMessages
+	}
+
+	for _, commitMessage := range commitMessages {
+		if strings.Contains(commitMessage, commitString) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // WriteWikiPage writes (a version of) a wiki page to the checked-out wiki repository, returning the path to the written file.
-func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string) (string, error) {
+func (accessor *DefaultAccessor) WriteWikiPage(pageName string, markdownText string, commitMarker string) (bool, error) {
+	// if we're not explicitly overwriting, look for conflicting previous commit of wiki page
+	if !accessor.overwrite {
+		hasCommit, err := accessor.pageCommitExists(pageName, commitMarker)
+		if err != nil {
+			return false, err
+		}
+		if hasCommit {
+			return false, nil
+		}
+	}
+
 	pagePath := filepath.Join(accessor.wikiRepoDir, wikiPageFileName(pageName))
 	pageDir := path.Dir(pagePath)
 	err := os.MkdirAll(pageDir, 0775)
 	if err != nil {
 		err = errors.Wrapf(err, "creating directory %s for page in cloned wiki", pageDir)
-		return "", err
+		return false, err
 	}
 
 	file, err := os.Create(pagePath)
 	if err != nil {
 		err = errors.Wrapf(err, "creating wiki page file %s", pagePath)
-		return "", err
+		return false, err
 	}
 
 	file.WriteString(markdownText)
 	log.Debug("wrote version of wiki page %s", pageName)
-	return pagePath, nil
+	return true, nil
 }
 
 // TranslateWikiPageName translates a Trac wiki page name into a Gitea one

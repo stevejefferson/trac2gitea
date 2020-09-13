@@ -5,11 +5,8 @@
 package importer
 
 import (
-	"time"
-
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 func truncateString(str string, maxlen int) string {
@@ -31,17 +28,8 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	}
 
 	convertedText := importer.markdownConverter.TicketConvert(tracComment.TicketID, tracComment.Text)
-	commentID, err := importer.giteaAccessor.GetTimedIssueCommentID(issueID, tracComment.Time)
-	if err != nil {
-		return -1, err
-	}
-	if commentID != -1 {
-		log.Debug("comment for issue %d, created at %s already exists - skipping...", issueID, time.Unix(tracComment.Time, 0))
-		return -1, nil
-	}
-
 	giteaComment := gitea.IssueComment{AuthorID: authorID, OriginalAuthorID: 0, OriginalAuthorName: tracComment.Author, Text: convertedText, Time: tracComment.Time}
-	commentID, err = importer.giteaAccessor.AddIssueComment(issueID, &giteaComment)
+	commentID, err := importer.giteaAccessor.AddIssueComment(issueID, &giteaComment)
 	if err != nil {
 		return -1, err
 	}
@@ -51,8 +39,6 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	if err != nil {
 		return -1, err
 	}
-
-	log.Debug("issue %d: added comment \"%s\" (id %d)", issueID, truncateString(convertedText, 20), commentID)
 
 	return commentID, nil
 }

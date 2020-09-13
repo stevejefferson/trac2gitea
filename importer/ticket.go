@@ -7,21 +7,10 @@ package importer
 import (
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or -1 if the issue was not created.
 func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap map[string]string) (int64, error) {
-	issueID, err := importer.giteaAccessor.GetIssueID(ticket.TicketID)
-	if err != nil {
-		return -1, err
-	}
-	if issueID != -1 {
-		// assume we have previously done this conversion
-		log.Info("issue already exists for ticket %d - skipping...", ticket.TicketID)
-		return -1, nil
-	}
-
 	reporterID, err := importer.getUser(ticket.Reporter, userMap)
 	if err != nil {
 		return -1, err
@@ -33,12 +22,11 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	convertedDescription := importer.markdownConverter.TicketConvert(ticket.TicketID, ticket.Description)
 	issue := gitea.Issue{Index: ticket.TicketID, Summary: ticket.Summary, ReporterID: reporterID,
 		Milestone: ticket.MilestoneName, OriginalAuthorID: 0, OriginalAuthorName: ticket.Owner,
-		Closed: closed, Description: convertedDescription, Created: ticket.Created}
-	issueID, err = importer.giteaAccessor.AddIssue(&issue)
+		Closed: closed, Description: convertedDescription, Created: ticket.Created, Updated: ticket.Updated}
+	issueID, err := importer.giteaAccessor.AddIssue(&issue)
 	if err != nil {
 		return -1, err
 	}
-	log.Info("created issue %d: %s", issueID, ticket.Summary)
 
 	// if we have a Gitea user for the Trac ticket owner then assign the Gitea issue to that user
 	ownerID := int64(-1)

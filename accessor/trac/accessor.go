@@ -28,6 +28,7 @@ type Ticket struct {
 	VersionName    string
 	Status         string
 	Created        int64
+	Updated        int64
 }
 
 // TicketAttachment describes an attachment to a Trac ticket.

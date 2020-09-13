@@ -165,22 +165,18 @@ func setUpTicketAttachmentUsers(t *testing.T) {
 
 // TicketLabelImport holds the data on a label associated with an imported ticket
 type TicketLabelImport struct {
-	name                  string
-	labelName             string
-	labelID               int64
-	issueLabelID          int64
-	giteaLabelExists      bool
-	giteaIssueLabelExists bool
+	name         string
+	labelName    string
+	labelID      int64
+	issueLabelID int64
 }
 
-func createTicketLabelImport(prefix string, giteaLabelExists bool, giteaIssueLabelExists bool, ticketLabelMap map[string]string) *TicketLabelImport {
+func createTicketLabelImport(prefix string, ticketLabelMap map[string]string) *TicketLabelImport {
 	ticketLabel := TicketLabelImport{
-		name:                  prefix + "-name",
-		labelName:             prefix + "-label",
-		labelID:               allocateID(),
-		issueLabelID:          allocateID(),
-		giteaLabelExists:      giteaLabelExists,
-		giteaIssueLabelExists: giteaIssueLabelExists,
+		name:         prefix + "-name",
+		labelName:    prefix + "-label",
+		labelID:      allocateID(),
+		issueLabelID: allocateID(),
 	}
 
 	ticketLabelMap[ticketLabel.name] = ticketLabel.labelName
@@ -218,53 +214,51 @@ var (
 )
 
 func setUpTicketLabels(t *testing.T) {
-	closedTicketComponent = createTicketLabelImport("closed-component", false, false, componentMap)
-	closedTicketPriority = createTicketLabelImport("closed-priority", true, false, priorityMap)
-	closedTicketResolution = createTicketLabelImport("closed-resolution", true, true, resolutionMap)
-	closedTicketSeverity = createTicketLabelImport("closed-severity", false, false, severityMap)
-	closedTicketType = createTicketLabelImport("closed-type", false, false, typeMap)
-	closedTicketVersion = createTicketLabelImport("closed-version", true, false, versionMap)
+	closedTicketComponent = createTicketLabelImport("closed-component", componentMap)
+	closedTicketPriority = createTicketLabelImport("closed-priority", priorityMap)
+	closedTicketResolution = createTicketLabelImport("closed-resolution", resolutionMap)
+	closedTicketSeverity = createTicketLabelImport("closed-severity", severityMap)
+	closedTicketType = createTicketLabelImport("closed-type", typeMap)
+	closedTicketVersion = createTicketLabelImport("closed-version", versionMap)
 
-	openTicketComponent = createTicketLabelImport("open-component", true, true, componentMap)
-	openTicketPriority = createTicketLabelImport("open-priority", false, false, priorityMap)
-	openTicketResolution = createTicketLabelImport("open-resolution", false, false, resolutionMap)
-	openTicketSeverity = createTicketLabelImport("open-severity", true, false, severityMap)
-	openTicketType = createTicketLabelImport("open-type", true, true, typeMap)
-	openTicketVersion = createTicketLabelImport("open-version", false, false, versionMap)
+	openTicketComponent = createTicketLabelImport("open-component", componentMap)
+	openTicketPriority = createTicketLabelImport("open-priority", priorityMap)
+	openTicketResolution = createTicketLabelImport("open-resolution", resolutionMap)
+	openTicketSeverity = createTicketLabelImport("open-severity", severityMap)
+	openTicketType = createTicketLabelImport("open-type", typeMap)
+	openTicketVersion = createTicketLabelImport("open-version", versionMap)
 
-	noTracUserTicketComponent = createTicketLabelImport("no-trac-user-component", true, true, componentMap)
-	noTracUserTicketPriority = createTicketLabelImport("no-trac-user-priority", false, false, priorityMap)
-	noTracUserTicketResolution = createTicketLabelImport("no-trac-user-resolution", false, false, resolutionMap)
-	noTracUserTicketSeverity = createTicketLabelImport("no-trac-user-severity", true, false, severityMap)
-	noTracUserTicketType = createTicketLabelImport("no-trac-user-type", true, true, typeMap)
-	noTracUserTicketVersion = createTicketLabelImport("no-trac-user-version", false, false, versionMap)
+	noTracUserTicketComponent = createTicketLabelImport("no-trac-user-component", componentMap)
+	noTracUserTicketPriority = createTicketLabelImport("no-trac-user-priority", priorityMap)
+	noTracUserTicketResolution = createTicketLabelImport("no-trac-user-resolution", resolutionMap)
+	noTracUserTicketSeverity = createTicketLabelImport("no-trac-user-severity", severityMap)
+	noTracUserTicketType = createTicketLabelImport("no-trac-user-type", typeMap)
+	noTracUserTicketVersion = createTicketLabelImport("no-trac-user-version", versionMap)
 
-	unmappedTracUserTicketComponent = createTicketLabelImport("unmapped-trac-user-component", true, true, componentMap)
-	unmappedTracUserTicketPriority = createTicketLabelImport("unmapped-trac-user-priority", false, false, priorityMap)
-	unmappedTracUserTicketResolution = createTicketLabelImport("unmapped-trac-user-resolution", false, false, resolutionMap)
-	unmappedTracUserTicketSeverity = createTicketLabelImport("unmapped-trac-user-severity", true, false, severityMap)
-	unmappedTracUserTicketType = createTicketLabelImport("unmapped-trac-user-type", true, true, typeMap)
-	unmappedTracUserTicketVersion = createTicketLabelImport("unmapped-trac-user-version", false, false, versionMap)
+	unmappedTracUserTicketComponent = createTicketLabelImport("unmapped-trac-user-component", componentMap)
+	unmappedTracUserTicketPriority = createTicketLabelImport("unmapped-trac-user-priority", priorityMap)
+	unmappedTracUserTicketResolution = createTicketLabelImport("unmapped-trac-user-resolution", resolutionMap)
+	unmappedTracUserTicketSeverity = createTicketLabelImport("unmapped-trac-user-severity", severityMap)
+	unmappedTracUserTicketType = createTicketLabelImport("unmapped-trac-user-type", typeMap)
+	unmappedTracUserTicketVersion = createTicketLabelImport("unmapped-trac-user-version", versionMap)
 }
 
 // TicketCommentImport holds the data on a ticket comment import operation
 type TicketCommentImport struct {
-	issueCommentID          int64
-	author                  *TicketUserImport
-	text                    string
-	markdownText            string
-	time                    int64
-	giteaIssueCommentExists bool
+	issueCommentID int64
+	author         *TicketUserImport
+	text           string
+	markdownText   string
+	time           int64
 }
 
-func createTicketCommentImport(prefix string, author *TicketUserImport, giteaIssueCommentExists bool) *TicketCommentImport {
+func createTicketCommentImport(prefix string, author *TicketUserImport) *TicketCommentImport {
 	return &TicketCommentImport{
-		issueCommentID:          allocateID(),
-		author:                  author,
-		text:                    prefix + " ticket comment text",
-		markdownText:            prefix + " ticket comment text after conversion to markdown",
-		time:                    allocateUnixTime(),
-		giteaIssueCommentExists: giteaIssueCommentExists,
+		issueCommentID: allocateID(),
+		author:         author,
+		text:           prefix + " ticket comment text",
+		markdownText:   prefix + " ticket comment text after conversion to markdown",
+		time:           allocateUnixTime(),
 	}
 }
 
@@ -288,14 +282,14 @@ var (
 
 func setUpTicketComments(t *testing.T) {
 	setUpTicketCommentUsers(t)
-	closedTicketComment1 = createTicketCommentImport("closed-ticket-comment1", closedTicketComment1Author, false)
-	closedTicketComment2 = createTicketCommentImport("closed-ticket-comment2", closedTicketComment2Author, false)
+	closedTicketComment1 = createTicketCommentImport("closed-ticket-comment1", closedTicketComment1Author)
+	closedTicketComment2 = createTicketCommentImport("closed-ticket-comment2", closedTicketComment2Author)
 
-	openTicketComment1 = createTicketCommentImport("open-ticket-comment1", openTicketComment1Author, true)
-	openTicketComment2 = createTicketCommentImport("open-ticket-comment2", openTicketComment2Author, false)
+	openTicketComment1 = createTicketCommentImport("open-ticket-comment1", openTicketComment1Author)
+	openTicketComment2 = createTicketCommentImport("open-ticket-comment2", openTicketComment2Author)
 
-	noTracUserTicketComment = createTicketCommentImport("no-trac-user-ticket-comment", noTracUserTicketCommentAuthor, false)
-	unmappedTracUserTicketComment = createTicketCommentImport("unmapped-trac-user-ticket-comment", unmappedTracUserTicketCommentAuthor, false)
+	noTracUserTicketComment = createTicketCommentImport("no-trac-user-ticket-comment", noTracUserTicketCommentAuthor)
+	unmappedTracUserTicketComment = createTicketCommentImport("unmapped-trac-user-ticket-comment", unmappedTracUserTicketCommentAuthor)
 }
 
 // TicketAttachmentImport holds data on a ticket attachment import operation
@@ -309,7 +303,7 @@ type TicketAttachmentImport struct {
 
 func createTicketAttachmentImport(prefix string, author *TicketUserImport) *TicketAttachmentImport {
 	// express part of attachment data in terms of the comment that will appear in Gitea to describe it
-	comment := createTicketCommentImport(prefix+"-comment-", author, false)
+	comment := createTicketCommentImport(prefix+"-comment-", author)
 
 	// trac attachment path must have final directory of at least 12 chars (the trac UUID)
 	attachmentFile := prefix + "-attachment.file"
@@ -528,31 +522,11 @@ func expectUserLookup(t *testing.T, user *TicketUserImport) {
 		Return(user.giteaUserID, nil)
 }
 
-func expectIssueLookup(t *testing.T, ticket *TicketImport) {
-	// expect to look for existing Gitea issue for Trac ticket - we currently assume there is none
-	mockGiteaAccessor.
-		EXPECT().
-		GetIssueID(gomock.Eq(ticket.ticketID)).
-		Return(int64(-1), nil)
-}
-
 func expectLabelRetrieval(t *testing.T, label *TicketLabelImport) {
-	// expect to lookup label by name - return -1 if we expect to create label
-	returnedLabelID := label.labelID
-	if !label.giteaLabelExists {
-		returnedLabelID = int64(-1)
-	}
 	mockGiteaAccessor.
 		EXPECT().
-		GetLabelID(gomock.Eq(label.labelName)).
-		Return(returnedLabelID, nil)
-
-	if !label.giteaLabelExists {
-		mockGiteaAccessor.
-			EXPECT().
-			AddLabel(gomock.Eq(label.labelName), gomock.Any()).
-			Return(label.labelID, nil)
-	}
+		AddLabel(gomock.Eq(label.labelName), gomock.Any()).
+		Return(label.labelID, nil)
 }
 
 func expectDescriptionMarkdownConversion(t *testing.T, ticket *TicketImport) {
@@ -609,48 +583,23 @@ func expectIssueLabelRetrieval(t *testing.T, ticket *TicketImport, ticketLabel *
 	// expect retrieval/creation of underlying label first
 	expectLabelRetrieval(t, ticketLabel)
 
-	// expect to lookup issue label by id - return -1 if we expect to create issue label
-	returnedIssueLabelID := ticketLabel.issueLabelID
-	if !ticketLabel.giteaIssueLabelExists {
-		returnedIssueLabelID = int64(-1)
-	}
 	mockGiteaAccessor.
 		EXPECT().
-		GetIssueLabelID(gomock.Eq(ticket.issueID), gomock.Eq(ticketLabel.labelID)).
-		Return(returnedIssueLabelID, nil)
-
-	if !ticketLabel.giteaIssueLabelExists {
-		mockGiteaAccessor.
-			EXPECT().
-			AddIssueLabel(gomock.Eq(ticket.issueID), gomock.Eq(ticketLabel.labelID)).
-			Return(ticketLabel.issueLabelID, nil)
-	}
+		AddIssueLabel(gomock.Eq(ticket.issueID), gomock.Eq(ticketLabel.labelID)).
+		Return(ticketLabel.issueLabelID, nil)
 }
 
 func expectIssueCommentCreation(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
-	// expect to lookup issue comment by id - return -1 if we expect to create issue comment
-	returnedIssueCommentID := ticketComment.issueCommentID
-	if !ticketComment.giteaIssueCommentExists {
-		returnedIssueCommentID = int64(-1)
-	}
-
 	mockGiteaAccessor.
 		EXPECT().
-		GetTimedIssueCommentID(gomock.Eq(ticket.issueID), gomock.Eq(ticketComment.time)).
-		Return(returnedIssueCommentID, nil)
-
-	if !ticketComment.giteaIssueCommentExists {
-		mockGiteaAccessor.
-			EXPECT().
-			AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
-			DoAndReturn(func(issueID int64, issueComment *gitea.IssueComment) (int64, error) {
-				assertEquals(t, issueComment.AuthorID, ticketComment.author.giteaUserID)
-				assertEquals(t, issueComment.Text, ticketComment.markdownText)
-				assertEquals(t, issueComment.Time, ticketComment.time)
-				return ticketComment.issueCommentID, nil
-			})
-		expectIssueUserToBeAdded(t, ticket, ticketComment.author)
-	}
+		AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
+		DoAndReturn(func(issueID int64, issueComment *gitea.IssueComment) (int64, error) {
+			assertEquals(t, issueComment.AuthorID, ticketComment.author.giteaUserID)
+			assertEquals(t, issueComment.Text, ticketComment.markdownText)
+			assertEquals(t, issueComment.Time, ticketComment.time)
+			return ticketComment.issueCommentID, nil
+		})
+	expectIssueUserToBeAdded(t, ticket, ticketComment.author)
 }
 
 func expectTicketCommentMarkdownConversion(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
@@ -689,20 +638,13 @@ func expectTracAttachmentPathRetrieval(t *testing.T, ticket *TicketImport, ticke
 		})
 }
 
-func expectAttachmentUUIDRetrieval(t *testing.T, ticket *TicketImport, ticketAttachment *TicketAttachmentImport) {
+func expectIssueAttachmentAddition(t *testing.T, ticket *TicketImport, ticketAttachment *TicketAttachmentImport) {
 	mockGiteaAccessor.
 		EXPECT().
-		GetIssueAttachmentUUID(gomock.Eq(ticket.issueID), gomock.Eq(ticketAttachment.filename)).
-		Return("", nil)
-}
-
-func expectIssueAttachmentCreation(t *testing.T, ticket *TicketImport, ticketAttachment *TicketAttachmentImport) {
-	mockGiteaAccessor.
-		EXPECT().
-		AddIssueAttachment(gomock.Eq(ticket.issueID), gomock.Eq(ticketAttachment.filename), gomock.Any()).
-		DoAndReturn(func(issueID int64, filename string, issueAttachment *gitea.IssueAttachment) (int64, error) {
+		AddIssueAttachment(gomock.Eq(ticket.issueID), gomock.Any(), gomock.Eq(ticketAttachment.attachmentPath)).
+		DoAndReturn(func(issueID int64, issueAttachment *gitea.IssueAttachment, filePath string) (int64, error) {
 			assertEquals(t, issueAttachment.CommentID, ticketAttachment.comment.issueCommentID)
-			assertEquals(t, issueAttachment.FilePath, ticketAttachment.attachmentPath)
+			assertEquals(t, issueAttachment.FileName, ticketAttachment.filename)
 			assertEquals(t, issueAttachment.Time, ticketAttachment.comment.time)
 			return ticketAttachment.issueAttachmentID, nil
 		})
@@ -711,8 +653,7 @@ func expectIssueAttachmentCreation(t *testing.T, ticket *TicketImport, ticketAtt
 func expectAllTicketAttachmentActions(t *testing.T, ticket *TicketImport, ticketAttachment *TicketAttachmentImport) {
 	expectAllTicketCommentActions(t, ticket, ticketAttachment.comment)
 	expectTracAttachmentPathRetrieval(t, ticket, ticketAttachment)
-	expectAttachmentUUIDRetrieval(t, ticket, ticketAttachment)
-	expectIssueAttachmentCreation(t, ticket, ticketAttachment)
+	expectIssueAttachmentAddition(t, ticket, ticketAttachment)
 }
 
 func expectIssueUpdateTimeSetToLatestOf(t *testing.T, ticket *TicketImport, ticketComments ...*TicketCommentImport) {
@@ -737,9 +678,6 @@ func expectRepoIssueCountUpdate(t *testing.T, numIssues int, numClosedIssues int
 }
 
 func expectAllTicketActions(t *testing.T, ticket *TicketImport) {
-	// expect to check whether Gitea issues already exist for our tickets
-	expectIssueLookup(t, ticket)
-
 	// expect to lookup Gitea equivalents of Trac ticket owner and reporter
 	expectUserLookup(t, ticket.owner)
 	expectUserLookup(t, ticket.reporter)

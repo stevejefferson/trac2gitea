@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	currentUser = "current-user"
-
 	noEmailUserName    = "user1"
 	noEmailUser        = noEmailUserName
 	matchedNoEmailUser = "matched-user1"
@@ -46,13 +44,6 @@ func expectMatchUser(t *testing.T, userName string, userEMail string, matchedUse
 		Return(matchedUser, nil)
 }
 
-func expectGetCurrentUser(t *testing.T) {
-	mockGiteaAccessor.
-		EXPECT().
-		GetCurrentUser().
-		Return(currentUser)
-}
-
 func TestDefaultUserMapForUserWithNoEmail(t *testing.T) {
 	setUp(t)
 	defer tearDown(t)
@@ -79,10 +70,9 @@ func TestDefaultUserMapForUnmatchedUser(t *testing.T) {
 
 	expectToRetrieveTracUsers(t, noMatchUser)
 	expectMatchUser(t, noMatchUserName, noMatchUserEmail, "")
-	expectGetCurrentUser(t)
 
 	userMap, _ := dataImporter.DefaultUserMap()
-	assertEquals(t, userMap[noMatchUser], currentUser)
+	assertEquals(t, userMap[noMatchUser], "")
 }
 
 func TestDefaultUserMapForMultipleUsers(t *testing.T) {
@@ -93,10 +83,9 @@ func TestDefaultUserMapForMultipleUsers(t *testing.T) {
 	expectMatchUser(t, noEmailUserName, "", matchedNoEmailUser)
 	expectMatchUser(t, emailUserName, emailUserEmail, matchedEmailUser)
 	expectMatchUser(t, noMatchUserName, noMatchUserEmail, "")
-	expectGetCurrentUser(t)
 
 	userMap, _ := dataImporter.DefaultUserMap()
 	assertEquals(t, userMap[noEmailUser], matchedNoEmailUser)
 	assertEquals(t, userMap[emailUser], matchedEmailUser)
-	assertEquals(t, userMap[noMatchUser], currentUser)
+	assertEquals(t, userMap[noMatchUser], "")
 }

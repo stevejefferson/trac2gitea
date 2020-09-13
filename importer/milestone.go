@@ -17,14 +17,6 @@ func (importer *Importer) ImportMilestones() error {
 			log.Debug("skipping unnamed Trac milestone...")
 			return nil
 		}
-		milestoneID, err := importer.giteaAccessor.GetMilestoneID(tracMilestone.Name)
-		if err != nil {
-			return err
-		}
-		if milestoneID != -1 {
-			log.Debug("milestone %s already exists - skipping...", tracMilestone.Name)
-			return nil
-		}
 
 		giteaMilestone := gitea.Milestone{
 			Name:        tracMilestone.Name,
@@ -33,7 +25,7 @@ func (importer *Importer) ImportMilestones() error {
 			DueTime:     tracMilestone.Due,
 			ClosedTime:  tracMilestone.Completed}
 
-		milestoneID, err = importer.giteaAccessor.AddMilestone(&giteaMilestone)
+		milestoneID, err := importer.giteaAccessor.AddMilestone(&giteaMilestone)
 		if err != nil {
 			return err
 		}

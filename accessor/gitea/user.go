@@ -12,11 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetCurrentUser retrieves the name of the current user (owner of repository into which we are importing).
-func (accessor *DefaultAccessor) GetCurrentUser() string {
-	return accessor.userName
-}
-
 // GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
 func (accessor *DefaultAccessor) GetUserID(userName string) (int64, error) {
 	if strings.Trim(userName, " ") == "" {

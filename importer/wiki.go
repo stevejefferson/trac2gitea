@@ -6,7 +6,6 @@ package importer
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/stevejefferson/trac2gitea/log"
@@ -22,34 +21,7 @@ func (importer *Importer) importWikiAttachments() {
 	})
 }
 
-// cache of commit message list keyed by page name - use this because 'LogWiki' is potentially slow
-var commitMessagesByPage map[string][]string
-
-// pageCommitExists determines whether or not a commit of the given page exists with a commit message containing the provided string
-func (importer *Importer) pageCommitExists(pageName string, commitString string) (bool, error) {
-	commitMessages, haveCommitMessages := commitMessagesByPage[pageName]
-	if !haveCommitMessages {
-		pageCommitMessages, err := importer.giteaAccessor.LogWiki(pageName)
-		if err != nil {
-			return false, err
-		}
-		commitMessagesByPage[pageName] = pageCommitMessages
-		commitMessages = pageCommitMessages
-	}
-
-	for _, commitMessage := range commitMessages {
-		if strings.Contains(commitMessage, commitString) {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 func (importer *Importer) importWikiPages(userMap map[string]string) {
-	// reset page commit log cache
-	commitMessagesByPage = make(map[string][]string)
-
 	importer.tracAccessor.GetWikiPages(func(page *trac.WikiPage) error {
 		// skip predefined pages
 		if !importer.convertPredefineds && importer.tracAccessor.IsPredefinedPage(page.Name) {
@@ -63,18 +35,17 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 		updateTimeStr := time.Unix(page.UpdateTime, 0)
 		tracPageVersionIdentifier := fmt.Sprintf("[Imported from Trac: page %s, version %d at %s]", page.Name, page.Version, updateTimeStr)
 		translatedPageName := importer.giteaAccessor.TranslateWikiPageName(page.Name)
-		hasCommit, err := importer.pageCommitExists(translatedPageName, tracPageVersionIdentifier)
-		if err != nil {
-			return err
-		}
-		if hasCommit {
-			log.Info("wiki page %s, version %d is already present in wiki - skipping...", translatedPageName, page.Version)
-			return nil
-		}
 
 		// convert and write wiki page
 		markdownText := importer.markdownConverter.WikiConvert(page.Name, page.Text)
-		importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText)
+		written, err := importer.giteaAccessor.WriteWikiPage(translatedPageName, markdownText, tracPageVersionIdentifier)
+		if err != nil {
+			return err
+		}
+		if !written {
+			log.Info("Trac wiki page %s, version %d is already present in Gitea wiki - ignored", translatedPageName, page.Version)
+			return nil
+		}
 
 		// find Gitea equivalent of Trac author if any
 		author := page.Author

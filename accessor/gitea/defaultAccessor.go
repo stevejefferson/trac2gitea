@@ -32,6 +32,7 @@ type DefaultAccessor struct {
 	wikiRepoToken string
 	wikiRepoDir   string
 	wikiRepo      *git.Repository
+	overwrite     bool
 }
 
 func fetchConfig(configPath string) (*ini.File, error) {
@@ -57,7 +58,8 @@ func CreateDefaultAccessor(
 	giteaRepoName string,
 	giteaWikiRepoURL string,
 	giteaWikiRepoToken string,
-	giteaWikiRepoDir string) (*DefaultAccessor, error) {
+	giteaWikiRepoDir string,
+	overwriteData bool) (*DefaultAccessor, error) {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
 		err = errors.Wrapf(err, "looking for root directory %s of Gitea instance", giteaRootDir)
@@ -95,7 +97,8 @@ func CreateDefaultAccessor(
 		wikiRepoURL:   "",
 		wikiRepoToken: "",
 		wikiRepoDir:   "",
-		wikiRepo:      nil}
+		wikiRepo:      nil,
+		overwrite:     overwriteData}
 
 	// extract path to gitea DB - currently sqlite-specific...
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")

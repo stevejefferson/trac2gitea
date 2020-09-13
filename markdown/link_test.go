@@ -272,7 +272,7 @@ func setUpTicketCommentLink(t *testing.T, tktID int64) {
 	// expect call to lookup gitea ID for trac comment
 	mockGiteaAccessor.
 		EXPECT().
-		GetTimedIssueCommentID(gomock.Eq(issueID), gomock.Eq(commentTime)).
+		GetIssueCommentIDByTime(gomock.Eq(issueID), gomock.Eq(commentTime)).
 		Return(commentID, nil)
 
 	// expect call to lookup URL of gitea comment
@@ -418,7 +418,7 @@ func setUpTicketAttachmentLink(t *testing.T, tktID int64) {
 	// expect call to lookup URL for attachment file
 	mockGiteaAccessor.
 		EXPECT().
-		GetIssueAttachmentURL(gomock.Eq(ticketAttachmentUUID)).
+		GetIssueAttachmentURL(gomock.Eq(issueID), gomock.Eq(ticketAttachmentUUID)).
 		Return(ticketAttachmentURL)
 }
 

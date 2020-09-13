@@ -16,16 +16,7 @@ func (importer *Importer) importTicketLabel(issueID int64, tracName string, labe
 		return -1, nil
 	}
 
-	issueLabelID, err := importer.giteaAccessor.GetIssueLabelID(issueID, labelID)
-	if err != nil {
-		return -1, err
-	}
-	if issueLabelID != -1 {
-		log.Debug("Trac label %s already referenced by issue %d - skipping...", tracName, issueID)
-		return -1, nil
-	}
-
-	issueLabelID, err = importer.giteaAccessor.AddIssueLabel(issueID, labelID)
+	issueLabelID, err := importer.giteaAccessor.AddIssueLabel(issueID, labelID)
 	if err != nil {
 		return -1, err
 	}

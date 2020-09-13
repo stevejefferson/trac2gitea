@@ -11,6 +11,7 @@ At present the following Trac data is converted:
   * Trac ticket attachments to Gitea issue attachments
   * Trac ticket comments to Gitea issue comments with markdown text conversion
   * Trac ticket labels to Gitea issue labels
+  * Trac ticket and comment owners to Gitea issue assignees
 * Trac Wiki pages to files in the Gitea wiki repository
   * Markdown text conversion
   * Preservation of Trac wiki page history as separate wiki repository commits
@@ -56,6 +57,7 @@ Options:
       --db-only                   convert database only
       --generate-maps             generate default user/label mappings into provided map files (note: no conversion will be performed in this case)
       --no-wiki-push              do not push wiki on completion
+      --overwrite                 overwrite existing data
       --verbose                   verbose output
       --wiki-convert-predefined   convert Trac predefined wiki pages - by default we skip these
       --wiki-dir string           directory into which to checkout (clone) wiki repository - defaults to cwd

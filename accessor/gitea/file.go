@@ -12,7 +12,7 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-func (accessor *DefaultAccessor) copyFile(externalFilePath string, giteaPath string) error {
+func copyFile(externalFilePath string, giteaPath string) error {
 	_, err := os.Stat(externalFilePath)
 	if os.IsNotExist(err) {
 		log.Warn("cannot copy non-existant attachment file: \"%s\"", externalFilePath)
@@ -47,4 +47,8 @@ func (accessor *DefaultAccessor) copyFile(externalFilePath string, giteaPath str
 
 	log.Debug("copied file %s to %s", externalFilePath, giteaPath)
 	return nil
+}
+
+func deleteFile(path string) error {
+	return os.Remove(path)
 }

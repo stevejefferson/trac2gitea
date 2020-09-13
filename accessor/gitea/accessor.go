@@ -15,13 +15,14 @@ type Issue struct {
 	Closed             bool
 	Description        string
 	Created            int64
+	Updated            int64
 }
 
 // IssueAttachment describes an attachment to a Gitea issue.
 type IssueAttachment struct {
 	UUID      string
 	CommentID int64
-	FilePath  string
+	FileName  string
 	Time      int64
 }
 
@@ -79,29 +80,26 @@ type Accessor interface {
 	GetIssueAttachmentUUID(issueID int64, fileName string) (string, error)
 
 	// AddIssueAttachment adds a new attachment to an issue using the provided file - returns id of created attachment
-	AddIssueAttachment(issueID int64, fileName string, attachment *IssueAttachment) (int64, error)
+	AddIssueAttachment(issueID int64, attachment *IssueAttachment, filePath string) (int64, error)
 
 	// GetIssueAttachmentURL retrieves the URL for viewing a Gitea attachment
-	GetIssueAttachmentURL(uuid string) string
+	GetIssueAttachmentURL(issueID int64, uuid string) string
 
 	/*
 	 * Issue Comments
 	 */
+	// GetIssueCommentIDByTime retrives the ID of a comment created at a given time for a given issue or -1 if no such issue/comment
+	GetIssueCommentIDByTime(issueID int64, createdTime int64) (int64, error)
+
 	// AddIssueComment adds a comment on a Gitea issue, returns id of created comment
 	AddIssueComment(issueID int64, comment *IssueComment) (int64, error)
 
 	// GetIssueCommentURL retrieves the URL for viewing a Gitea comment for a given issue.
 	GetIssueCommentURL(issueID int64, commentID int64) string
 
-	// GetTimedIssueCommentID retrives the ID of a comment created at a given time for a given issue or -1 if no such issue/comment
-	GetTimedIssueCommentID(issueID int64, createdTime int64) (int64, error)
-
 	/*
 	 * Issue Labels
 	 */
-	// GetIssueLabelID retrieves the id of the given Gitea issue and label - returns -1 if no such issue label.
-	GetIssueLabelID(issueID int64, labelID int64) (int64, error)
-
 	// AddIssueLabel adds an issue label to Gitea, returns issue label ID
 	AddIssueLabel(issueID int64, labelID int64) (int64, error)
 
@@ -114,20 +112,17 @@ type Accessor interface {
 	/*
 	 * Labels
 	 */
-	// GetLabelID retrieves the id of the given label, returns -1 if no such label
-	GetLabelID(labelName string) (int64, error)
-
 	// AddLabel adds a label to Gitea, returns label id.
 	AddLabel(label string, color string) (int64, error)
 
 	/*
 	 * Milestones
 	 */
-	// AddMilestone adds a milestone to Gitea,  returns id of created milestone
-	AddMilestone(milestone *Milestone) (int64, error)
-
 	// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
 	GetMilestoneID(name string) (int64, error)
+
+	// AddMilestone adds a milestone to Gitea,  returns id of created milestone
+	AddMilestone(milestone *Milestone) (int64, error)
 
 	// GetMilestoneURL gets the URL for accessing a given milestone
 	GetMilestoneURL(milestoneID int64) string
@@ -147,9 +142,6 @@ type Accessor interface {
 	/*
 	 * Users
 	 */
-	// GetCurrentUser retrieves the name of the current user (owner of repository into which we are importing).
-	GetCurrentUser() string
-
 	// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
 	GetUserID(userName string) (int64, error)
 
@@ -176,9 +168,6 @@ type Accessor interface {
 	// CloneWiki creates a local clone of the wiki repo.
 	CloneWiki() error
 
-	// LogWiki returns the log of commits for the given wiki page
-	LogWiki(pageName string) ([]string, error)
-
 	// CommitWiki commits any files added or updated since the last commit to our local wiki repo.
 	CommitWiki(author string, authorEMail string, message string) error
 
@@ -188,8 +177,9 @@ type Accessor interface {
 	// CopyFileToWiki copies an external file into the local clone of the Gitea Wiki
 	CopyFileToWiki(externalFilePath string, giteaWikiRelPath string) error
 
-	// WriteWikiPage writes (a version of) a wiki page to the local clone of the wiki repository, returning the path to the written file.
-	WriteWikiPage(pageName string, markdownText string) (string, error)
+	// WriteWikiPage potentially writes a wiki page to the local wiki repository, returning a flag to say whether the file was physically written.
+	// If a previous commit of the wiki page is found containing the provided marker string then the page will only be written if an explicit override has been provided.
+	WriteWikiPage(pageName string, markdownText string, commitMarker string) (bool, error)
 
 	// TranslateWikiPageName translates a Trac wiki page name into a Gitea one
 	TranslateWikiPageName(pageName string) string

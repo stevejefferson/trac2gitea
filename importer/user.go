@@ -29,11 +29,6 @@ func (importer *Importer) DefaultUserMap() (map[string]string, error) {
 		}
 		log.Debug("matched user \"%s\", email \"%s\" to \"%s\"", userName, userEmail, matchedUserName)
 
-		if matchedUserName == "" {
-			matchedUserName = importer.giteaAccessor.GetCurrentUser()
-			log.Debug("unmatched user \"%s\" mapped to default user \"%s\"", userName, matchedUserName)
-		}
-
 		userMap[user] = matchedUserName
 
 		return nil

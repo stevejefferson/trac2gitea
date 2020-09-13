@@ -10,7 +10,6 @@ import (
 
 	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // importTicketAttachment imports a single ticket attachment from Trac into Gitea, returns UUID if newly-created attachment or "" if attachment already existed
@@ -37,23 +36,8 @@ func (importer *Importer) importTicketAttachment(issueID int64, tracAttachment *
 		tracDir[0:4], tracDir[4:8], tracDir[8:12],
 		tracFile[0:12])
 
-	existingUUID, err := importer.giteaAccessor.GetIssueAttachmentUUID(issueID, tracAttachment.FileName)
-	if err != nil {
-		return "", err
-	}
-
-	if existingUUID != "" {
-		if existingUUID == uuid {
-			log.Debug("attachment %s, (uuid=\"%s\") already exists for issue %d - skipping...", tracAttachment.FileName, uuid, issueID)
-		} else {
-			log.Warn("attachment %s already exists for issue %d but under uuid \"%s\" (expecting \"%s\") - skipping...",
-				tracAttachment.FileName, issueID, existingUUID, uuid)
-		}
-		return "", nil
-	}
-
-	giteaAttachment := gitea.IssueAttachment{UUID: uuid, CommentID: commentID, FilePath: tracPath, Time: tracAttachment.Time}
-	_, err = importer.giteaAccessor.AddIssueAttachment(issueID, tracAttachment.FileName, &giteaAttachment)
+	giteaAttachment := gitea.IssueAttachment{UUID: uuid, CommentID: commentID, FileName: tracAttachment.FileName, Time: tracAttachment.Time}
+	_, err = importer.giteaAccessor.AddIssueAttachment(issueID, &giteaAttachment, tracPath)
 	if err != nil {
 		return "", err
 	}
