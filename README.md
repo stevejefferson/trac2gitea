@@ -91,9 +91,12 @@ The default mapping maps a Trac user onto a Gitea user where the Gitea user has 
 * the same "full" name
 * the same email address
 
-Where no mapping exists for a Trac user (the user map contains a line `<trac-user> =`), then the `<gitea-user>` provided on the command line will be used as the author of any issues or comments. 
-If a Trac ticket is assigned to a Trac user with no mapping to a Gitea user then the resultant Gitea issue will be left unassigned.
-For both issues and comments the original Trac user will be saved as the "original author" as per other Gitea migrations.
+Where no mapping exists for a Trac user (the user map contains a line `<trac-user> =`):
+* the Gitea repository owner provided on the command line will be used as the author of any issues or comments
+* any Trac tickets assigned to the user will be converted left unassigned in Gitea
+* the Trac user will be recorded as the "original author" of any Gitea issues
+
+Where a mapping exists for a Trac user, the mapped Gitea user will be used in all relevant issues, comments etc.
 
 ### Label Mappings
 A file mapping from Trac component, priority, resolution, severity, type and version names onto Gitea label names can be provided via the `<label-map>` parameter.

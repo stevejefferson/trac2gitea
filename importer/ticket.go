@@ -19,9 +19,22 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 		reporterID = importer.defaultAuthorID
 	}
 
+	// record Trac owner as original author if it has no Gitea user mapping
+	ownerID := int64(-1)
+	originalAuthorName := ticket.Owner
+	if ticket.Owner != "" {
+		ownerID, err = importer.getUser(ticket.Owner, userMap)
+		if err != nil {
+			return -1, err
+		}
+		if ownerID != -1 {
+			originalAuthorName = ""
+		}
+	}
+
 	convertedDescription := importer.markdownConverter.TicketConvert(ticket.TicketID, ticket.Description)
 	issue := gitea.Issue{Index: ticket.TicketID, Summary: ticket.Summary, ReporterID: reporterID,
-		Milestone: ticket.MilestoneName, OriginalAuthorID: 0, OriginalAuthorName: ticket.Owner,
+		Milestone: ticket.MilestoneName, OriginalAuthorID: 0, OriginalAuthorName: originalAuthorName,
 		Closed: closed, Description: convertedDescription, Created: ticket.Created, Updated: ticket.Updated}
 	issueID, err := importer.giteaAccessor.AddIssue(&issue)
 	if err != nil {
@@ -29,17 +42,10 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	}
 
 	// if we have a Gitea user for the Trac ticket owner then assign the Gitea issue to that user
-	ownerID := int64(-1)
-	if ticket.Owner != "" {
-		ownerID, err = importer.getUser(ticket.Owner, userMap)
+	if ownerID != -1 {
+		err = importer.giteaAccessor.AddIssueAssignee(issueID, ownerID)
 		if err != nil {
 			return -1, err
-		}
-		if ownerID != -1 {
-			err = importer.giteaAccessor.AddIssueAssignee(issueID, ownerID)
-			if err != nil {
-				return -1, err
-			}
 		}
 	}
 

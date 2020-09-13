@@ -78,24 +78,30 @@ func initMaps() {
 
 // TicketUserImport holds the data on a user referenced by an imported ticket
 type TicketUserImport struct {
-	tracUser    string
-	giteaUser   string
-	giteaUserID int64
+	tracUser     string
+	giteaUser    string
+	giteaUserID  int64
+	origTracUser string
 }
 
 func createTicketUserImport(tracUser string, giteaUser string) *TicketUserImport {
-	// if we have a gitea user mapping use a unique user id otherwise expect default user id to be used
+	// if we have a gitea user mapping use a unique user id but do not record the original trac user on issues
+	// if not, expect default user id to be used and record original trac user
 	var giteaUserID int64
+	var origTracUser string
 	if giteaUser != "" {
 		giteaUserID = allocateID()
+		origTracUser = ""
 	} else {
 		giteaUserID = defaultUserID
+		origTracUser = tracUser
 	}
 
 	user := TicketUserImport{
-		tracUser:    tracUser,
-		giteaUser:   giteaUser,
-		giteaUserID: giteaUserID,
+		tracUser:     tracUser,
+		giteaUser:    giteaUser,
+		giteaUserID:  giteaUserID,
+		origTracUser: origTracUser,
 	}
 
 	if tracUser != "" {
@@ -367,6 +373,7 @@ type TicketImport struct {
 	closed              bool
 	status              string
 	created             int64
+	updated             int64
 }
 
 func createTicketImport(
@@ -403,6 +410,7 @@ func createTicketImport(
 		closed:              closed,
 		status:              status,
 		created:             allocateUnixTime(),
+		updated:             allocateUnixTime(),
 	}
 }
 
@@ -422,6 +430,7 @@ func createTracTicket(ticket *TicketImport) *trac.Ticket {
 		VersionName:    ticket.versionLabel.name,
 		Status:         ticket.status,
 		Created:        ticket.created,
+		Updated:        ticket.updated,
 	}
 }
 
@@ -564,7 +573,7 @@ func expectIssueCreation(t *testing.T, ticket *TicketImport) {
 			assertEquals(t, issue.Summary, ticket.summary)
 			assertEquals(t, issue.Description, ticket.descriptionMarkdown)
 			assertEquals(t, issue.OriginalAuthorID, int64(0))
-			assertEquals(t, issue.OriginalAuthorName, ticket.owner.tracUser)
+			assertEquals(t, issue.OriginalAuthorName, ticket.owner.origTracUser)
 			assertEquals(t, issue.ReporterID, ticket.reporter.giteaUserID)
 			assertEquals(t, issue.Milestone, ticket.milestoneName)
 			assertEquals(t, issue.Closed, ticket.closed)
