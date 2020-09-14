@@ -23,12 +23,16 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	if err != nil {
 		return -1, err
 	}
+
+	// record Trac comment author as original author if it cannot be mapped onto a Gitea user
+	originalAuthorName := ""
 	if authorID == -1 {
 		authorID = importer.defaultAuthorID
+		originalAuthorName = tracComment.Author
 	}
 
 	convertedText := importer.markdownConverter.TicketConvert(tracComment.TicketID, tracComment.Text)
-	giteaComment := gitea.IssueComment{AuthorID: authorID, OriginalAuthorID: 0, OriginalAuthorName: tracComment.Author, Text: convertedText, Time: tracComment.Time}
+	giteaComment := gitea.IssueComment{AuthorID: authorID, OriginalAuthorID: 0, OriginalAuthorName: originalAuthorName, Text: convertedText, Time: tracComment.Time}
 	commentID, err := importer.giteaAccessor.AddIssueComment(issueID, &giteaComment)
 	if err != nil {
 		return -1, err

@@ -130,8 +130,11 @@ type Accessor interface {
 	/*
 	 * Repository
 	 */
-	// UpdateRepoIssueCount updates the count of total and closed issue for a our chosen Gitea repository.
-	UpdateRepoIssueCount(count int, closedCount int) error
+	// UpdateRepoIssueCounts updates issue counts for a our chosen Gitea repository.
+	UpdateRepoIssueCounts() error
+
+	// UpdateRepoMilestoneCounts updates milestone counts for a our chosen Gitea repository.
+	UpdateRepoMilestoneCounts() error
 
 	// GetCommitURL retrieves the URL for viewing a given commit in the current repository
 	GetCommitURL(commitID string) string

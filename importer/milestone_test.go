@@ -112,6 +112,10 @@ func TestMilestones(t *testing.T) {
 			assertEquals(t, giteaMilestone.ClosedTime, uncompletedMilestoneCompletedTime)
 			return uncompletedMilestoneID, nil
 		})
+	mockGiteaAccessor.
+		EXPECT().
+		UpdateRepoMilestoneCounts().
+		Return(nil)
 
 	dataImporter.ImportMilestones()
 }

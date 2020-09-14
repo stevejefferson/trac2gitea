@@ -19,7 +19,7 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 		reporterID = importer.defaultAuthorID
 	}
 
-	// record Trac owner as original author if it has no Gitea user mapping
+	// record Trac owner as original author if it cannot be mapped onto a Gitea user
 	ownerID := int64(-1)
 	originalAuthorName := ticket.Owner
 	if ticket.Owner != "" {
@@ -67,9 +67,6 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 // ImportTickets imports Trac tickets as Gitea issues.
 func (importer *Importer) ImportTickets(
 	userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
-	count := 0
-	closedCount := 0
-
 	err := importer.tracAccessor.GetTickets(func(ticket *trac.Ticket) error {
 		closed := ticket.Status == "closed"
 		issueID, err := importer.importTicket(ticket, closed, userMap)
@@ -119,11 +116,6 @@ func (importer *Importer) ImportTickets(
 			return err
 		}
 
-		count++
-		if closed {
-			closedCount++
-		}
-
 		err = importer.giteaAccessor.SetIssueUpdateTime(issueID, lastUpdate)
 
 		return nil
@@ -132,5 +124,5 @@ func (importer *Importer) ImportTickets(
 		return err
 	}
 
-	return importer.giteaAccessor.UpdateRepoIssueCount(count, closedCount)
+	return importer.giteaAccessor.UpdateRepoIssueCounts()
 }

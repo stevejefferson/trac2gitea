@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/stevejefferson/trac2gitea/log"
 )
 
 func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (int64, error) {
@@ -24,32 +23,33 @@ func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (in
 	return id, nil
 }
 
-// UpdateRepoIssueCount updates the count of total and closed issue for a our chosen Gitea repository.
-func (accessor *DefaultAccessor) UpdateRepoIssueCount(count int, closedCount int) error {
-	// Update issue count for repo
-	if count > 0 {
-		_, err := accessor.db.Exec(`
-			UPDATE repository SET num_issues = num_issues+$1
-				WHERE id = $2`,
-			count, accessor.repoID)
-		if err != nil {
-			err = errors.Wrapf(err, "updating number of issues for repository %d", accessor.repoID)
-			return err
-		}
-	}
-	if closedCount > 0 {
-		_, err := accessor.db.Exec(`
-			UPDATE repository
-				SET num_closed_issues = num_closed_issues+$1
-				WHERE id = $2`,
-			closedCount, accessor.repoID)
-		if err != nil {
-			err = errors.Wrapf(err, "updating number of closed issues for repository %d", accessor.repoID)
-			return err
-		}
+// UpdateRepoIssueCounts updates issue counts for a our chosen Gitea repository.
+func (accessor *DefaultAccessor) UpdateRepoIssueCounts() error {
+	_, err := accessor.db.Exec(`
+		UPDATE repository SET 
+			num_issues = (SELECT COUNT(id) FROM issue),
+			num_closed_issues = (SELECT COUNT(id) FROM issue WHERE is_closed=1)
+			WHERE id = $2`, accessor.repoID)
+	if err != nil {
+		err = errors.Wrapf(err, "updating number of issues for repository %d", accessor.repoID)
+		return err
 	}
 
-	log.Info("updated repository: total issues=%d, closed issues=%d", count, closedCount)
+	return nil
+}
+
+// UpdateRepoMilestoneCounts updates milestone counts for a our chosen Gitea repository.
+func (accessor *DefaultAccessor) UpdateRepoMilestoneCounts() error {
+	_, err := accessor.db.Exec(`
+		UPDATE repository SET 
+			num_milestones = (SELECT COUNT(id) FROM milestone),
+			num_closed_milestones = (SELECT COUNT(id) FROM milestone WHERE is_closed=1)
+			WHERE id = $2`, accessor.repoID)
+	if err != nil {
+		err = errors.Wrapf(err, "updating number of milestones for repository %d", accessor.repoID)
+		return err
+	}
+
 	return nil
 }
 

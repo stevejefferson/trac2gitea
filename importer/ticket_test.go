@@ -679,10 +679,10 @@ func expectIssueUpdateTimeSetToLatestOf(t *testing.T, ticket *TicketImport, tick
 		Return(nil)
 }
 
-func expectRepoIssueCountUpdate(t *testing.T, numIssues int, numClosedIssues int) {
+func expectRepoIssueCountsUpdate(t *testing.T) {
 	mockGiteaAccessor.
 		EXPECT().
-		UpdateRepoIssueCount(gomock.Eq(numIssues), gomock.Eq(numClosedIssues)).
+		UpdateRepoIssueCounts().
 		Return(nil)
 }
 
@@ -725,8 +725,8 @@ func TestImportClosedTicketOnly(t *testing.T) {
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -750,8 +750,8 @@ func TestImportOpenTicketOnly(t *testing.T) {
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -779,8 +779,8 @@ func TestImportMultipleTicketsOnly(t *testing.T) {
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket)
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 2, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -808,8 +808,8 @@ func TestImportTicketWithAttachments(t *testing.T) {
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -843,8 +843,8 @@ func TestImportMultipleTicketsWithAttachments(t *testing.T) {
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket, openTicketAttachment1.comment, openTicketAttachment2.comment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 2, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -872,8 +872,8 @@ func TestImportTicketWithComments(t *testing.T) {
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -907,8 +907,8 @@ func TestImportMultipleTicketsWithComments(t *testing.T) {
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket, openTicketComment1, openTicketComment2)
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 2, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -941,8 +941,8 @@ func TestImportTicketWithAttachmentsAndComments(t *testing.T) {
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket,
 		openTicketComment1, openTicketComment2, openTicketAttachment1.comment, openTicketAttachment2.comment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -984,8 +984,8 @@ func TestImportMultipleTicketsWithAttachmentsAndComments(t *testing.T) {
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket,
 		closedTicketComment1, closedTicketComment2, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 2, 1)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -1009,8 +1009,8 @@ func TestImportTicketWithNoTracUser(t *testing.T) {
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -1037,8 +1037,8 @@ func TestImportTicketWithAttachmentButNoTracUser(t *testing.T) {
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket, noTracUserTicketAttachment.comment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -1065,8 +1065,8 @@ func TestImportTicketWithCommentButNoTracUser(t *testing.T) {
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket, noTracUserTicketComment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -1090,8 +1090,8 @@ func TestImportTicketWithUnmappedTracUser(t *testing.T) {
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -1118,8 +1118,8 @@ func TestImportTicketWithAttachmentButUnmappedTracUser(t *testing.T) {
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket, unmappedTracUserTicketAttachment.comment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -1146,8 +1146,8 @@ func TestImportTicketWithCommentButUnmappedTracUser(t *testing.T) {
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
 
-	// expect repository issue count to be updated
-	expectRepoIssueCountUpdate(t, 1, 0)
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }

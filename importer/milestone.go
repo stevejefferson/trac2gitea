@@ -12,7 +12,7 @@ import (
 
 // ImportMilestones imports Trac milestones as Gitea milestones.
 func (importer *Importer) ImportMilestones() error {
-	return importer.tracAccessor.GetMilestones(func(tracMilestone *trac.Milestone) error {
+	err := importer.tracAccessor.GetMilestones(func(tracMilestone *trac.Milestone) error {
 		if tracMilestone.Name == "" {
 			log.Debug("skipping unnamed Trac milestone...")
 			return nil
@@ -33,4 +33,9 @@ func (importer *Importer) ImportMilestones() error {
 		log.Debug("added milestone (id %d) %s", milestoneID, tracMilestone.Name)
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	return importer.giteaAccessor.UpdateRepoMilestoneCounts()
 }
