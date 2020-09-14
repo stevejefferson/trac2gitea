@@ -127,12 +127,12 @@ func (converter *DefaultConverter) resolveTicketCommentLink(ticketID int64, link
 	if err != nil || timestamp == int64(0) {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
-	commentID, err := converter.giteaAccessor.GetIssueCommentIDByTime(issueID, timestamp)
-	if err != nil {
+	commentIDs, err := converter.giteaAccessor.GetIssueCommentIDsByTime(issueID, timestamp)
+	if err != nil || len(commentIDs) == 0 {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
 
-	commentURL := converter.giteaAccessor.GetIssueCommentURL(issueID, commentID)
+	commentURL := converter.giteaAccessor.GetIssueCommentURL(issueID, commentIDs[0])
 	return markLink(commentURL)
 }
 

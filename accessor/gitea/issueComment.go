@@ -5,7 +5,6 @@
 package gitea
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -13,18 +12,27 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// GetIssueCommentIDByTime retrives the ID of a comment created at a given time for a given issue or -1 if no such issue/comment
-func (accessor *DefaultAccessor) GetIssueCommentIDByTime(issueID int64, createdTime int64) (int64, error) {
-	var commentID int64 = -1
-	err := accessor.db.QueryRow(`
-		SELECT id FROM comment WHERE issue_id = $1 AND created_unix = $2
-		`, issueID, createdTime).Scan(&commentID)
-	if err != nil && err != sql.ErrNoRows {
-		err = errors.Wrapf(err, "retrieving id of comment created at \"%s\" for issue %d", time.Unix(createdTime, 0), issueID)
-		return -1, err
+// GetIssueCommentIDsByTime retrieves the IDs of all comments created at a given time for a given issue
+func (accessor *DefaultAccessor) GetIssueCommentIDsByTime(issueID int64, createdTime int64) ([]int64, error) {
+	rows, err := accessor.db.Query(
+		`SELECT id FROM comment WHERE issue_id = $1 AND created_unix = $2`, issueID, createdTime)
+	if err != nil {
+		err = errors.Wrapf(err, "retrieving ids of comments created at \"%s\" for issue %d", time.Unix(createdTime, 0), issueID)
+		return []int64{}, err
 	}
 
-	return commentID, nil
+	var issueCommentIDs = []int64{}
+	for rows.Next() {
+		var issueCommentID int64 = -1
+		if err := rows.Scan(&issueCommentID); err != nil {
+			err = errors.Wrapf(err, "retrieving id of comment created at \"%s\" for issue %d", time.Unix(createdTime, 0), issueID)
+			return []int64{}, err
+		}
+
+		issueCommentIDs = append(issueCommentIDs, issueCommentID)
+	}
+
+	return issueCommentIDs, nil
 }
 
 // updateIssueComment updates an existing issue comment
@@ -68,19 +76,41 @@ func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *Issu
 	return issueCommentID, nil
 }
 
+// HACK:
+// Timestamps associated with Gitea comments are not necessarily unique for comments originating from Trac
+// because Trac stores timestamps to a greater precision which we have to round to Gitea's precision.
+// Unfortunately timestamp is the best key we have for identifying whether a particular issue comment already exists
+// (and hence whether we need to insert or update it).
+// We get round this by observing that comments are always added consecutively for a given issue so we can
+// cache all comment IDs for our current issue and timestamp and extract the subsequent entries from that list.
+var prevIssueID = int64(0)
+var prevCommentTime = int64(0)
+var issueCommentIDIndex = 0
+var issueCommentIDs = []int64{}
+
 // AddIssueComment adds a comment on a Gitea issue, returns id of created comment
 func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueComment) (int64, error) {
-	issueCommentID, err := accessor.GetIssueCommentIDByTime(issueID, comment.Time)
-	if err != nil {
-		return -1, err
+	var err error
+	if issueID != prevIssueID || comment.Time != prevCommentTime {
+		prevIssueID = issueID
+		prevCommentTime = comment.Time
+		issueCommentIDIndex = 0
+		issueCommentIDs, err = accessor.GetIssueCommentIDsByTime(issueID, comment.Time)
+		if err != nil {
+			return -1, err
+		}
 	}
 
-	if issueCommentID == -1 {
+	if issueCommentIDIndex >= len(issueCommentIDs) {
+		// should only happen where no issue comments for timestamp
 		return accessor.insertIssueComment(issueID, comment)
 	}
 
+	issueCommentID := issueCommentIDs[issueCommentIDIndex]
+	issueCommentIDIndex++
+
 	if accessor.overwrite {
-		err = accessor.updateIssueComment(issueCommentID, issueID, comment)
+		err := accessor.updateIssueComment(issueCommentID, issueID, comment)
 		if err != nil {
 			return -1, err
 		}
