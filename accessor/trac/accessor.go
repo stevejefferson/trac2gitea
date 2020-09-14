@@ -31,6 +31,28 @@ type Ticket struct {
 	Updated        int64
 }
 
+// TicketChangeType enumerates the types of ticket change we handle.
+type TicketChangeType int
+
+const (
+	// TicketCommentType is a ticket change comprising a comment on the ticket.
+	TicketCommentType TicketChangeType = iota
+)
+
+// TicketComment describes a comment on a Trac ticket.
+type TicketComment struct {
+	TicketID int64
+	Author   string
+	Text     string
+}
+
+// TicketChange describes a change to a Trac ticket.
+type TicketChange struct {
+	ChangeType TicketChangeType
+	Comment    *TicketComment
+	Time       int64
+}
+
 // TicketAttachment describes an attachment to a Trac ticket.
 type TicketAttachment struct {
 	TicketID    int64
@@ -39,14 +61,6 @@ type TicketAttachment struct {
 	Author      string
 	FileName    string
 	Description string
-}
-
-// TicketComment describes a comment on a Trac ticket.
-type TicketComment struct {
-	TicketID int64
-	Time     int64
-	Author   string
-	Text     string
 }
 
 // WikiPage describes a Trac wiki page.
@@ -116,6 +130,15 @@ type Accessor interface {
 	GetTickets(handlerFn func(ticket *Ticket) error) error
 
 	/*
+	 * Ticket Changes
+	 */
+	// GetTicketChanges retrieves all changes on a given Trac ticket in ascending time order, passing data from each one to the provided "handler" function.
+	GetTicketChanges(ticketID int64, handlerFn func(change *TicketChange) error) error
+
+	// GetTicketCommentTime retrieves the timestamp for a given comment for a given Trac ticket
+	GetTicketCommentTime(ticketID int64, changeNum int64) (int64, error)
+
+	/*
 	 * Ticket Attachments
 	 */
 	// GetTicketAttachmentPath retrieves the path to a named attachment to a Trac ticket.
@@ -123,15 +146,6 @@ type Accessor interface {
 
 	// GetTicketAttachments retrieves all attachments for a given Trac ticket, passing data from each one to the provided "handler" function.
 	GetTicketAttachments(ticketID int64, handlerFn func(attachment *TicketAttachment) error) error
-
-	/*
-	 * Ticket Comments
-	 */
-	// GetTicketComments retrieves all comments on a given Trac ticket, passing data from each one to the provided "handler" function.
-	GetTicketComments(ticketID int64, handlerFn func(comment *TicketComment) error) error
-
-	// GetTicketCommentTime retrieves the timestamp for a given comment string for a given Trac ticket
-	GetTicketCommentTime(ticketID int64, commentNum int64) (int64, error)
 
 	/*
 	 * Types

@@ -18,7 +18,7 @@ func truncateString(str string, maxlen int) string {
 }
 
 // importTicketComment imports a single ticket comment from Trac to Gitea, returns ID of created comment or -1 if comment already exists
-func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.TicketComment, userMap map[string]string) (int64, error) {
+func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.TicketComment, commentTime int64, userMap map[string]string) (int64, error) {
 	authorID, err := importer.getUser(tracComment.Author, userMap)
 	if err != nil {
 		return -1, err
@@ -32,7 +32,7 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	}
 
 	convertedText := importer.markdownConverter.TicketConvert(tracComment.TicketID, tracComment.Text)
-	giteaComment := gitea.IssueComment{AuthorID: authorID, OriginalAuthorID: 0, OriginalAuthorName: originalAuthorName, Text: convertedText, Time: tracComment.Time}
+	giteaComment := gitea.IssueComment{AuthorID: authorID, OriginalAuthorID: 0, OriginalAuthorName: originalAuthorName, Text: convertedText, Time: commentTime}
 	commentID, err := importer.giteaAccessor.AddIssueComment(issueID, &giteaComment)
 	if err != nil {
 		return -1, err
@@ -47,16 +47,19 @@ func (importer *Importer) importTicketComment(issueID int64, tracComment *trac.T
 	return commentID, nil
 }
 
-func (importer *Importer) importTicketComments(ticketID int64, issueID int64, lastUpdate int64, userMap map[string]string) (int64, error) {
+func (importer *Importer) importTicketChanges(ticketID int64, issueID int64, lastUpdate int64, userMap map[string]string) (int64, error) {
 	commentLastUpdate := lastUpdate
-	err := importer.tracAccessor.GetTicketComments(ticketID, func(comment *trac.TicketComment) error {
-		commentID, err := importer.importTicketComment(issueID, comment, userMap)
-		if err != nil {
-			return err
-		}
+	err := importer.tracAccessor.GetTicketChanges(ticketID, func(change *trac.TicketChange) error {
+		switch change.ChangeType {
+		case trac.TicketCommentType:
+			commentID, err := importer.importTicketComment(issueID, change.Comment, change.Time, userMap)
+			if err != nil {
+				return err
+			}
 
-		if commentID != -1 && commentLastUpdate < comment.Time {
-			commentLastUpdate = comment.Time
+			if commentID != -1 && commentLastUpdate < change.Time {
+				commentLastUpdate = change.Time
+			}
 		}
 
 		return nil

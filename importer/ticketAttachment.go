@@ -16,8 +16,8 @@ import (
 func (importer *Importer) importTicketAttachment(issueID int64, tracAttachment *trac.TicketAttachment, userMap map[string]string) (string, error) {
 	commentText := fmt.Sprintf("**Attachment** %s (%d bytes) added\n\n%s", tracAttachment.FileName, tracAttachment.Size, tracAttachment.Description)
 
-	tracComment := trac.TicketComment{TicketID: tracAttachment.TicketID, Time: tracAttachment.Time, Author: tracAttachment.Author, Text: commentText}
-	commentID, err := importer.importTicketComment(issueID, &tracComment, userMap)
+	tracComment := trac.TicketComment{TicketID: tracAttachment.TicketID, Author: tracAttachment.Author, Text: commentText}
+	commentID, err := importer.importTicketComment(issueID, &tracComment, tracAttachment.Time, userMap)
 	if err != nil {
 		return "", err
 	}

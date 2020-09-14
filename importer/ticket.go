@@ -111,7 +111,7 @@ func (importer *Importer) ImportTickets(
 		if err != nil {
 			return err
 		}
-		lastUpdate, err = importer.importTicketComments(ticket.TicketID, issueID, lastUpdate, userMap)
+		lastUpdate, err = importer.importTicketChanges(ticket.TicketID, issueID, lastUpdate, userMap)
 		if err != nil {
 			return err
 		}

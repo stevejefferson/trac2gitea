@@ -249,8 +249,9 @@ func setUpTicketLabels(t *testing.T) {
 	unmappedTracUserTicketVersion = createTicketLabelImport("unmapped-trac-user-version", versionMap)
 }
 
-// TicketCommentImport holds the data on a ticket comment import operation
-type TicketCommentImport struct {
+// TicketChangeImport holds the data on a ticket change import operation
+type TicketChangeImport struct {
+	tracChangeType trac.TicketChangeType
 	issueCommentID int64
 	author         *TicketUserImport
 	text           string
@@ -258,8 +259,9 @@ type TicketCommentImport struct {
 	time           int64
 }
 
-func createTicketCommentImport(prefix string, author *TicketUserImport) *TicketCommentImport {
-	return &TicketCommentImport{
+func createCommentTicketChangeImport(prefix string, author *TicketUserImport) *TicketChangeImport {
+	return &TicketChangeImport{
+		tracChangeType: trac.TicketCommentType,
 		issueCommentID: allocateID(),
 		author:         author,
 		text:           prefix + " ticket comment text",
@@ -268,40 +270,43 @@ func createTicketCommentImport(prefix string, author *TicketUserImport) *TicketC
 	}
 }
 
-func createTracTicketComment(ticket *TicketImport, ticketComment *TicketCommentImport) *trac.TicketComment {
-	return &trac.TicketComment{
+func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImport) *trac.TicketChange {
+	tracChange := trac.TicketChange{}
+	tracChange.ChangeType = ticketChange.tracChangeType
+	tracChange.Comment = &trac.TicketComment{
 		TicketID: ticket.ticketID,
-		Time:     ticketComment.time,
-		Author:   ticketComment.author.tracUser,
-		Text:     ticketComment.text,
-	}
+		Author:   ticketChange.author.tracUser,
+		Text:     ticketChange.text}
+	tracChange.Time = ticketChange.time
+
+	return &tracChange
 }
 
 var (
-	closedTicketComment1          *TicketCommentImport
-	closedTicketComment2          *TicketCommentImport
-	openTicketComment1            *TicketCommentImport
-	openTicketComment2            *TicketCommentImport
-	noTracUserTicketComment       *TicketCommentImport
-	unmappedTracUserTicketComment *TicketCommentImport
+	closedTicketComment1          *TicketChangeImport
+	closedTicketComment2          *TicketChangeImport
+	openTicketComment1            *TicketChangeImport
+	openTicketComment2            *TicketChangeImport
+	noTracUserTicketComment       *TicketChangeImport
+	unmappedTracUserTicketComment *TicketChangeImport
 )
 
 func setUpTicketComments(t *testing.T) {
 	setUpTicketCommentUsers(t)
-	closedTicketComment1 = createTicketCommentImport("closed-ticket-comment1", closedTicketComment1Author)
-	closedTicketComment2 = createTicketCommentImport("closed-ticket-comment2", closedTicketComment2Author)
+	closedTicketComment1 = createCommentTicketChangeImport("closed-ticket-comment1", closedTicketComment1Author)
+	closedTicketComment2 = createCommentTicketChangeImport("closed-ticket-comment2", closedTicketComment2Author)
 
-	openTicketComment1 = createTicketCommentImport("open-ticket-comment1", openTicketComment1Author)
-	openTicketComment2 = createTicketCommentImport("open-ticket-comment2", openTicketComment2Author)
+	openTicketComment1 = createCommentTicketChangeImport("open-ticket-comment1", openTicketComment1Author)
+	openTicketComment2 = createCommentTicketChangeImport("open-ticket-comment2", openTicketComment2Author)
 
-	noTracUserTicketComment = createTicketCommentImport("no-trac-user-ticket-comment", noTracUserTicketCommentAuthor)
-	unmappedTracUserTicketComment = createTicketCommentImport("unmapped-trac-user-ticket-comment", unmappedTracUserTicketCommentAuthor)
+	noTracUserTicketComment = createCommentTicketChangeImport("no-trac-user-ticket-comment", noTracUserTicketCommentAuthor)
+	unmappedTracUserTicketComment = createCommentTicketChangeImport("unmapped-trac-user-ticket-comment", unmappedTracUserTicketCommentAuthor)
 }
 
 // TicketAttachmentImport holds data on a ticket attachment import operation
 type TicketAttachmentImport struct {
 	issueAttachmentID int64
-	comment           *TicketCommentImport
+	comment           *TicketChangeImport
 	filename          string
 	attachmentPath    string
 	size              int64
@@ -309,7 +314,7 @@ type TicketAttachmentImport struct {
 
 func createTicketAttachmentImport(prefix string, author *TicketUserImport) *TicketAttachmentImport {
 	// express part of attachment data in terms of the comment that will appear in Gitea to describe it
-	comment := createTicketCommentImport(prefix+"-comment-", author)
+	comment := createCommentTicketChangeImport(prefix+"-comment-", author)
 
 	// trac attachment path must have final directory of at least 12 chars (the trac UUID)
 	attachmentFile := prefix + "-attachment.file"
@@ -477,15 +482,15 @@ func setUpTickets(t *testing.T) {
 /*
  * Mock expectations
  */
-func expectTracCommentRetrievals(t *testing.T, ticket *TicketImport, ticketComments ...*TicketCommentImport) {
+func expectTracChangeRetrievals(t *testing.T, ticket *TicketImport, ticketChanges ...*TicketChangeImport) {
 	// expect trac accessor to return each of our trac ticket comments
 	mockTracAccessor.
 		EXPECT().
-		GetTicketComments(gomock.Eq(ticket.ticketID), gomock.Any()).
-		DoAndReturn(func(ticketID int64, handlerFn func(comment *trac.TicketComment) error) error {
-			for _, ticketComment := range ticketComments {
-				tracComment := createTracTicketComment(ticket, ticketComment)
-				handlerFn(tracComment)
+		GetTicketChanges(gomock.Eq(ticket.ticketID), gomock.Any()).
+		DoAndReturn(func(ticketID int64, handlerFn func(change *trac.TicketChange) error) error {
+			for _, ticketChange := range ticketChanges {
+				tracChange := createTracTicketChange(ticket, ticketChange)
+				handlerFn(tracChange)
 			}
 			return nil
 		})
@@ -598,7 +603,7 @@ func expectIssueLabelRetrieval(t *testing.T, ticket *TicketImport, ticketLabel *
 		Return(ticketLabel.issueLabelID, nil)
 }
 
-func expectIssueCommentCreation(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
+func expectIssueCommentCreation(t *testing.T, ticket *TicketImport, ticketComment *TicketChangeImport) {
 	mockGiteaAccessor.
 		EXPECT().
 		AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
@@ -611,7 +616,7 @@ func expectIssueCommentCreation(t *testing.T, ticket *TicketImport, ticketCommen
 	expectIssueUserToBeAdded(t, ticket, ticketComment.author)
 }
 
-func expectTicketCommentMarkdownConversion(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
+func expectTicketCommentMarkdownConversion(t *testing.T, ticket *TicketImport, ticketComment *TicketChangeImport) {
 	mockMarkdownConverter.
 		EXPECT().
 		TicketConvert(gomock.Eq(ticket.ticketID), gomock.Any()).
@@ -621,7 +626,7 @@ func expectTicketCommentMarkdownConversion(t *testing.T, ticket *TicketImport, t
 		})
 }
 
-func expectAllTicketCommentActions(t *testing.T, ticket *TicketImport, ticketComment *TicketCommentImport) {
+func expectAllTicketCommentActions(t *testing.T, ticket *TicketImport, ticketComment *TicketChangeImport) {
 	// expect to lookup Gitea equivalents of Trac ticket comment author
 	expectUserLookup(t, ticketComment.author)
 
@@ -665,7 +670,7 @@ func expectAllTicketAttachmentActions(t *testing.T, ticket *TicketImport, ticket
 	expectIssueAttachmentAddition(t, ticket, ticketAttachment)
 }
 
-func expectIssueUpdateTimeSetToLatestOf(t *testing.T, ticket *TicketImport, ticketComments ...*TicketCommentImport) {
+func expectIssueUpdateTimeSetToLatestOf(t *testing.T, ticket *TicketImport, ticketComments ...*TicketChangeImport) {
 	latestUpdateTime := ticket.created
 	for _, ticketComment := range ticketComments {
 		if ticketComment.time > latestUpdateTime {
@@ -726,8 +731,8 @@ func TestImportClosedTicketOnly(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, closedTicket)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, closedTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, closedTicket)
 
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket)
@@ -754,8 +759,8 @@ func TestImportOpenTicketOnly(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, openTicket)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, openTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, openTicket)
 
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket)
@@ -784,9 +789,9 @@ func TestImportMultipleTicketsOnly(t *testing.T) {
 	expectTracAttachmentRetrievals(t, closedTicket)
 	expectTracAttachmentRetrievals(t, openTicket)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, closedTicket)
-	expectTracCommentRetrievals(t, openTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, closedTicket)
+	expectTracChangeRetrievals(t, openTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket)
@@ -815,8 +820,8 @@ func TestImportTicketWithAttachments(t *testing.T) {
 	// expect trac to return us attachments
 	expectTracAttachmentRetrievals(t, closedTicket, closedTicketAttachment1, closedTicketAttachment2)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, closedTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, closedTicket)
 
 	// expect all actions for creating Gitea issue attachments from Trac ticket attachments
 	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment1)
@@ -855,9 +860,9 @@ func TestImportMultipleTicketsWithAttachments(t *testing.T) {
 	expectAllTicketAttachmentActions(t, openTicket, openTicketAttachment1)
 	expectAllTicketAttachmentActions(t, openTicket, openTicketAttachment2)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, closedTicket)
-	expectTracCommentRetrievals(t, openTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, closedTicket)
+	expectTracChangeRetrievals(t, openTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketAttachment1.comment, closedTicketAttachment2.comment)
@@ -886,8 +891,8 @@ func TestImportTicketWithComments(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, closedTicket)
 
-	// expect trac to return us comments
-	expectTracCommentRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
+	// expect trac to return us comment changes
+	expectTracChangeRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
 	// expect all actions for creating Gitea issue comments from Trac ticket comments
 	expectAllTicketCommentActions(t, closedTicket, closedTicketComment1)
@@ -920,9 +925,9 @@ func TestImportMultipleTicketsWithComments(t *testing.T) {
 	expectTracAttachmentRetrievals(t, openTicket)
 	expectTracAttachmentRetrievals(t, closedTicket)
 
-	// expect trac to return us comments
-	expectTracCommentRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
-	expectTracCommentRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
+	// expect trac to return us comment changes
+	expectTracChangeRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
+	expectTracChangeRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
 	// expect all actions for creating Gitea issue comments from Trac ticket comments
 	expectAllTicketCommentActions(t, openTicket, openTicketComment1)
@@ -961,8 +966,8 @@ func TestImportTicketWithAttachmentsAndComments(t *testing.T) {
 	expectAllTicketAttachmentActions(t, openTicket, openTicketAttachment1)
 	expectAllTicketAttachmentActions(t, openTicket, openTicketAttachment2)
 
-	// expect trac to return us comments
-	expectTracCommentRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
+	// expect trac to return us comment changes
+	expectTracChangeRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
 
 	// expect all actions for creating Gitea issue comments from Trac ticket comments
 	expectAllTicketCommentActions(t, openTicket, openTicketComment1)
@@ -1002,9 +1007,9 @@ func TestImportMultipleTicketsWithAttachmentsAndComments(t *testing.T) {
 	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment1)
 	expectAllTicketAttachmentActions(t, closedTicket, closedTicketAttachment2)
 
-	// expect trac to return us comments
-	expectTracCommentRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
-	expectTracCommentRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
+	// expect trac to return us comment changes
+	expectTracChangeRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
+	expectTracChangeRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
 	// expect all actions for creating Gitea issue comments from Trac ticket comments
 	expectAllTicketCommentActions(t, openTicket, openTicketComment1)
@@ -1041,8 +1046,8 @@ func TestImportTicketWithNoTracUser(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, noTracUserTicket)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, noTracUserTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, noTracUserTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket)
@@ -1072,8 +1077,8 @@ func TestImportTicketWithAttachmentButNoTracUser(t *testing.T) {
 	// expect all actions for creating Gitea issue attachment from Trac ticket attachment
 	expectAllTicketAttachmentActions(t, noTracUserTicket, noTracUserTicketAttachment)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, noTracUserTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, noTracUserTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket, noTracUserTicketAttachment.comment)
@@ -1100,8 +1105,8 @@ func TestImportTicketWithCommentButNoTracUser(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, noTracUserTicket)
 
-	// expect trac to return us a comment
-	expectTracCommentRetrievals(t, noTracUserTicket, noTracUserTicketComment)
+	// expect trac to return us a comment change
+	expectTracChangeRetrievals(t, noTracUserTicket, noTracUserTicketComment)
 
 	// expect all actions for creating Gitea issue comments from Trac ticket comments
 	expectAllTicketCommentActions(t, noTracUserTicket, noTracUserTicketComment)
@@ -1131,8 +1136,8 @@ func TestImportTicketWithUnmappedTracUser(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, unmappedTracUserTicket)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, unmappedTracUserTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, unmappedTracUserTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket)
@@ -1162,8 +1167,8 @@ func TestImportTicketWithAttachmentButUnmappedTracUser(t *testing.T) {
 	// expect all actions for creating Gitea issue attachment from Trac ticket attachment
 	expectAllTicketAttachmentActions(t, unmappedTracUserTicket, unmappedTracUserTicketAttachment)
 
-	// expect trac to return us no comments
-	expectTracCommentRetrievals(t, unmappedTracUserTicket)
+	// expect trac to return us no changes
+	expectTracChangeRetrievals(t, unmappedTracUserTicket)
 
 	// expect issues update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket, unmappedTracUserTicketAttachment.comment)
@@ -1190,8 +1195,8 @@ func TestImportTicketWithCommentButUnmappedTracUser(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, unmappedTracUserTicket)
 
-	// expect trac to return us a comment
-	expectTracCommentRetrievals(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
+	// expect trac to return us a comment change
+	expectTracChangeRetrievals(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
 
 	// expect all actions for creating Gitea issue comments from Trac ticket comments
 	expectAllTicketCommentActions(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
