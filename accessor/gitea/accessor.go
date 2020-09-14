@@ -67,6 +67,9 @@ type Accessor interface {
 	// GetIssueURL retrieves a URL for viewing a given issue
 	GetIssueURL(issueID int64) string
 
+	// UpdateIssueCommentCount updates the count of comments a given issue
+	UpdateIssueCommentCount(issueID int64) error
+
 	/*
 	 * Issue Assignees
 	 */

@@ -29,7 +29,7 @@ func (accessor *DefaultAccessor) UpdateRepoIssueCounts() error {
 		UPDATE repository SET 
 			num_issues = (SELECT COUNT(id) FROM issue),
 			num_closed_issues = (SELECT COUNT(id) FROM issue WHERE is_closed=1)
-			WHERE id = $2`, accessor.repoID)
+			WHERE id = $1`, accessor.repoID)
 	if err != nil {
 		err = errors.Wrapf(err, "updating number of issues for repository %d", accessor.repoID)
 		return err
@@ -44,7 +44,7 @@ func (accessor *DefaultAccessor) UpdateRepoMilestoneCounts() error {
 		UPDATE repository SET 
 			num_milestones = (SELECT COUNT(id) FROM milestone),
 			num_closed_milestones = (SELECT COUNT(id) FROM milestone WHERE is_closed=1)
-			WHERE id = $2`, accessor.repoID)
+			WHERE id = $1`, accessor.repoID)
 	if err != nil {
 		err = errors.Wrapf(err, "updating number of milestones for repository %d", accessor.repoID)
 		return err

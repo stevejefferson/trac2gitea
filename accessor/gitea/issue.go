@@ -128,3 +128,17 @@ func (accessor *DefaultAccessor) GetIssueURL(issueID int64) string {
 	repoURL := accessor.getUserRepoURL()
 	return fmt.Sprintf("%s/issues/%d", repoURL, issueID)
 }
+
+// UpdateIssueCommentCount updates the count of comments a given issue
+func (accessor *DefaultAccessor) UpdateIssueCommentCount(issueID int64) error {
+	_, err := accessor.db.Exec(`
+	UPDATE issue SET 
+		num_comments = (SELECT COUNT(id) FROM comment)
+		WHERE id = $1`, issueID)
+	if err != nil {
+		err = errors.Wrapf(err, "updating number of comments for issue %d", issueID)
+		return err
+	}
+
+	return nil
+}

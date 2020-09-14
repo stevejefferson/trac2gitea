@@ -117,6 +117,7 @@ func (importer *Importer) ImportTickets(
 		}
 
 		err = importer.giteaAccessor.SetIssueUpdateTime(issueID, lastUpdate)
+		err = importer.giteaAccessor.UpdateIssueCommentCount(issueID)
 
 		return nil
 	})
