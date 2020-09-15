@@ -35,22 +35,32 @@ type Ticket struct {
 type TicketChangeType int
 
 const (
-	// TicketCommentType is a ticket change comprising a comment on the ticket.
-	TicketCommentType TicketChangeType = iota
+	// TicketCommentChange denotes a ticket comment change.
+	TicketCommentChange TicketChangeType = iota
+
+	// TicketOwnershipChange denotes a ticket ownership change.
+	TicketOwnershipChange
 )
 
-// TicketComment describes a comment on a Trac ticket.
+// TicketComment describes a comment appearing as a change to a Trac ticket.
 type TicketComment struct {
-	TicketID int64
-	Author   string
-	Text     string
+	Text string
+}
+
+// TicketOwnership describes an ownership change to a Trac ticket.
+type TicketOwnership struct {
+	Owner     string
+	PrevOwner string
 }
 
 // TicketChange describes a change to a Trac ticket.
 type TicketChange struct {
+	TicketID   int64
+	Author     string
+	Time       int64
 	ChangeType TicketChangeType
 	Comment    *TicketComment
-	Time       int64
+	Ownership  *TicketOwnership
 }
 
 // TicketAttachment describes an attachment to a Trac ticket.

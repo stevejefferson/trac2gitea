@@ -14,7 +14,10 @@ import (
 func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func(change *TicketChange) error) error {
 	rows, err := accessor.db.Query(`
 		SELECT CAST(time*1e-6 AS int8), field, COALESCE(author, ''), COALESCE(newvalue, ''), COALESCE(oldvalue, '')
-			FROM ticket_change where ticket = $1 AND field IN ('comment') AND trim(COALESCE(newvalue, ''), ' ') != ''
+			FROM ticket_change
+			WHERE ticket = $1
+			AND field IN ('comment', 'owner') 
+			AND trim(COALESCE(newvalue, ''), ' ') != ''
 			ORDER BY time asc`, ticketID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac comments for ticket %d", ticketID)
@@ -29,14 +32,17 @@ func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func
 			return err
 		}
 
-		change := TicketChange{}
+		change := TicketChange{TicketID: ticketID, Author: author, Time: time}
 		switch field {
 		case "comment":
-			comment := TicketComment{TicketID: ticketID, Author: author, Text: newValue}
-			change.ChangeType = TicketCommentType
+			comment := TicketComment{Text: newValue}
+			change.ChangeType = TicketCommentChange
 			change.Comment = &comment
+		case "owner":
+			ownership := TicketOwnership{PrevOwner: oldValue, Owner: newValue}
+			change.ChangeType = TicketOwnershipChange
+			change.Ownership = &ownership
 		}
-		change.Time = time
 
 		if err = handlerFn(&change); err != nil {
 			return err

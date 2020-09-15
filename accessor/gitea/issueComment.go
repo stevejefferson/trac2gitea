@@ -39,9 +39,16 @@ func (accessor *DefaultAccessor) GetIssueCommentIDsByTime(issueID int64, created
 func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueID int64, comment *IssueComment) error {
 	_, err := accessor.db.Exec(`
 		UPDATE comment SET
-			type=0, issue_id=?, poster_id=?, original_author_id=?, original_author=?, content=?, created_unix=?, updated_unix=?
+			type=?, issue_id=?, poster_id=?, original_author_id=?, original_author=?, 
+			assignee_id=?, removed_assignee=?,
+			content=?,
+			created_unix=?, updated_unix=?
 			WHERE id=?`,
-		issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName, comment.Text, comment.Time, comment.Time, issueCommentID)
+		comment.CommentType, issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.AssigneeID, comment.RemovedAssignee,
+		comment.Text,
+		comment.Time, comment.Time,
+		issueCommentID)
 	if err != nil {
 		err = errors.Wrapf(err, "updating comment on issue %d timed at %s", issueID, time.Unix(comment.Time, 0))
 		return err
@@ -56,9 +63,15 @@ func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueI
 func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *IssueComment) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(
-			type, issue_id, poster_id, original_author_id, original_author, content, created_unix, updated_unix)
-			VALUES ( 0, $1, $2, $3, $4, $5, $6, $7 )`,
-		issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName, comment.Text, comment.Time, comment.Time)
+			type, issue_id, poster_id, original_author_id, original_author, 
+			assignee_id, removed_assignee,
+			content, 
+			created_unix, updated_unix)
+			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )`,
+		comment.CommentType, issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.AssigneeID, comment.RemovedAssignee,
+		comment.Text,
+		comment.Time, comment.Time)
 	if err != nil {
 		err = errors.Wrapf(err, "adding comment \"%s\" for issue %d", comment.Text, issueID)
 		return -1, err
@@ -76,13 +89,6 @@ func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *Issu
 	return issueCommentID, nil
 }
 
-// HACK:
-// Timestamps associated with Gitea comments are not necessarily unique for comments originating from Trac
-// because Trac stores timestamps to a greater precision which we have to round to Gitea's precision.
-// Unfortunately timestamp is the best key we have for identifying whether a particular issue comment already exists
-// (and hence whether we need to insert or update it).
-// We get round this by observing that comments are always added consecutively for a given issue so we can
-// cache all comment IDs for our current issue and timestamp and extract the subsequent entries from that list.
 var prevIssueID = int64(0)
 var prevCommentTime = int64(0)
 var issueCommentIDIndex = 0
@@ -91,6 +97,14 @@ var issueCommentIDs = []int64{}
 // AddIssueComment adds a comment on a Gitea issue, returns id of created comment
 func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueComment) (int64, error) {
 	var err error
+
+	// HACK:
+	// Timestamps associated with Gitea comments are not necessarily unique for comments originating from Trac
+	// because Trac stores timestamps to a greater precision which we have to round to Gitea's precision.
+	// Unfortunately timestamp is the best key we have for identifying whether a particular issue comment already exists
+	// (and hence whether we need to insert or update it).
+	// We get round this by observing that comments are always added consecutively for a given issue so we can
+	// cache all comment IDs for our current issue and timestamp and extract the subsequent entries from that list.
 	if issueID != prevIssueID || comment.Time != prevCommentTime {
 		prevIssueID = issueID
 		prevCommentTime = comment.Time

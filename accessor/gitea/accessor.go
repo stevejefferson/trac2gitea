@@ -26,11 +26,25 @@ type IssueAttachment struct {
 	Time      int64
 }
 
+// IssueCommentType defines the types of issue comment we support
+type IssueCommentType int64
+
+const (
+	// CommentIssueCommentType is an IssueComment reflecting a comment
+	CommentIssueCommentType IssueCommentType = 0
+
+	// AssigneeIssueCommentType is an IssueComment reflecting an assignee change
+	AssigneeIssueCommentType IssueCommentType = 9
+)
+
 // IssueComment describes a comment on a Gitea issue.
 type IssueComment struct {
+	CommentType        IssueCommentType
 	AuthorID           int64
 	OriginalAuthorID   int64
 	OriginalAuthorName string
+	AssigneeID         int64
+	RemovedAssignee    int64
 	Text               string
 	Time               int64
 }

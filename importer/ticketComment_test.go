@@ -4,11 +4,9 @@
 
 package importer_test
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestImportClosedTicketOnly(t *testing.T) {
+func TestImportTicketWithComments(t *testing.T) {
 	setUpTickets(t)
 	defer tearDown(t)
 
@@ -21,11 +19,15 @@ func TestImportClosedTicketOnly(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, closedTicket)
 
-	// expect trac to return us no changes
-	expectTracChangeRetrievals(t, closedTicket)
+	// expect trac to return us comment changes
+	expectTracChangeRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
+
+	// expect all actions for creating Gitea issue comments from Trac ticket comments
+	expectAllTicketCommentActions(t, closedTicket, closedTicketComment1)
+	expectAllTicketCommentActions(t, closedTicket, closedTicketComment2)
 
 	// expect issue update time to be updated
-	expectIssueUpdateTimeSetToLatestOf(t, closedTicket)
+	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, closedTicket)
@@ -36,56 +38,34 @@ func TestImportClosedTicketOnly(t *testing.T) {
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
-func TestImportOpenTicketOnly(t *testing.T) {
-	setUpTickets(t)
-	defer tearDown(t)
-
-	// first thing to expect is retrieval of ticket from Trac
-	expectTracTicketRetrievals(t, openTicket)
-
-	// expect all actions for creating Gitea issue from Trac ticket
-	expectAllTicketActions(t, openTicket)
-
-	// expect trac to return us no attachments
-	expectTracAttachmentRetrievals(t, openTicket)
-
-	// expect trac to return us no changes
-	expectTracChangeRetrievals(t, openTicket)
-
-	// expect issue update time to be updated
-	expectIssueUpdateTimeSetToLatestOf(t, openTicket)
-
-	// expect issue comment count to be updated
-	expectIssueCommentCountUpdate(t, openTicket)
-
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
-
-	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
-}
-
-func TestImportMultipleTicketsOnly(t *testing.T) {
+func TestImportMultipleTicketsWithComments(t *testing.T) {
 	setUpTickets(t)
 	defer tearDown(t)
 
 	// first thing to expect is retrieval of tickets from Trac
-	expectTracTicketRetrievals(t, closedTicket, openTicket)
+	expectTracTicketRetrievals(t, openTicket, closedTicket)
 
-	// expect all actions for creating Gitea issue from Trac tickets
-	expectAllTicketActions(t, closedTicket)
+	// expect all actions for creating Gitea issues from Trac tickets
 	expectAllTicketActions(t, openTicket)
+	expectAllTicketActions(t, closedTicket)
 
 	// expect trac to return us no attachments
-	expectTracAttachmentRetrievals(t, closedTicket)
 	expectTracAttachmentRetrievals(t, openTicket)
+	expectTracAttachmentRetrievals(t, closedTicket)
 
-	// expect trac to return us no changes
-	expectTracChangeRetrievals(t, closedTicket)
-	expectTracChangeRetrievals(t, openTicket)
+	// expect trac to return us comment changes
+	expectTracChangeRetrievals(t, openTicket, openTicketComment1, openTicketComment2)
+	expectTracChangeRetrievals(t, closedTicket, closedTicketComment1, closedTicketComment2)
+
+	// expect all actions for creating Gitea issue comments from Trac ticket comments
+	expectAllTicketCommentActions(t, openTicket, openTicketComment1)
+	expectAllTicketCommentActions(t, openTicket, openTicketComment2)
+	expectAllTicketCommentActions(t, closedTicket, closedTicketComment1)
+	expectAllTicketCommentActions(t, closedTicket, closedTicketComment2)
 
 	// expect issues update time to be updated
-	expectIssueUpdateTimeSetToLatestOf(t, closedTicket)
-	expectIssueUpdateTimeSetToLatestOf(t, openTicket)
+	expectIssueUpdateTimeSetToLatestOf(t, openTicket, openTicketComment1, openTicketComment2)
+	expectIssueUpdateTimeSetToLatestOf(t, closedTicket, closedTicketComment1, closedTicketComment2)
 
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, closedTicket)
@@ -97,7 +77,7 @@ func TestImportMultipleTicketsOnly(t *testing.T) {
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
-func TestImportTicketWithNoTracUser(t *testing.T) {
+func TestImportTicketWithCommentButNoTracUser(t *testing.T) {
 	setUpTickets(t)
 	defer tearDown(t)
 
@@ -110,11 +90,14 @@ func TestImportTicketWithNoTracUser(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, noTracUserTicket)
 
-	// expect trac to return us no changes
-	expectTracChangeRetrievals(t, noTracUserTicket)
+	// expect trac to return us a comment change
+	expectTracChangeRetrievals(t, noTracUserTicket, noTracUserTicketComment)
+
+	// expect all actions for creating Gitea issue comments from Trac ticket comments
+	expectAllTicketCommentActions(t, noTracUserTicket, noTracUserTicketComment)
 
 	// expect issues update time to be updated
-	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket)
+	expectIssueUpdateTimeSetToLatestOf(t, noTracUserTicket, noTracUserTicketComment)
 
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, noTracUserTicket)
@@ -125,7 +108,7 @@ func TestImportTicketWithNoTracUser(t *testing.T) {
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
 
-func TestImportTicketWithUnmappedTracUser(t *testing.T) {
+func TestImportTicketWithCommentButUnmappedTracUser(t *testing.T) {
 	setUpTickets(t)
 	defer tearDown(t)
 
@@ -138,11 +121,14 @@ func TestImportTicketWithUnmappedTracUser(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, unmappedTracUserTicket)
 
-	// expect trac to return us no changes
-	expectTracChangeRetrievals(t, unmappedTracUserTicket)
+	// expect trac to return us a comment change
+	expectTracChangeRetrievals(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
+
+	// expect all actions for creating Gitea issue comments from Trac ticket comments
+	expectAllTicketCommentActions(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
 
 	// expect issues update time to be updated
-	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket)
+	expectIssueUpdateTimeSetToLatestOf(t, unmappedTracUserTicket, unmappedTracUserTicketComment)
 
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, unmappedTracUserTicket)
