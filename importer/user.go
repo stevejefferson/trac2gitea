@@ -41,7 +41,7 @@ func (importer *Importer) DefaultUserMap() (map[string]string, error) {
 }
 
 // getUserID retrieves the Gitea user ID corresponding to a Trac user name
-func (importer *Importer) getUser(tracUser string, userMap map[string]string) (int64, error) {
+func (importer *Importer) getUserID(tracUser string, userMap map[string]string) (int64, error) {
 	giteaUserName := userMap[tracUser]
 	if giteaUserName == "" {
 		return -1, nil

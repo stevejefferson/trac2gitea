@@ -36,6 +36,9 @@ const (
 	// CloseIssueCommentType is an IssueComment reflecting closing an issue
 	CloseIssueCommentType IssueCommentType = 2
 
+	// LabelIssueCommentType is an IssueComment reflecting a label change
+	LabelIssueCommentType IssueCommentType = 7
+
 	// MilestoneIssueCommentType is an IssueComment reflecting a milestone change
 	MilestoneIssueCommentType IssueCommentType = 8
 
@@ -52,6 +55,7 @@ type IssueComment struct {
 	AuthorID           int64
 	OriginalAuthorID   int64
 	OriginalAuthorName string
+	LabelID            int64
 	OldMilestoneID     int64
 	MilestoneID        int64
 	AssigneeID         int64
@@ -103,9 +107,6 @@ type Accessor interface {
 	// AddIssueAssignee adds an assignee to a Gitea issue
 	AddIssueAssignee(issueID int64, assigneeID int64) error
 
-	// RemoveIssueAssignee removes an assignee from a Gitea issue
-	RemoveIssueAssignee(issueID int64, assigneeID int64) error
-
 	/*
 	 * Issue Attachments
 	 */
@@ -145,6 +146,9 @@ type Accessor interface {
 	/*
 	 * Labels
 	 */
+	// GetLabelID retrieves the id of the given label, returns -1 if no such label
+	GetLabelID(labelName string) (int64, error)
+
 	// AddLabel adds a label to Gitea, returns label id.
 	AddLabel(label string, color string) (int64, error)
 

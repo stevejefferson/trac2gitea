@@ -11,7 +11,7 @@ import (
 
 // importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or -1 if the issue was not created.
 func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap map[string]string) (int64, error) {
-	reporterID, err := importer.getUser(ticket.Reporter, userMap)
+	reporterID, err := importer.getUserID(ticket.Reporter, userMap)
 	if err != nil {
 		return -1, err
 	}
@@ -23,7 +23,7 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 	ownerID := int64(-1)
 	originalAuthorName := ticket.Owner
 	if ticket.Owner != "" {
-		ownerID, err = importer.getUser(ticket.Owner, userMap)
+		ownerID, err = importer.getUserID(ticket.Owner, userMap)
 		if err != nil {
 			return -1, err
 		}
@@ -111,7 +111,8 @@ func (importer *Importer) ImportTickets(
 		if err != nil {
 			return err
 		}
-		lastUpdate, err = importer.importTicketChanges(ticket.TicketID, issueID, lastUpdate, userMap)
+		lastUpdate, err = importer.importTicketChanges(ticket.TicketID, issueID, lastUpdate,
+			userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 		if err != nil {
 			return err
 		}

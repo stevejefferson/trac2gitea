@@ -93,11 +93,4 @@ func expectAllTicketOwnershipActions(t *testing.T, ticket *TicketImport, ticketO
 
 	// expect creation of issue comment for ticket ownership change
 	expectIssueCommentCreationForOwnershipChange(t, ticket, ticketOwnership)
-
-	// expect issue assignee to be added or removed
-	if ticketOwnership.owner.tracUser != "" {
-		expectIssueAssigneeToBeAdded(t, ticket, ticketOwnership.owner)
-	} else {
-		expectIssueAssigneeToBeRemoved(t, ticket, ticketOwnership.prevOwner)
-	}
 }

@@ -27,11 +27,21 @@ type TicketChangeImport struct {
 	owner          *TicketUserImport
 	prevMilestone  *TicketMilestoneImport
 	milestone      *TicketMilestoneImport
+	prevLabel      *TicketLabelImport
+	label          *TicketLabelImport
 	prevSummary    string
 	summary        string
 	text           string
 	markdownText   string
 	time           int64
+}
+
+func tracTicketChangeLabelName(label *TicketLabelImport) string {
+	if label == nil {
+		return ""
+	}
+
+	return label.tracName
 }
 
 func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImport) *trac.TicketChange {
@@ -40,6 +50,19 @@ func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImpo
 	switch ticketChange.tracChangeType {
 	case trac.TicketCommentChange:
 		newValue = ticketChange.text
+	case trac.TicketComponentChange:
+		fallthrough
+	case trac.TicketPriorityChange:
+		fallthrough
+	case trac.TicketResolutionChange:
+		fallthrough
+	case trac.TicketSeverityChange:
+		fallthrough
+	case trac.TicketTypeChange:
+		fallthrough
+	case trac.TicketVersionChange:
+		oldValue = tracTicketChangeLabelName(ticketChange.prevLabel)
+		newValue = tracTicketChangeLabelName(ticketChange.label)
 	case trac.TicketMilestoneChange:
 		oldValue = ticketChange.prevMilestone.milestoneName
 		newValue = ticketChange.milestone.milestoneName

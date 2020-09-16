@@ -10,7 +10,12 @@ import (
 )
 
 // importStatusChangeIssueComment imports a Trac ticket status change into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
-func (importer *Importer) importStatusChangeIssueComment(issueID int64, change *trac.TicketChange, issueComment *gitea.IssueComment) (int64, error) {
+func (importer *Importer) importStatusChangeIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string) (int64, error) {
+	issueComment, err := importer.createIssueComment(issueID, change, userMap)
+	if err != nil {
+		return -1, err
+	}
+
 	// the only Trac status change that interests us is closing a ticket
 	if change.NewValue != string(trac.TicketStatusClosed) {
 		return -1, nil

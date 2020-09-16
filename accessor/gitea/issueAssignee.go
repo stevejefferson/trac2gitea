@@ -75,16 +75,3 @@ func (accessor *DefaultAccessor) AddIssueAssignee(issueID int64, assigneeID int6
 
 	return nil
 }
-
-// RemoveIssueAssignee removes an assignee from a Gitea issue
-func (accessor *DefaultAccessor) RemoveIssueAssignee(issueID int64, assigneeID int64) error {
-	_, err := accessor.db.Exec(`DELETE FROM issue_assignees WHERE issue_id=$1 AND assignee_id=$2`, issueID, assigneeID)
-	if err != nil {
-		err = errors.Wrapf(err, "deleting user %d as assignee for issue id %d", assigneeID, issueID)
-		return err
-	}
-
-	log.Debug("removed assignee %d for issue %d", assigneeID, issueID)
-
-	return nil
-}

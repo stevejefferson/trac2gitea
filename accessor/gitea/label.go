@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// getLabelID retrieves the id of the given label, returns -1 if no such label
-func (accessor *DefaultAccessor) getLabelID(labelName string) (int64, error) {
+// GetLabelID retrieves the id of the given label, returns -1 if no such label
+func (accessor *DefaultAccessor) GetLabelID(labelName string) (int64, error) {
 	var labelID int64 = -1
 	err := accessor.db.QueryRow(`
 		SELECT id FROM label WHERE repo_id = $1 AND name = $2
@@ -64,7 +64,7 @@ func (accessor *DefaultAccessor) insertLabel(labelName string, labelColor string
 
 // AddLabel adds a label to Gitea, returns label id.
 func (accessor *DefaultAccessor) AddLabel(labelName string, labelColor string) (int64, error) {
-	labelID, err := accessor.getLabelID(labelName)
+	labelID, err := accessor.GetLabelID(labelName)
 	if err != nil {
 		return -1, err
 	}

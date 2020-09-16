@@ -55,7 +55,8 @@ func expectUserLookup(t *testing.T, user *TicketUserImport) {
 	mockGiteaAccessor.
 		EXPECT().
 		GetUserID(gomock.Eq(user.giteaUser)).
-		Return(user.giteaUserID, nil)
+		Return(user.giteaUserID, nil).
+		AnyTimes()
 }
 
 func expectIssueParticipantToBeAdded(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
@@ -69,12 +70,5 @@ func expectIssueAssigneeToBeAdded(t *testing.T, ticket *TicketImport, user *Tick
 	mockGiteaAccessor.
 		EXPECT().
 		AddIssueAssignee(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
-		Return(nil)
-}
-
-func expectIssueAssigneeToBeRemoved(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
-	mockGiteaAccessor.
-		EXPECT().
-		RemoveIssueAssignee(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
 		Return(nil)
 }

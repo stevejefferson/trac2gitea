@@ -6,6 +6,7 @@ package importer
 
 import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
+	"github.com/stevejefferson/trac2gitea/log"
 )
 
 // label colors - courtesy of `trac2gogs`
@@ -64,6 +65,22 @@ func (importer *Importer) DefaultTypeLabelMap() (map[string]string, error) {
 // DefaultVersionLabelMap retrieves the default mapping between Trac versions and Gitea labels
 func (importer *Importer) DefaultVersionLabelMap() (map[string]string, error) {
 	return importer.defaultLabelMap(trac.Accessor.GetVersionNames)
+}
+
+// getLabelID retrieves the Gitea label ID corresponding to a Trac label name
+func (importer *Importer) getLabelID(tracLabel string, labelMap map[string]string) (int64, error) {
+	giteaLabelName := labelMap[tracLabel]
+	if giteaLabelName == "" {
+		return -1, nil
+	}
+
+	labelID, err := importer.giteaAccessor.GetLabelID(giteaLabelName)
+	if err != nil {
+		return -1, err
+	}
+
+	log.Debug("mapped Trac label %s onto Gitea label %s", tracLabel, giteaLabelName)
+	return labelID, nil
 }
 
 // importLabels imports a single trac item as a Gitea label Gitea labels - any created label will have the provided color.

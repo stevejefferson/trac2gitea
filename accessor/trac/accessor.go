@@ -43,17 +43,35 @@ const (
 	// TicketCommentChange denotes a ticket comment change.
 	TicketCommentChange TicketChangeType = "comment"
 
+	// TicketComponentChange denotes a ticket component change.
+	TicketComponentChange TicketChangeType = "component"
+
 	// TicketMilestoneChange denotes a ticket milestone change.
 	TicketMilestoneChange TicketChangeType = "milestone"
 
 	// TicketOwnerChange denotes a ticket ownership change.
 	TicketOwnerChange TicketChangeType = "owner"
 
+	// TicketPriorityChange denotes a ticket resolution change.
+	TicketPriorityChange TicketChangeType = "priority"
+
+	// TicketResolutionChange denotes a ticket resolution change.
+	TicketResolutionChange TicketChangeType = "resolution"
+
+	// TicketSeverityChange denotes a ticket severity change.
+	TicketSeverityChange TicketChangeType = "severity"
+
 	// TicketStatusChange denotes a ticket status change.
 	TicketStatusChange TicketChangeType = "status"
 
 	// TicketSummaryChange denotes a ticket summary change.
 	TicketSummaryChange TicketChangeType = "summary"
+
+	// TicketTypeChange denotes a ticket type change.
+	TicketTypeChange TicketChangeType = "type"
+
+	// TicketVersionChange denotes a ticket type change.
+	TicketVersionChange TicketChangeType = "version"
 )
 
 // TicketChange describes a change to a Trac ticket.

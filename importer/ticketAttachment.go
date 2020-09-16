@@ -23,7 +23,7 @@ func (importer *Importer) importTicketAttachment(issueID int64, tracAttachment *
 		NewValue:   commentText,
 		Time:       tracAttachment.Time,
 	}
-	commentID, err := importer.importTicketChange(issueID, &tracChange, userMap)
+	commentID, err := importer.importCommentIssueComment(issueID, &tracChange, userMap)
 	if err != nil {
 		return "", err
 	}

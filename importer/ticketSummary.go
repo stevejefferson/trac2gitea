@@ -10,7 +10,12 @@ import (
 )
 
 // importSummaryChangeIssueComment imports a Trac ticket summary change into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
-func (importer *Importer) importSummaryChangeIssueComment(issueID int64, change *trac.TicketChange, issueComment *gitea.IssueComment) (int64, error) {
+func (importer *Importer) importSummaryChangeIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string) (int64, error) {
+	issueComment, err := importer.createIssueComment(issueID, change, userMap)
+	if err != nil {
+		return -1, err
+	}
+
 	prevSummary := change.OldValue
 	summary := change.NewValue
 

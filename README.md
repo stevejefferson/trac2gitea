@@ -10,6 +10,11 @@ At present the following Trac data is converted:
 * Trac tickets to Gitea issues
   * Trac ticket attachments to Gitea issue attachments
   * Trac ticket comments to Gitea issue comments with markdown text conversion
+  * Trac ticket component, priority, resolution, severity, type and version changes to Gitea issue label changes
+  * Trac ticket milestone changes to Gitea issue milestone changes
+  * Trac ticket owner changes to Gitea issue assignee changes
+  * Trac ticket "close" status changes to Gitea issue close changes
+  * Trac ticket summary changes to Gitea issue title changes
   * Trac ticket labels to Gitea issue labels
   * Trac ticket and comment owners to Gitea issue assignees
 * Trac Wiki pages to files in the Gitea wiki repository
@@ -144,6 +149,3 @@ Missing dependencies can be fetched using:
 ```
 make deps
 ```
-
-## Acknowledgements
-Significant parts of the database migration code were derived from [trac2gogs](http://strk.kbt.io/projects/go/trac2gogs/).

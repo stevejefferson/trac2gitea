@@ -10,14 +10,18 @@ import (
 )
 
 // importOwnershipIssueComment imports a Trac ticket ownership change as a Gitea issue assignee change, returns id of created Gitea issue comment or -1 if cannot create comment
-func (importer *Importer) importOwnershipIssueComment(issueID int64, change *trac.TicketChange, issueComment *gitea.IssueComment, userMap map[string]string) (int64, error) {
+func (importer *Importer) importOwnershipIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string) (int64, error) {
+	issueComment, err := importer.createIssueComment(issueID, change, userMap)
+	if err != nil {
+		return -1, err
+	}
+
 	issueComment.CommentType = gitea.AssigneeIssueCommentType
 
-	var err error
 	prevOwnerID := int64(0)
 	prevOwnerName := change.OldValue
 	if prevOwnerName != "" {
-		prevOwnerID, err = importer.getUser(prevOwnerName, userMap)
+		prevOwnerID, err = importer.getUserID(prevOwnerName, userMap)
 		if err != nil {
 			return -1, err
 		}
@@ -30,7 +34,7 @@ func (importer *Importer) importOwnershipIssueComment(issueID int64, change *tra
 	removedAssigneeID := int64(0)
 	ownerName := change.NewValue
 	if ownerName != "" {
-		assigneeID, err = importer.getUser(ownerName, userMap)
+		assigneeID, err = importer.getUserID(ownerName, userMap)
 		if err != nil {
 			return -1, err
 		}
@@ -44,16 +48,6 @@ func (importer *Importer) importOwnershipIssueComment(issueID int64, change *tra
 	issueComment.AssigneeID = assigneeID
 	issueComment.RemovedAssigneeID = removedAssigneeID
 	issueCommentID, err := importer.giteaAccessor.AddIssueComment(issueID, issueComment)
-	if err != nil {
-		return -1, err
-	}
-
-	// add or remove assignee for issue
-	if ownerName != "" {
-		err = importer.giteaAccessor.AddIssueAssignee(issueID, assigneeID)
-	} else {
-		err = importer.giteaAccessor.RemoveIssueAssignee(issueID, removedAssigneeID)
-	}
 	if err != nil {
 		return -1, err
 	}

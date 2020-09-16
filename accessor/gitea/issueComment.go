@@ -41,6 +41,7 @@ func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueI
 		UPDATE comment SET
 			type=?, issue_id=?, poster_id=?,
 			original_author_id=?, original_author=?, 
+			label_id=?,
 			old_milestone_id=?, milestone_id=?,
 			assignee_id=?, removed_assignee=?,
 			old_title=?, new_title=?,
@@ -49,6 +50,7 @@ func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueI
 			WHERE id=?`,
 		comment.CommentType, issueID, comment.AuthorID,
 		comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.LabelID,
 		comment.OldMilestoneID, comment.MilestoneID,
 		comment.AssigneeID, comment.RemovedAssigneeID,
 		comment.OldTitle, comment.Title,
@@ -71,14 +73,16 @@ func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *Issu
 		INSERT INTO comment(
 			type, issue_id, poster_id, 
 			original_author_id, original_author, 
+			label_id,
 			old_milestone_id, milestone_id,
 			assignee_id, removed_assignee,
 			old_title, new_title,
 			content, 
 			created_unix, updated_unix)
-			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14 )`,
+			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15 )`,
 		comment.CommentType, issueID, comment.AuthorID,
 		comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.LabelID,
 		comment.OldMilestoneID, comment.MilestoneID,
 		comment.AssigneeID, comment.RemovedAssigneeID,
 		comment.OldTitle, comment.Title,
