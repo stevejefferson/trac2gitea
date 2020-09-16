@@ -48,6 +48,8 @@ func (importer *Importer) importTicketChange(issueID int64, change *trac.TicketC
 		issueCommentID, err = importer.importOwnershipIssueComment(issueID, change, &issueComment, userMap)
 	case trac.TicketStatusChange:
 		issueCommentID, err = importer.importStatusChangeIssueComment(issueID, change, &issueComment)
+	case trac.TicketSummaryChange:
+		issueCommentID, err = importer.importSummaryChangeIssueComment(issueID, change, &issueComment)
 	}
 	if err != nil {
 		return -1, err

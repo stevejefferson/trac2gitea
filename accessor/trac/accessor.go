@@ -51,6 +51,9 @@ const (
 
 	// TicketStatusChange denotes a ticket status change.
 	TicketStatusChange TicketChangeType = "status"
+
+	// TicketSummaryChange denotes a ticket summary change.
+	TicketSummaryChange TicketChangeType = "summary"
 )
 
 // TicketChange describes a change to a Trac ticket.

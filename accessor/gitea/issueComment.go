@@ -43,6 +43,7 @@ func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueI
 			original_author_id=?, original_author=?, 
 			old_milestone_id=?, milestone_id=?,
 			assignee_id=?, removed_assignee=?,
+			old_title=?, new_title=?,
 			content=?,
 			created_unix=?, updated_unix=?
 			WHERE id=?`,
@@ -50,6 +51,7 @@ func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueI
 		comment.OriginalAuthorID, comment.OriginalAuthorName,
 		comment.OldMilestoneID, comment.MilestoneID,
 		comment.AssigneeID, comment.RemovedAssigneeID,
+		comment.OldTitle, comment.Title,
 		comment.Text,
 		comment.Time, comment.Time,
 		issueCommentID)
@@ -71,13 +73,15 @@ func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *Issu
 			original_author_id, original_author, 
 			old_milestone_id, milestone_id,
 			assignee_id, removed_assignee,
+			old_title, new_title,
 			content, 
 			created_unix, updated_unix)
-			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 )`,
+			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14 )`,
 		comment.CommentType, issueID, comment.AuthorID,
 		comment.OriginalAuthorID, comment.OriginalAuthorName,
 		comment.OldMilestoneID, comment.MilestoneID,
 		comment.AssigneeID, comment.RemovedAssigneeID,
+		comment.OldTitle, comment.Title,
 		comment.Text,
 		comment.Time, comment.Time)
 	if err != nil {

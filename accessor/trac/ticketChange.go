@@ -16,9 +16,11 @@ func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func
 		SELECT CAST(time*1e-6 AS int8), field, COALESCE(author, ''), COALESCE(oldvalue, ''), COALESCE(newvalue, '')
 			FROM ticket_change
 			WHERE ticket = $1
-			AND field IN ($2, $3, $4, $5) 
+			AND field IN ($2, $3, $4, $5, $6) 
 			AND trim(COALESCE(newvalue, ''), ' ') != ''
-			ORDER BY time asc`, ticketID, TicketCommentChange, TicketMilestoneChange, TicketOwnerChange, TicketStatusChange)
+			ORDER BY time asc`,
+		ticketID,
+		TicketCommentChange, TicketMilestoneChange, TicketOwnerChange, TicketStatusChange, TicketSummaryChange)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac comments for ticket %d", ticketID)
 		return err

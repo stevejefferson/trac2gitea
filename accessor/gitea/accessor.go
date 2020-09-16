@@ -41,6 +41,9 @@ const (
 
 	// AssigneeIssueCommentType is an IssueComment reflecting an assignee change
 	AssigneeIssueCommentType IssueCommentType = 9
+
+	// TitleIssueCommentType is an IssueComment reflecting a title change
+	TitleIssueCommentType IssueCommentType = 10
 )
 
 // IssueComment describes a comment on a Gitea issue.
@@ -53,6 +56,8 @@ type IssueComment struct {
 	MilestoneID        int64
 	AssigneeID         int64
 	RemovedAssigneeID  int64
+	OldTitle           string
+	Title              string
 	Text               string
 	Time               int64
 }

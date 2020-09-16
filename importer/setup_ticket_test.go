@@ -249,6 +249,7 @@ func setUpTickets(t *testing.T) {
 	setUpTicketMilestoneChanges(t)
 	setUpTicketOwnershipChanges(t)
 	setUpTicketStatusChanges(t)
+	setUpTicketSummaryChanges(t)
 	setUpTicketAttachments(t)
 
 	closedTicket = createTicketImport(

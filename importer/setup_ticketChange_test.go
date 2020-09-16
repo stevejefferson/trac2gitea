@@ -23,10 +23,12 @@ type TicketChangeImport struct {
 	tracChangeType trac.TicketChangeType
 	issueCommentID int64
 	author         *TicketUserImport
-	owner          *TicketUserImport
 	prevOwner      *TicketUserImport
-	milestone      *TicketMilestoneImport
+	owner          *TicketUserImport
 	prevMilestone  *TicketMilestoneImport
+	milestone      *TicketMilestoneImport
+	prevSummary    string
+	summary        string
 	text           string
 	markdownText   string
 	time           int64
@@ -46,6 +48,9 @@ func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImpo
 		newValue = ticketChange.owner.tracUser
 	case trac.TicketStatusChange:
 		newValue = trac.TicketStatusClosed
+	case trac.TicketSummaryChange:
+		oldValue = ticketChange.prevSummary
+		newValue = ticketChange.summary
 	}
 	tracChange := trac.TicketChange{
 		TicketID:   ticket.ticketID,
