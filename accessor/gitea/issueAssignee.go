@@ -27,7 +27,7 @@ func (accessor *DefaultAccessor) getIssueAssigneeID(issueID int64, assigneeID in
 
 // updateIssueAssignee updates an existing issue assignee
 func (accessor *DefaultAccessor) updateIssueAssignee(issueAssigneeID int64, issueID int64, assigneeID int64) error {
-	_, err := accessor.db.Exec(`UPDATE issue_assignees SET issue_id=?, assignee_id=?, WHERE id= ?`, issueID, assigneeID, issueAssigneeID)
+	_, err := accessor.db.Exec(`UPDATE issue_assignees SET issue_id=?, assignee_id=? WHERE id= ?`, issueID, assigneeID, issueAssigneeID)
 	if err != nil {
 		err = errors.Wrapf(err, "updating issue %d/assignee %d", issueID, assigneeID)
 		return err
