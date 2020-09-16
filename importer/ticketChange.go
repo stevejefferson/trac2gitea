@@ -42,7 +42,9 @@ func (importer *Importer) importTicketChange(issueID int64, change *trac.TicketC
 	switch change.ChangeType {
 	case trac.TicketCommentChange:
 		issueCommentID, err = importer.importCommentIssueComment(issueID, change, &issueComment, userMap)
-	case trac.TicketOwnershipChange:
+	case trac.TicketMilestoneChange:
+		issueCommentID, err = importer.importMilestoneIssueComment(issueID, change, &issueComment)
+	case trac.TicketOwnerChange:
 		issueCommentID, err = importer.importOwnershipIssueComment(issueID, change, &issueComment, userMap)
 	case trac.TicketStatusChange:
 		issueCommentID, err = importer.importStatusChangeIssueComment(issueID, change, &issueComment)

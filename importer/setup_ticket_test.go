@@ -246,6 +246,7 @@ func setUpTickets(t *testing.T) {
 	setUpTicketUsers(t)
 	setUpTicketLabels(t)
 	setUpTicketComments(t)
+	setUpTicketMilestoneChanges(t)
 	setUpTicketOwnershipChanges(t)
 	setUpTicketStatusChanges(t)
 	setUpTicketAttachments(t)

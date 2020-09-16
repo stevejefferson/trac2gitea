@@ -36,6 +36,9 @@ const (
 	// CloseIssueCommentType is an IssueComment reflecting closing an issue
 	CloseIssueCommentType IssueCommentType = 2
 
+	// MilestoneIssueCommentType is an IssueComment reflecting a milestone change
+	MilestoneIssueCommentType IssueCommentType = 8
+
 	// AssigneeIssueCommentType is an IssueComment reflecting an assignee change
 	AssigneeIssueCommentType IssueCommentType = 9
 )
@@ -46,6 +49,8 @@ type IssueComment struct {
 	AuthorID           int64
 	OriginalAuthorID   int64
 	OriginalAuthorName string
+	OldMilestoneID     int64
+	MilestoneID        int64
 	AssigneeID         int64
 	RemovedAssigneeID  int64
 	Text               string

@@ -13,12 +13,12 @@ import (
 // GetTicketChanges retrieves all changes on a given Trac ticket in ascending time order, passing data from each one to the provided "handler" function.
 func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func(change *TicketChange) error) error {
 	rows, err := accessor.db.Query(`
-		SELECT CAST(time*1e-6 AS int8), field, COALESCE(author, ''), COALESCE(newvalue, ''), COALESCE(oldvalue, '')
+		SELECT CAST(time*1e-6 AS int8), field, COALESCE(author, ''), COALESCE(oldvalue, ''), COALESCE(newvalue, '')
 			FROM ticket_change
 			WHERE ticket = $1
-			AND field IN ('comment', 'owner', 'status') 
+			AND field IN ($2, $3, $4, $5) 
 			AND trim(COALESCE(newvalue, ''), ' ') != ''
-			ORDER BY time asc`, ticketID)
+			ORDER BY time asc`, ticketID, TicketCommentChange, TicketMilestoneChange, TicketOwnerChange, TicketStatusChange)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac comments for ticket %d", ticketID)
 		return err
@@ -26,28 +26,19 @@ func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func
 
 	for rows.Next() {
 		var time int64
-		var field, author, newValue, oldValue string
-		if err := rows.Scan(&time, &field, &author, &newValue, &oldValue); err != nil {
+		var field, author, oldValue, newValue string
+		if err := rows.Scan(&time, &field, &author, &oldValue, &newValue); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac change for ticket %d", ticketID)
 			return err
 		}
 
-		change := TicketChange{TicketID: ticketID, Author: author, Time: time}
-		switch field {
-		case "comment":
-			comment := TicketComment{Text: newValue}
-			change.ChangeType = TicketCommentChange
-			change.Comment = &comment
-		case "owner":
-			ownership := TicketOwnership{PrevOwner: oldValue, Owner: newValue}
-			change.ChangeType = TicketOwnershipChange
-			change.Ownership = &ownership
-		case "status":
-			isClosed := newValue == "closed"
-			status := TicketStatus{IsClosed: isClosed}
-			change.ChangeType = TicketStatusChange
-			change.Status = &status
-		}
+		change := TicketChange{
+			TicketID:   ticketID,
+			ChangeType: TicketChangeType(field),
+			Author:     author,
+			OldValue:   oldValue,
+			NewValue:   newValue,
+			Time:       time}
 
 		if err = handlerFn(&change); err != nil {
 			return err

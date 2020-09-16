@@ -39,7 +39,7 @@ func setUpTicketOwnershipChangeUsers(t *testing.T) {
 
 func createOwnershipTicketChangeImport(author *TicketUserImport, prevOwner *TicketUserImport, owner *TicketUserImport) *TicketChangeImport {
 	return &TicketChangeImport{
-		tracChangeType: trac.TicketOwnershipChange,
+		tracChangeType: trac.TicketOwnerChange,
 		issueCommentID: allocateID(),
 		author:         author,
 		owner:          owner,

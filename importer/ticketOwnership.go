@@ -15,7 +15,7 @@ func (importer *Importer) importOwnershipIssueComment(issueID int64, change *tra
 
 	var err error
 	prevOwnerID := int64(0)
-	prevOwnerName := change.Ownership.PrevOwner
+	prevOwnerName := change.OldValue
 	if prevOwnerName != "" {
 		prevOwnerID, err = importer.getUser(prevOwnerName, userMap)
 		if err != nil {
@@ -28,7 +28,7 @@ func (importer *Importer) importOwnershipIssueComment(issueID int64, change *tra
 
 	assigneeID := int64(0)
 	removedAssigneeID := int64(0)
-	ownerName := change.Ownership.Owner
+	ownerName := change.NewValue
 	if ownerName != "" {
 		assigneeID, err = importer.getUser(ownerName, userMap)
 		if err != nil {

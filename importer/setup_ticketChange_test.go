@@ -23,34 +23,37 @@ type TicketChangeImport struct {
 	tracChangeType trac.TicketChangeType
 	issueCommentID int64
 	author         *TicketUserImport
-	text           string
 	owner          *TicketUserImport
 	prevOwner      *TicketUserImport
+	milestone      *TicketMilestoneImport
+	prevMilestone  *TicketMilestoneImport
+	text           string
 	markdownText   string
 	time           int64
 }
 
 func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImport) *trac.TicketChange {
-	var comment *trac.TicketComment = nil
-	var ownership *trac.TicketOwnership = nil
-	var status *trac.TicketStatus = nil
-
+	oldValue := ""
+	newValue := ""
 	switch ticketChange.tracChangeType {
 	case trac.TicketCommentChange:
-		comment = &trac.TicketComment{Text: ticketChange.text}
-	case trac.TicketOwnershipChange:
-		ownership = &trac.TicketOwnership{Owner: ticketChange.owner.tracUser, PrevOwner: ticketChange.prevOwner.tracUser}
+		newValue = ticketChange.text
+	case trac.TicketMilestoneChange:
+		oldValue = ticketChange.prevMilestone.milestoneName
+		newValue = ticketChange.milestone.milestoneName
+	case trac.TicketOwnerChange:
+		oldValue = ticketChange.prevOwner.tracUser
+		newValue = ticketChange.owner.tracUser
 	case trac.TicketStatusChange:
-		status = &trac.TicketStatus{IsClosed: true}
+		newValue = trac.TicketStatusClosed
 	}
 	tracChange := trac.TicketChange{
 		TicketID:   ticket.ticketID,
-		Author:     ticketChange.author.tracUser,
-		Time:       ticketChange.time,
 		ChangeType: ticketChange.tracChangeType,
-		Comment:    comment,
-		Ownership:  ownership,
-		Status:     status,
+		Author:     ticketChange.author.tracUser,
+		OldValue:   oldValue,
+		NewValue:   newValue,
+		Time:       ticketChange.time,
 	}
 
 	return &tracChange

@@ -68,7 +68,7 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 func (importer *Importer) ImportTickets(
 	userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
 	err := importer.tracAccessor.GetTickets(func(ticket *trac.Ticket) error {
-		closed := ticket.Status == "closed"
+		closed := (ticket.Status == string(trac.TicketStatusClosed))
 		issueID, err := importer.importTicket(ticket, closed, userMap)
 		if err != nil {
 			return err

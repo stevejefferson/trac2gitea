@@ -12,6 +12,11 @@ type Milestone struct {
 	Completed   int64
 }
 
+const (
+	// TicketStatusClosed indicates a closed Trac ticket
+	TicketStatusClosed string = "closed"
+)
+
 // Ticket describes a Trac milestone.
 type Ticket struct {
 	TicketID       int64
@@ -32,44 +37,30 @@ type Ticket struct {
 }
 
 // TicketChangeType enumerates the types of ticket change we handle.
-type TicketChangeType int
+type TicketChangeType string
 
 const (
 	// TicketCommentChange denotes a ticket comment change.
-	TicketCommentChange TicketChangeType = iota
+	TicketCommentChange TicketChangeType = "comment"
 
-	// TicketOwnershipChange denotes a ticket ownership change.
-	TicketOwnershipChange
+	// TicketMilestoneChange denotes a ticket milestone change.
+	TicketMilestoneChange TicketChangeType = "milestone"
+
+	// TicketOwnerChange denotes a ticket ownership change.
+	TicketOwnerChange TicketChangeType = "owner"
 
 	// TicketStatusChange denotes a ticket status change.
-	TicketStatusChange
+	TicketStatusChange TicketChangeType = "status"
 )
-
-// TicketComment describes a comment appearing as a change to a Trac ticket.
-type TicketComment struct {
-	Text string
-}
-
-// TicketOwnership describes an ownership change to a Trac ticket.
-type TicketOwnership struct {
-	Owner     string
-	PrevOwner string
-}
-
-// TicketStatus describes a status change to a Trac ticket.
-type TicketStatus struct {
-	IsClosed bool
-}
 
 // TicketChange describes a change to a Trac ticket.
 type TicketChange struct {
 	TicketID   int64
-	Author     string
-	Time       int64
 	ChangeType TicketChangeType
-	Comment    *TicketComment
-	Ownership  *TicketOwnership
-	Status     *TicketStatus
+	Author     string
+	OldValue   string
+	NewValue   string
+	Time       int64
 }
 
 // TicketAttachment describes an attachment to a Trac ticket.

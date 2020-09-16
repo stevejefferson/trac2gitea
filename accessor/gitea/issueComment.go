@@ -39,12 +39,16 @@ func (accessor *DefaultAccessor) GetIssueCommentIDsByTime(issueID int64, created
 func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueID int64, comment *IssueComment) error {
 	_, err := accessor.db.Exec(`
 		UPDATE comment SET
-			type=?, issue_id=?, poster_id=?, original_author_id=?, original_author=?, 
+			type=?, issue_id=?, poster_id=?,
+			original_author_id=?, original_author=?, 
+			old_milestone_id=?, milestone_id=?,
 			assignee_id=?, removed_assignee=?,
 			content=?,
 			created_unix=?, updated_unix=?
 			WHERE id=?`,
-		comment.CommentType, issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.CommentType, issueID, comment.AuthorID,
+		comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.OldMilestoneID, comment.MilestoneID,
 		comment.AssigneeID, comment.RemovedAssigneeID,
 		comment.Text,
 		comment.Time, comment.Time,
