@@ -19,30 +19,24 @@ import (
 
 // TicketUserImport holds the data on a user referenced by an imported ticket
 type TicketUserImport struct {
-	tracUser     string
-	giteaUser    string
-	giteaUserID  int64
-	origTracUser string
+	tracUser    string
+	giteaUser   string
+	giteaUserID int64
 }
 
 func createTicketUserImport(tracUser string, giteaUser string) *TicketUserImport {
-	// if we have a gitea user mapping use a unique user id but do not record the original trac user on issues
-	// if not, expect default user id to be used and record original trac user
+	// if no mapping onto Gitea, use default user ID
 	var giteaUserID int64
-	var origTracUser string
 	if giteaUser != "" {
 		giteaUserID = allocateID()
-		origTracUser = ""
 	} else {
 		giteaUserID = defaultUserID
-		origTracUser = tracUser
 	}
 
 	user := TicketUserImport{
-		tracUser:     tracUser,
-		giteaUser:    giteaUser,
-		giteaUserID:  giteaUserID,
-		origTracUser: origTracUser,
+		tracUser:    tracUser,
+		giteaUser:   giteaUser,
+		giteaUserID: giteaUserID,
 	}
 
 	if tracUser != "" {
@@ -64,18 +58,23 @@ func expectUserLookup(t *testing.T, user *TicketUserImport) {
 		Return(user.giteaUserID, nil)
 }
 
-func expectIssueUserToBeAdded(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
+func expectIssueParticipantToBeAdded(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
 	mockGiteaAccessor.
 		EXPECT().
-		AddIssueUser(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
+		AddIssueParticipant(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
 		Return(nil)
 }
 
 func expectIssueAssigneeToBeAdded(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
-	if user.giteaUser != "" {
-		mockGiteaAccessor.
-			EXPECT().
-			AddIssueAssignee(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
-			Return(nil)
-	}
+	mockGiteaAccessor.
+		EXPECT().
+		AddIssueAssignee(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
+		Return(nil)
+}
+
+func expectIssueAssigneeToBeRemoved(t *testing.T, ticket *TicketImport, user *TicketUserImport) {
+	mockGiteaAccessor.
+		EXPECT().
+		RemoveIssueAssignee(gomock.Eq(ticket.issueID), gomock.Eq(user.giteaUserID)).
+		Return(nil)
 }

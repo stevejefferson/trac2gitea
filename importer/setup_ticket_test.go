@@ -247,6 +247,7 @@ func setUpTickets(t *testing.T) {
 	setUpTicketLabels(t)
 	setUpTicketComments(t)
 	setUpTicketOwnershipChanges(t)
+	setUpTicketStatusChanges(t)
 	setUpTicketAttachments(t)
 
 	closedTicket = createTicketImport(
@@ -296,6 +297,12 @@ func expectDescriptionMarkdownConversion(t *testing.T, ticket *TicketImport) {
 }
 
 func expectIssueCreation(t *testing.T, ticket *TicketImport) {
+	// expect to record original trac user where ticket owner has no Gitea mapping
+	originalAuthorName := ""
+	if ticket.owner.giteaUser == "" {
+		originalAuthorName = ticket.owner.tracUser
+	}
+
 	mockGiteaAccessor.
 		EXPECT().
 		AddIssue(gomock.Any()).
@@ -304,7 +311,7 @@ func expectIssueCreation(t *testing.T, ticket *TicketImport) {
 			assertEquals(t, issue.Summary, ticket.summary)
 			assertEquals(t, issue.Description, ticket.descriptionMarkdown)
 			assertEquals(t, issue.OriginalAuthorID, int64(0))
-			assertEquals(t, issue.OriginalAuthorName, ticket.owner.origTracUser)
+			assertEquals(t, issue.OriginalAuthorName, originalAuthorName)
 			assertEquals(t, issue.ReporterID, ticket.reporter.giteaUserID)
 			assertEquals(t, issue.Milestone, ticket.milestoneName)
 			assertEquals(t, issue.Closed, ticket.closed)
@@ -312,10 +319,11 @@ func expectIssueCreation(t *testing.T, ticket *TicketImport) {
 			return ticket.issueID, nil
 		})
 
-	expectIssueAssigneeToBeAdded(t, ticket, ticket.owner)
-	expectIssueUserToBeAdded(t, ticket, ticket.reporter)
+	// reporter (or default user if no Gitea mapping) will always be set as issue participant
+	expectIssueParticipantToBeAdded(t, ticket, ticket.reporter)
 	if ticket.owner.giteaUser != "" {
-		expectIssueUserToBeAdded(t, ticket, ticket.owner)
+		expectIssueAssigneeToBeAdded(t, ticket, ticket.owner)
+		expectIssueParticipantToBeAdded(t, ticket, ticket.owner)
 	}
 }
 

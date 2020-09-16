@@ -33,23 +33,24 @@ type TicketChangeImport struct {
 func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImport) *trac.TicketChange {
 	var comment *trac.TicketComment = nil
 	var ownership *trac.TicketOwnership = nil
+	var status *trac.TicketStatus = nil
 
-	var changeType trac.TicketChangeType
 	switch ticketChange.tracChangeType {
 	case trac.TicketCommentChange:
-		changeType = trac.TicketCommentChange
 		comment = &trac.TicketComment{Text: ticketChange.text}
 	case trac.TicketOwnershipChange:
-		changeType = trac.TicketOwnershipChange
 		ownership = &trac.TicketOwnership{Owner: ticketChange.owner.tracUser, PrevOwner: ticketChange.prevOwner.tracUser}
+	case trac.TicketStatusChange:
+		status = &trac.TicketStatus{IsClosed: true}
 	}
 	tracChange := trac.TicketChange{
 		TicketID:   ticket.ticketID,
 		Author:     ticketChange.author.tracUser,
 		Time:       ticketChange.time,
-		ChangeType: changeType,
+		ChangeType: ticketChange.tracChangeType,
 		Comment:    comment,
 		Ownership:  ownership,
+		Status:     status,
 	}
 
 	return &tracChange

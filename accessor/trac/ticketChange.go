@@ -16,7 +16,7 @@ func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func
 		SELECT CAST(time*1e-6 AS int8), field, COALESCE(author, ''), COALESCE(newvalue, ''), COALESCE(oldvalue, '')
 			FROM ticket_change
 			WHERE ticket = $1
-			AND field IN ('comment', 'owner') 
+			AND field IN ('comment', 'owner', 'status') 
 			AND trim(COALESCE(newvalue, ''), ' ') != ''
 			ORDER BY time asc`, ticketID)
 	if err != nil {
@@ -42,6 +42,11 @@ func (accessor *DefaultAccessor) GetTicketChanges(ticketID int64, handlerFn func
 			ownership := TicketOwnership{PrevOwner: oldValue, Owner: newValue}
 			change.ChangeType = TicketOwnershipChange
 			change.Ownership = &ownership
+		case "status":
+			isClosed := newValue == "closed"
+			status := TicketStatus{IsClosed: isClosed}
+			change.ChangeType = TicketStatusChange
+			change.Status = &status
 		}
 
 		if err = handlerFn(&change); err != nil {

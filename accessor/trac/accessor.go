@@ -40,6 +40,9 @@ const (
 
 	// TicketOwnershipChange denotes a ticket ownership change.
 	TicketOwnershipChange
+
+	// TicketStatusChange denotes a ticket status change.
+	TicketStatusChange
 )
 
 // TicketComment describes a comment appearing as a change to a Trac ticket.
@@ -53,6 +56,11 @@ type TicketOwnership struct {
 	PrevOwner string
 }
 
+// TicketStatus describes a status change to a Trac ticket.
+type TicketStatus struct {
+	IsClosed bool
+}
+
 // TicketChange describes a change to a Trac ticket.
 type TicketChange struct {
 	TicketID   int64
@@ -61,6 +69,7 @@ type TicketChange struct {
 	ChangeType TicketChangeType
 	Comment    *TicketComment
 	Ownership  *TicketOwnership
+	Status     *TicketStatus
 }
 
 // TicketAttachment describes an attachment to a Trac ticket.

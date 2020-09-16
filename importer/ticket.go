@@ -49,13 +49,13 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 		}
 	}
 
-	// add associations between our issue and its reporter and its owner (if a different user)
-	err = importer.giteaAccessor.AddIssueUser(issueID, reporterID)
+	// issue reporter (and issue assignee if different) are now participants in the issue
+	err = importer.giteaAccessor.AddIssueParticipant(issueID, reporterID)
 	if err != nil {
 		return -1, err
 	}
 	if ownerID != -1 && ownerID != reporterID {
-		err = importer.giteaAccessor.AddIssueUser(issueID, ownerID)
+		err = importer.giteaAccessor.AddIssueParticipant(issueID, ownerID)
 		if err != nil {
 			return -1, err
 		}

@@ -33,6 +33,9 @@ const (
 	// CommentIssueCommentType is an IssueComment reflecting a comment
 	CommentIssueCommentType IssueCommentType = 0
 
+	// CloseIssueCommentType is an IssueComment reflecting closing an issue
+	CloseIssueCommentType IssueCommentType = 2
+
 	// AssigneeIssueCommentType is an IssueComment reflecting an assignee change
 	AssigneeIssueCommentType IssueCommentType = 9
 )
@@ -44,7 +47,7 @@ type IssueComment struct {
 	OriginalAuthorID   int64
 	OriginalAuthorName string
 	AssigneeID         int64
-	RemovedAssignee    int64
+	RemovedAssigneeID  int64
 	Text               string
 	Time               int64
 }
@@ -90,6 +93,9 @@ type Accessor interface {
 	// AddIssueAssignee adds an assignee to a Gitea issue
 	AddIssueAssignee(issueID int64, assigneeID int64) error
 
+	// RemoveIssueAssignee removes an assignee from a Gitea issue
+	RemoveIssueAssignee(issueID int64, assigneeID int64) error
+
 	/*
 	 * Issue Attachments
 	 */
@@ -121,10 +127,10 @@ type Accessor interface {
 	AddIssueLabel(issueID int64, labelID int64) (int64, error)
 
 	/*
-	 * Issue Users
+	 * Issue Participants
 	 */
-	// AddIssueUser adds a user as being associated with a Gitea issue
-	AddIssueUser(issueID int64, userID int64) error
+	// AddIssueParticipant adds a user as a participant in a Gitea issue
+	AddIssueParticipant(issueID int64, userID int64) error
 
 	/*
 	 * Labels

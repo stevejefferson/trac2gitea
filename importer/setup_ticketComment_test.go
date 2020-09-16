@@ -83,7 +83,9 @@ func expectIssueCommentCreationForComment(t *testing.T, ticket *TicketImport, ti
 			assertEquals(t, issueComment.Time, ticketComment.time)
 			return ticketComment.issueCommentID, nil
 		})
-	expectIssueUserToBeAdded(t, ticket, ticketComment.author)
+	if ticketComment.author.giteaUser != "" {
+		expectIssueParticipantToBeAdded(t, ticket, ticketComment.author)
+	}
 }
 
 func expectTicketCommentMarkdownConversion(t *testing.T, ticket *TicketImport, ticketComment *TicketChangeImport) {

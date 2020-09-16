@@ -77,18 +77,27 @@ func expectIssueCommentCreationForOwnershipChange(t *testing.T, ticket *TicketIm
 			if ticketOwnership.owner.tracUser != "" {
 				assertEquals(t, issueComment.AssigneeID, ticketOwnership.owner.giteaUserID)
 			} else {
-				assertEquals(t, issueComment.RemovedAssignee, ticketOwnership.prevOwner.giteaUserID)
+				assertEquals(t, issueComment.RemovedAssigneeID, ticketOwnership.prevOwner.giteaUserID)
 			}
 			assertEquals(t, issueComment.Time, ticketOwnership.time)
 			return ticketOwnership.issueCommentID, nil
 		})
-	expectIssueUserToBeAdded(t, ticket, ticketOwnership.author)
+	if ticketOwnership.author.giteaUser != "" {
+		expectIssueParticipantToBeAdded(t, ticket, ticketOwnership.author)
+	}
 }
 
 func expectAllTicketOwnershipActions(t *testing.T, ticket *TicketImport, ticketOwnership *TicketChangeImport) {
 	// expect to lookup Gitea equivalent of author of Trac ticket ownership change
 	expectUserLookup(t, ticketOwnership.author)
 
-	// expect retrieval/creation of issue comment for ticket ownership change
+	// expect creation of issue comment for ticket ownership change
 	expectIssueCommentCreationForOwnershipChange(t, ticket, ticketOwnership)
+
+	// expect issue assignee to be added or removed
+	if ticketOwnership.owner.tracUser != "" {
+		expectIssueAssigneeToBeAdded(t, ticket, ticketOwnership.owner)
+	} else {
+		expectIssueAssigneeToBeRemoved(t, ticket, ticketOwnership.prevOwner)
+	}
 }
