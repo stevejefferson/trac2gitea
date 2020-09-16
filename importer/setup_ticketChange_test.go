@@ -29,6 +29,7 @@ type TicketChangeImport struct {
 	milestone      *TicketMilestoneImport
 	prevLabel      *TicketLabelImport
 	label          *TicketLabelImport
+	isClose        bool
 	prevSummary    string
 	summary        string
 	text           string
@@ -70,7 +71,11 @@ func createTracTicketChange(ticket *TicketImport, ticketChange *TicketChangeImpo
 		oldValue = ticketChange.prevOwner.tracUser
 		newValue = ticketChange.owner.tracUser
 	case trac.TicketStatusChange:
-		newValue = trac.TicketStatusClosed
+		if ticketChange.isClose {
+			newValue = trac.TicketStatusClosed
+		} else {
+			newValue = trac.TicketStatusReopened
+		}
 	case trac.TicketSummaryChange:
 		oldValue = ticketChange.prevSummary
 		newValue = ticketChange.summary

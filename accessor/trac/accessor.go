@@ -15,6 +15,9 @@ type Milestone struct {
 const (
 	// TicketStatusClosed indicates a closed Trac ticket
 	TicketStatusClosed string = "closed"
+
+	// TicketStatusReopened indicates a reopened Trac ticket
+	TicketStatusReopened string = "reopened"
 )
 
 // Ticket describes a Trac milestone.

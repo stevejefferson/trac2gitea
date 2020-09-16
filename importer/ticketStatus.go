@@ -16,12 +16,17 @@ func (importer *Importer) importStatusChangeIssueComment(issueID int64, change *
 		return -1, err
 	}
 
-	// the only Trac status change that interests us is closing a ticket
-	if change.NewValue != string(trac.TicketStatusClosed) {
+	var giteaCommentType gitea.IssueCommentType
+	switch change.NewValue {
+	case trac.TicketStatusClosed:
+		giteaCommentType = gitea.CloseIssueCommentType
+	case trac.TicketStatusReopened:
+		giteaCommentType = gitea.ReopenIssueCommentType
+	default:
 		return -1, nil
 	}
 
-	issueComment.CommentType = gitea.CloseIssueCommentType
+	issueComment.CommentType = giteaCommentType
 	issueCommentID, err := importer.giteaAccessor.AddIssueComment(issueID, issueComment)
 	if err != nil {
 		return -1, err

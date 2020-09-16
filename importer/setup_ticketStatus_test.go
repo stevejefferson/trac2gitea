@@ -20,29 +20,34 @@ import (
  */
 
 var (
-	statusChangeAuthor *TicketUserImport
+	closeStatusChangeAuthor  *TicketUserImport
+	reopenStatusChangeAuthor *TicketUserImport
 )
 
 func setUpTicketStatusChangeUsers(t *testing.T) {
-	statusChangeAuthor = createTicketUserImport("trac-status-change-author", "gitea-status-change-author")
+	closeStatusChangeAuthor = createTicketUserImport("trac-close-status-change-author", "gitea-close-status-change-author")
+	reopenStatusChangeAuthor = createTicketUserImport("trac-reopen-status-change-author", "gitea-reopen-status-change-author")
 }
 
-func createCloseTicketChangeImport(author *TicketUserImport) *TicketChangeImport {
+func createCloseTicketChangeImport(author *TicketUserImport, isClose bool) *TicketChangeImport {
 	return &TicketChangeImport{
 		tracChangeType: trac.TicketStatusChange,
 		issueCommentID: allocateID(),
 		author:         author,
 		time:           allocateUnixTime(),
+		isClose:        isClose,
 	}
 }
 
 var (
-	closeTicketChange *TicketChangeImport
+	closeTicketChange  *TicketChangeImport
+	reopenTicketChange *TicketChangeImport
 )
 
 func setUpTicketStatusChanges(t *testing.T) {
 	setUpTicketStatusChangeUsers(t)
-	closeTicketChange = createCloseTicketChangeImport(statusChangeAuthor)
+	closeTicketChange = createCloseTicketChangeImport(closeStatusChangeAuthor, true)
+	reopenTicketChange = createCloseTicketChangeImport(reopenStatusChangeAuthor, false)
 }
 
 func expectIssueCommentCreationForStatusChange(t *testing.T, ticket *TicketImport, ticketStatus *TicketChangeImport) {
@@ -50,7 +55,11 @@ func expectIssueCommentCreationForStatusChange(t *testing.T, ticket *TicketImpor
 		EXPECT().
 		AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
 		DoAndReturn(func(issueID int64, issueComment *gitea.IssueComment) (int64, error) {
-			assertEquals(t, issueComment.CommentType, gitea.CloseIssueCommentType)
+			if ticketStatus.isClose {
+				assertEquals(t, issueComment.CommentType, gitea.CloseIssueCommentType)
+			} else {
+				assertEquals(t, issueComment.CommentType, gitea.ReopenIssueCommentType)
+			}
 			assertEquals(t, issueComment.AuthorID, ticketStatus.author.giteaUserID)
 			assertEquals(t, issueComment.Time, ticketStatus.time)
 			return ticketStatus.issueCommentID, nil

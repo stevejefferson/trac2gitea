@@ -19,7 +19,7 @@ func TestImportTicketClose(t *testing.T) {
 	// expect trac to return us no attachments
 	expectTracAttachmentRetrievals(t, openTicket)
 
-	// expect trac to return us one ownership change
+	// expect trac to return us one close ticket change
 	expectTracChangeRetrievals(t, openTicket, closeTicketChange)
 
 	// expect all actions for creating Gitea comments from Trac ticket status changes
@@ -27,6 +27,37 @@ func TestImportTicketClose(t *testing.T) {
 
 	// expect issue update time to be updated
 	expectIssueUpdateTimeSetToLatestOf(t, openTicket, closeTicketChange)
+
+	// expect issue comment count to be updated
+	expectIssueCommentCountUpdate(t, openTicket)
+
+	// expect repository issue counts to be updated
+	expectRepoIssueCountsUpdate(t)
+
+	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+}
+
+func TestImportTicketReopen(t *testing.T) {
+	setUpTickets(t)
+	defer tearDown(t)
+
+	// first thing to expect is retrieval of ticket from Trac
+	expectTracTicketRetrievals(t, openTicket)
+
+	// expect all actions for creating Gitea issue from Trac ticket
+	expectAllTicketActions(t, openTicket)
+
+	// expect trac to return us no attachments
+	expectTracAttachmentRetrievals(t, openTicket)
+
+	// expect trac to return us one reopen ticket change
+	expectTracChangeRetrievals(t, openTicket, reopenTicketChange)
+
+	// expect all actions for creating Gitea comments from Trac ticket status changes
+	expectAllTicketStatusActions(t, openTicket, reopenTicketChange)
+
+	// expect issue update time to be updated
+	expectIssueUpdateTimeSetToLatestOf(t, openTicket, reopenTicketChange)
 
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)

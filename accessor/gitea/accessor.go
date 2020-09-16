@@ -33,6 +33,9 @@ const (
 	// CommentIssueCommentType is an IssueComment reflecting a comment
 	CommentIssueCommentType IssueCommentType = 0
 
+	// ReopenIssueCommentType is an IssueComment reflecting closing an issue
+	ReopenIssueCommentType IssueCommentType = 1
+
 	// CloseIssueCommentType is an IssueComment reflecting closing an issue
 	CloseIssueCommentType IssueCommentType = 2
 
