@@ -76,7 +76,6 @@ func expectTicketMilestoneRetrieval(t *testing.T, milestone *TicketMilestoneImpo
 }
 
 func expectIssueCommentCreationForMilestoneChange(t *testing.T, ticket *TicketImport, ticketMilestone *TicketChangeImport) {
-
 	mockGiteaAccessor.
 		EXPECT().
 		AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
@@ -103,5 +102,5 @@ func expectAllTicketMilestoneActions(t *testing.T, ticket *TicketImport, ticketM
 	expectTicketMilestoneRetrieval(t, ticketMilestone.milestone)
 
 	// expect creation of issue comment for ticket milestone change
-	expectIssueCommentCreationForStatusChange(t, ticket, ticketMilestone)
+	expectIssueCommentCreationForMilestoneChange(t, ticket, ticketMilestone)
 }

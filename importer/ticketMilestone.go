@@ -11,10 +11,11 @@ import (
 
 // importMilestoneIssueComment imports a Trac ticket milestone change into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
 func (importer *Importer) importMilestoneIssueComment(issueID int64, change *trac.TicketChange, issueComment *gitea.IssueComment) (int64, error) {
+	var err error
 	var prevMilestoneID = int64(0)
 	prevMilestone := change.OldValue
 	if prevMilestone != "" {
-		prevMilestoneID, err := importer.giteaAccessor.GetMilestoneID(prevMilestone)
+		prevMilestoneID, err = importer.giteaAccessor.GetMilestoneID(prevMilestone)
 		if err != nil {
 			return -1, err
 		}
@@ -29,7 +30,7 @@ func (importer *Importer) importMilestoneIssueComment(issueID int64, change *tra
 	var milestoneID = int64(0)
 	milestone := change.NewValue
 	if milestone != "" {
-		milestoneID, err := importer.giteaAccessor.GetMilestoneID(milestone)
+		milestoneID, err = importer.giteaAccessor.GetMilestoneID(milestone)
 		if err != nil {
 			return -1, err
 		}

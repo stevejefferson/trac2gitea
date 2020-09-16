@@ -67,12 +67,16 @@ func (accessor *DefaultAccessor) updateIssueComment(issueCommentID int64, issueI
 func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *IssueComment) (int64, error) {
 	_, err := accessor.db.Exec(`
 		INSERT INTO comment(
-			type, issue_id, poster_id, original_author_id, original_author, 
+			type, issue_id, poster_id, 
+			original_author_id, original_author, 
+			old_milestone_id, milestone_id,
 			assignee_id, removed_assignee,
 			content, 
 			created_unix, updated_unix)
-			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )`,
-		comment.CommentType, issueID, comment.AuthorID, comment.OriginalAuthorID, comment.OriginalAuthorName,
+			VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 )`,
+		comment.CommentType, issueID, comment.AuthorID,
+		comment.OriginalAuthorID, comment.OriginalAuthorName,
+		comment.OldMilestoneID, comment.MilestoneID,
 		comment.AssigneeID, comment.RemovedAssigneeID,
 		comment.Text,
 		comment.Time, comment.Time)

@@ -50,7 +50,7 @@ func expectIssueCommentCreationForStatusChange(t *testing.T, ticket *TicketImpor
 		EXPECT().
 		AddIssueComment(gomock.Eq(ticket.issueID), gomock.Any()).
 		DoAndReturn(func(issueID int64, issueComment *gitea.IssueComment) (int64, error) {
-			assertEquals(t, issueComment.CommentType, gitea.MilestoneIssueCommentType)
+			assertEquals(t, issueComment.CommentType, gitea.CloseIssueCommentType)
 			assertEquals(t, issueComment.AuthorID, ticketStatus.author.giteaUserID)
 			assertEquals(t, issueComment.Time, ticketStatus.time)
 			return ticketStatus.issueCommentID, nil
