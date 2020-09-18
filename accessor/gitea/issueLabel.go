@@ -61,3 +61,27 @@ func (accessor *DefaultAccessor) AddIssueLabel(issueID int64, labelID int64) (in
 	// association between issue_id and label_id already exists - nothing to do
 	return issueLabelID, nil
 }
+
+// UpdateLabelIssueCounts updates issue counts for all labels.
+func (accessor *DefaultAccessor) UpdateLabelIssueCounts() error {
+	_, err := accessor.db.Exec(`
+		UPDATE label AS l SET 
+			num_issues = (
+				SELECT COUNT(il1.issue_id)
+				FROM issue_label il1
+				WHERE l.id = il1.label_id
+				GROUP BY il1.label_id),
+			num_closed_issues = (
+				SELECT COUNT(il2.issue_id)
+				FROM issue_label il2, issue i
+				WHERE l.id = il2.label_id
+				AND il2.issue_id = i.id
+				AND i.is_closed = 1
+				GROUP BY il2.label_id)`)
+	if err != nil {
+		err = errors.Wrapf(err, "updating number of issues for labels")
+		return err
+	}
+
+	return nil
+}

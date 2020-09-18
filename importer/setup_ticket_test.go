@@ -317,7 +317,11 @@ func expectIssueCommentCountUpdate(t *testing.T, ticket *TicketImport) {
 		Return(nil)
 }
 
-func expectRepoIssueCountsUpdate(t *testing.T) {
+func expectIssueCountUpdates(t *testing.T) {
+	mockGiteaAccessor.
+		EXPECT().
+		UpdateLabelIssueCounts().
+		Return(nil)
 	mockGiteaAccessor.
 		EXPECT().
 		UpdateRepoIssueCounts().

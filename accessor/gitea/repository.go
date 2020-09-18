@@ -23,7 +23,7 @@ func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (in
 	return id, nil
 }
 
-// UpdateRepoIssueCounts updates issue counts for a our chosen Gitea repository.
+// UpdateRepoIssueCounts updates issue counts for our chosen Gitea repository.
 func (accessor *DefaultAccessor) UpdateRepoIssueCounts() error {
 	_, err := accessor.db.Exec(`
 		UPDATE repository SET 
@@ -38,7 +38,7 @@ func (accessor *DefaultAccessor) UpdateRepoIssueCounts() error {
 	return nil
 }
 
-// UpdateRepoMilestoneCounts updates milestone counts for a our chosen Gitea repository.
+// UpdateRepoMilestoneCounts updates milestone counts for our chosen Gitea repository.
 func (accessor *DefaultAccessor) UpdateRepoMilestoneCounts() error {
 	_, err := accessor.db.Exec(`
 		UPDATE repository SET 

@@ -31,8 +31,8 @@ func TestImportTicketSummary(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }

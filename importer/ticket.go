@@ -126,5 +126,10 @@ func (importer *Importer) ImportTickets(
 		return err
 	}
 
+	err = importer.giteaAccessor.UpdateLabelIssueCounts()
+	if err != nil {
+		return err
+	}
+
 	return importer.giteaAccessor.UpdateRepoIssueCounts()
 }

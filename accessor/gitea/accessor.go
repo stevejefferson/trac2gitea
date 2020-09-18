@@ -150,6 +150,9 @@ type Accessor interface {
 	// AddIssueLabel adds an issue label to Gitea, returns issue label ID
 	AddIssueLabel(issueID int64, labelID int64) (int64, error)
 
+	// UpdateLabelIssueCounts updates issue counts for all labels.
+	UpdateLabelIssueCounts() error
+
 	/*
 	 * Issue Participants
 	 */
@@ -180,10 +183,10 @@ type Accessor interface {
 	/*
 	 * Repository
 	 */
-	// UpdateRepoIssueCounts updates issue counts for a our chosen Gitea repository.
+	// UpdateRepoIssueCounts updates issue counts for our chosen Gitea repository.
 	UpdateRepoIssueCounts() error
 
-	// UpdateRepoMilestoneCounts updates milestone counts for a our chosen Gitea repository.
+	// UpdateRepoMilestoneCounts updates milestone counts for our chosen Gitea repository.
 	UpdateRepoMilestoneCounts() error
 
 	// GetCommitURL retrieves the URL for viewing a given commit in the current repository

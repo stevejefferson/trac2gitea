@@ -31,8 +31,8 @@ func TestImportTicketComponentAddition(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -62,8 +62,8 @@ func TestImportTicketComponentAmend(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -93,8 +93,8 @@ func TestImportTicketComponentRemoval(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -124,8 +124,8 @@ func TestImportTicketPriorityAddition(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -155,8 +155,8 @@ func TestImportTicketPriorityAmend(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -186,8 +186,8 @@ func TestImportTicketPriorityRemoval(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -217,8 +217,8 @@ func TestImportTicketResolutionAddition(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -248,8 +248,8 @@ func TestImportTicketResolutionAmend(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -279,8 +279,8 @@ func TestImportTicketResolutionRemoval(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -310,8 +310,8 @@ func TestImportTicketSeverityAddition(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -341,8 +341,8 @@ func TestImportTicketSeverityAmend(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -372,8 +372,8 @@ func TestImportTicketSeverityRemoval(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -403,8 +403,8 @@ func TestImportTicketTypeAddition(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -434,8 +434,8 @@ func TestImportTicketTypeAmend(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -465,8 +465,8 @@ func TestImportTicketTypeRemoval(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -496,8 +496,8 @@ func TestImportTicketVersionAddition(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -527,8 +527,8 @@ func TestImportTicketVersionAmend(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -558,8 +558,8 @@ func TestImportTicketVersionRemoval(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }

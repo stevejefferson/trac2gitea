@@ -32,8 +32,8 @@ func TestImportTicketWithAttachments(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, closedTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -71,8 +71,8 @@ func TestImportMultipleTicketsWithAttachments(t *testing.T) {
 	expectIssueCommentCountUpdate(t, closedTicket)
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -102,8 +102,8 @@ func TestImportTicketWithAttachmentButNoTracUser(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, noTracUserTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -133,8 +133,8 @@ func TestImportTicketWithAttachmentButUnmappedTracUser(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, unmappedTracUserTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }

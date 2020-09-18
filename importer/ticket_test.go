@@ -30,8 +30,8 @@ func TestImportClosedTicketOnly(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, closedTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -58,8 +58,8 @@ func TestImportOpenTicketOnly(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -91,8 +91,8 @@ func TestImportMultipleTicketsOnly(t *testing.T) {
 	expectIssueCommentCountUpdate(t, closedTicket)
 	expectIssueCommentCountUpdate(t, openTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -119,8 +119,8 @@ func TestImportTicketWithNoTracUser(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, noTracUserTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
@@ -147,8 +147,8 @@ func TestImportTicketWithUnmappedTracUser(t *testing.T) {
 	// expect issue comment count to be updated
 	expectIssueCommentCountUpdate(t, unmappedTracUserTicket)
 
-	// expect repository issue counts to be updated
-	expectRepoIssueCountsUpdate(t)
+	// expect all issue counts to be updated
+	expectIssueCountUpdates(t)
 
 	dataImporter.ImportTickets(userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
 }
