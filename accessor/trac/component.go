@@ -6,22 +6,23 @@ package trac
 
 import "github.com/pkg/errors"
 
-// GetComponentNames retrieves all Trac component names, passing each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetComponentNames(handlerFn func(cmptName string) error) error {
-	rows, err := accessor.db.Query(`SELECT name FROM component`)
+// GetComponents retrieves all Trac components, passing each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetComponents(handlerFn func(component *Label) error) error {
+	rows, err := accessor.db.Query(`SELECT name, COALESCE(description,'') FROM component`)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac components")
 		return err
 	}
 
 	for rows.Next() {
-		var cmptName string
-		if err := rows.Scan(&cmptName); err != nil {
+		var name, description string
+		if err := rows.Scan(&name, &description); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac component")
 			return err
 		}
 
-		if err = handlerFn(cmptName); err != nil {
+		component := Label{Name: name, Description: description}
+		if err = handlerFn(&component); err != nil {
 			return err
 		}
 	}

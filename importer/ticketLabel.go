@@ -11,8 +11,8 @@ import (
 )
 
 // importTicketLabel imports a single issue label from Trac into Gitea, returns id of created issue label or gitea.NullID if issue label already exists
-func (importer *Importer) importTicketLabel(issueID int64, tracName string, labelMap map[string]string, labelColor string) (int64, error) {
-	labelID, err := importer.importLabel(tracName, labelMap, labelColor)
+func (importer *Importer) importTicketLabel(issueID int64, tracName string, labelMap map[string]string) (int64, error) {
+	labelID, err := importer.getLabelID(tracName, labelMap)
 	if err != nil {
 		return gitea.NullID, err
 	}

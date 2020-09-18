@@ -6,8 +6,8 @@ package trac
 
 import "github.com/pkg/errors"
 
-// GetSeverityNames retrieves all severity names used in Trac tickets, passing each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetSeverityNames(handlerFn func(severityName string) error) error {
+// GetSeverities retrieves all severities used in Trac tickets, passing each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetSeverities(handlerFn func(severity *Label) error) error {
 	rows, err := accessor.db.Query(`SELECT DISTINCT COALESCE(severity,'') FROM ticket`)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac severities")
@@ -21,7 +21,8 @@ func (accessor *DefaultAccessor) GetSeverityNames(handlerFn func(severityName st
 			return err
 		}
 
-		if err = handlerFn(severityName); err != nil {
+		severity := Label{Name: severityName, Description: ""}
+		if err = handlerFn(&severity); err != nil {
 			return err
 		}
 	}

@@ -78,7 +78,7 @@ type milestoneNameMatcher struct{ name string }
 func isMilestone(milestoneName string) gomock.Matcher {
 	return milestoneNameMatcher{name: milestoneName}
 }
-
+ 
 func (matcher milestoneNameMatcher) Matches(arg interface{}) bool {
 	giteaMilestone := arg.(*gitea.Milestone)
 	return giteaMilestone.Name == matcher.name

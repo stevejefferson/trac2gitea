@@ -69,6 +69,13 @@ type IssueComment struct {
 	Time               int64
 }
 
+// Label describes a Gitea label
+type Label struct {
+	Name        string
+	Description string
+	Color       string
+}
+
 // Milestone describes a Gitea milestone.
 type Milestone struct {
 	Name        string
@@ -156,7 +163,7 @@ type Accessor interface {
 	GetLabelID(labelName string) (int64, error)
 
 	// AddLabel adds a label to Gitea, returns label id.
-	AddLabel(label string, color string) (int64, error)
+	AddLabel(label *Label) (int64, error)
 
 	/*
 	 * Milestones

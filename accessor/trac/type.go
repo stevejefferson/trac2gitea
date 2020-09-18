@@ -6,8 +6,8 @@ package trac
 
 import "github.com/pkg/errors"
 
-// GetTypeNames retrieves all type names used in Trac tickets, passing each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetTypeNames(handlerFn func(typeName string) error) error {
+// GetTypes retrieves all types used in Trac tickets, passing each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetTypes(handlerFn func(tracType *Label) error) error {
 	rows, err := accessor.db.Query(`SELECT DISTINCT type FROM ticket`)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac types")
@@ -15,13 +15,14 @@ func (accessor *DefaultAccessor) GetTypeNames(handlerFn func(typeName string) er
 	}
 
 	for rows.Next() {
-		var typ string
-		if err := rows.Scan(&typ); err != nil {
+		var typeName string
+		if err := rows.Scan(&typeName); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac type")
 			return err
 		}
 
-		if err = handlerFn(typ); err != nil {
+		tracType := Label{Name: typeName, Description: ""}
+		if err = handlerFn(&tracType); err != nil {
 			return err
 		}
 	}

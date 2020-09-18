@@ -7,186 +7,218 @@ package importer_test
 import (
 	"testing"
 
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
+
 	"github.com/golang/mock/gomock"
-)
-
-const (
-	tracItemNoNameChange = "no-change"
-	tracItemRenamed      = "renamed"
-	tracItemRemoved      = "removed"
-	tracItemUnnamed      = ""
-
-	labelName1 = tracItemNoNameChange
-	labelName2 = "was-" + tracItemRenamed + "-now-something-else"
-	labelName3 = ""
-
-	labelID1 int64 = 1234
-	labelID2 int64 = 2345
 )
 
 var labelMap map[string]string
 
+var (
+	tracUnchangedLabel *trac.Label
+	tracRenamedLabel   *trac.Label
+	tracRemovedLabel   *trac.Label
+	tracUnnamedLabel   *trac.Label
+
+	giteaUnchangedLabel *gitea.Label
+	giteaRenamedLabel   *gitea.Label
+)
+
+func createTracLabel(name string, description string) *trac.Label {
+	return &trac.Label{
+		Name:        name,
+		Description: description,
+	}
+}
+
+func createGiteaLabel(name string, description string) *gitea.Label {
+	return &gitea.Label{
+		Name:        name,
+		Description: description,
+		Color:       "",
+	}
+}
+
 func setUpLabels(t *testing.T) {
 	setUp(t)
 
-	// set label map to contain each type of trac item - unnamed is missing because unnamed trac items are ignored
+	tracUnchangedLabel = createTracLabel("unchanged", "unchanged-description")
+	tracRenamedLabel = createTracLabel("renamed", "renamed-description")
+	tracRemovedLabel = createTracLabel("removed", "removed-description")
+	tracUnnamedLabel = createTracLabel("", "")
+
+	giteaUnchangedLabel = createGiteaLabel(tracUnchangedLabel.Name, tracUnchangedLabel.Description)
+	giteaRenamedLabel = createGiteaLabel("not-"+tracRenamedLabel.Name, tracRenamedLabel.Description)
+
 	labelMap = make(map[string]string)
-	labelMap[tracItemNoNameChange] = labelName1
-	labelMap[tracItemRenamed] = labelName2
-	labelMap[tracItemRemoved] = labelName3
+	labelMap[tracUnchangedLabel.Name] = giteaUnchangedLabel.Name
+	labelMap[tracRenamedLabel.Name] = giteaRenamedLabel.Name
+	labelMap[tracRemovedLabel.Name] = ""
 }
 
-func setUpComponents(t *testing.T) {
-	setUpLabels(t)
-
-	// expect trac accessor to return each of our trac items as component names
+func expectToReturnTracComponents(t *testing.T, components ...*trac.Label) {
 	mockTracAccessor.
 		EXPECT().
-		GetComponentNames(gomock.Any()).
-		DoAndReturn(func(handlerFn func(name string) error) error {
-			handlerFn(tracItemNoNameChange)
-			handlerFn(tracItemRenamed)
-			handlerFn(tracItemRemoved)
-			handlerFn(tracItemUnnamed)
+		GetComponents(gomock.Any()).
+		DoAndReturn(func(handlerFn func(label *trac.Label) error) error {
+			for _, component := range components {
+				handlerFn(component)
+			}
 			return nil
 		})
 }
 
-func expectToAddLabels(t *testing.T) {
-	mockGiteaAccessor.EXPECT().AddLabel(labelName1, gomock.Any()).Return(labelID1, nil)
-	mockGiteaAccessor.EXPECT().AddLabel(labelName2, gomock.Any()).Return(labelID2, nil)
+func expectToReturnTracPriorities(t *testing.T, priorities ...*trac.Label) {
+	mockTracAccessor.
+		EXPECT().
+		GetPriorities(gomock.Any()).
+		DoAndReturn(func(handlerFn func(label *trac.Label) error) error {
+			for _, priority := range priorities {
+				handlerFn(priority)
+			}
+			return nil
+		})
+}
+
+func expectToReturnTracResolutions(t *testing.T, resolutions ...*trac.Label) {
+	mockTracAccessor.
+		EXPECT().
+		GetResolutions(gomock.Any()).
+		DoAndReturn(func(handlerFn func(label *trac.Label) error) error {
+			for _, resolution := range resolutions {
+				handlerFn(resolution)
+			}
+			return nil
+		})
+}
+
+func expectToReturnTracSeverities(t *testing.T, severities ...*trac.Label) {
+	mockTracAccessor.
+		EXPECT().
+		GetSeverities(gomock.Any()).
+		DoAndReturn(func(handlerFn func(label *trac.Label) error) error {
+			for _, severity := range severities {
+				handlerFn(severity)
+			}
+			return nil
+		})
+}
+
+func expectToReturnTracTypes(t *testing.T, types ...*trac.Label) {
+	mockTracAccessor.
+		EXPECT().
+		GetTypes(gomock.Any()).
+		DoAndReturn(func(handlerFn func(label *trac.Label) error) error {
+			for _, typ := range types {
+				handlerFn(typ)
+			}
+			return nil
+		})
+}
+
+func expectToReturnTracVersions(t *testing.T, versions ...*trac.Label) {
+	mockTracAccessor.
+		EXPECT().
+		GetVersions(gomock.Any()).
+		DoAndReturn(func(handlerFn func(label *trac.Label) error) error {
+			for _, version := range versions {
+				handlerFn(version)
+			}
+			return nil
+		})
+}
+
+// gomock Matcher for Gitea label names
+type giteaLabelNameMatcher struct{ name string }
+
+func isGiteaLabel(labelName string) gomock.Matcher {
+	return giteaLabelNameMatcher{name: labelName}
+}
+
+func (matcher giteaLabelNameMatcher) Matches(arg interface{}) bool {
+	giteaLabel := arg.(*gitea.Label)
+	result := giteaLabel.Name == matcher.name
+	return result
+}
+
+func (matcher giteaLabelNameMatcher) String() string {
+	return "is Gitea label " + matcher.name
+}
+
+func expectToAddGiteaLabels(t *testing.T, giteaLabels ...*gitea.Label) {
+	giteaLabelID := int64(666)
+	for _, giteaLabel := range giteaLabels {
+		giteaLabelName := giteaLabel.Name
+		giteaLabelDescription := giteaLabel.Description
+		mockGiteaAccessor.
+			EXPECT().
+			AddLabel(isGiteaLabel(giteaLabelName)).
+			DoAndReturn(func(label *gitea.Label) (int64, error) {
+				assertEquals(t, giteaLabelName, label.Name)
+				assertEquals(t, giteaLabelDescription, label.Description)
+				giteaLabelID++
+				return giteaLabelID, nil
+			})
+	}
 }
 
 func TestImportComponents(t *testing.T) {
-	setUpComponents(t)
+	setUpLabels(t)
 	defer tearDown(t)
 
-	expectToAddLabels(t)
+	expectToReturnTracComponents(t, tracUnchangedLabel, tracRenamedLabel, tracRemovedLabel, tracUnnamedLabel)
+	expectToAddGiteaLabels(t, giteaUnchangedLabel, giteaRenamedLabel)
 
 	dataImporter.ImportComponents(labelMap)
 }
 
-func setUpPriorities(t *testing.T) {
-	setUpLabels(t)
-
-	// expect trac accessor to return each of our trac items as priority names
-	mockTracAccessor.
-		EXPECT().
-		GetPriorityNames(gomock.Any()).
-		DoAndReturn(func(handlerFn func(name string) error) error {
-			handlerFn(tracItemNoNameChange)
-			handlerFn(tracItemRenamed)
-			handlerFn(tracItemRemoved)
-			handlerFn(tracItemUnnamed)
-			return nil
-		})
-}
-
 func TestImportPriorities(t *testing.T) {
-	setUpPriorities(t)
+	setUpLabels(t)
 	defer tearDown(t)
 
-	expectToAddLabels(t)
+	expectToReturnTracPriorities(t, tracUnchangedLabel, tracRenamedLabel, tracRemovedLabel, tracUnnamedLabel)
+	expectToAddGiteaLabels(t, giteaUnchangedLabel, giteaRenamedLabel)
 
 	dataImporter.ImportPriorities(labelMap)
 }
 
-func setUpResolutions(t *testing.T) {
-	setUpLabels(t)
-
-	// expect trac accessor to return each of our trac items as resolution names
-	mockTracAccessor.
-		EXPECT().
-		GetResolutionNames(gomock.Any()).
-		DoAndReturn(func(handlerFn func(name string) error) error {
-			handlerFn(tracItemNoNameChange)
-			handlerFn(tracItemRenamed)
-			handlerFn(tracItemRemoved)
-			handlerFn(tracItemUnnamed)
-			return nil
-		})
-}
-
 func TestImportResolutions(t *testing.T) {
-	setUpResolutions(t)
+	setUpLabels(t)
 	defer tearDown(t)
 
-	expectToAddLabels(t)
+	expectToReturnTracResolutions(t, tracUnchangedLabel, tracRenamedLabel, tracRemovedLabel, tracUnnamedLabel)
+	expectToAddGiteaLabels(t, giteaUnchangedLabel, giteaRenamedLabel)
 
 	dataImporter.ImportResolutions(labelMap)
 }
 
-func setUpSeverities(t *testing.T) {
-	setUpLabels(t)
-
-	// expect trac accessor to return each of our trac items as severity names
-	mockTracAccessor.
-		EXPECT().
-		GetSeverityNames(gomock.Any()).
-		DoAndReturn(func(handlerFn func(name string) error) error {
-			handlerFn(tracItemNoNameChange)
-			handlerFn(tracItemRenamed)
-			handlerFn(tracItemRemoved)
-			handlerFn(tracItemUnnamed)
-			return nil
-		})
-}
-
 func TestImportSeverities(t *testing.T) {
-	setUpSeverities(t)
+	setUpLabels(t)
 	defer tearDown(t)
 
-	expectToAddLabels(t)
+	expectToReturnTracSeverities(t, tracUnchangedLabel, tracRenamedLabel, tracRemovedLabel, tracUnnamedLabel)
+	expectToAddGiteaLabels(t, giteaUnchangedLabel, giteaRenamedLabel)
 
 	dataImporter.ImportSeverities(labelMap)
 }
 
-func setUpTypes(t *testing.T) {
-	setUpLabels(t)
-
-	// expect trac accessor to return each of our trac items as type names
-	mockTracAccessor.
-		EXPECT().
-		GetTypeNames(gomock.Any()).
-		DoAndReturn(func(handlerFn func(name string) error) error {
-			handlerFn(tracItemNoNameChange)
-			handlerFn(tracItemRenamed)
-			handlerFn(tracItemRemoved)
-			handlerFn(tracItemUnnamed)
-			return nil
-		})
-}
-
 func TestImportTypes(t *testing.T) {
-	setUpTypes(t)
+	setUpLabels(t)
 	defer tearDown(t)
 
-	expectToAddLabels(t)
+	expectToReturnTracTypes(t, tracUnchangedLabel, tracRenamedLabel, tracRemovedLabel, tracUnnamedLabel)
+	expectToAddGiteaLabels(t, giteaUnchangedLabel, giteaRenamedLabel)
 
 	dataImporter.ImportTypes(labelMap)
 }
 
-func setUpVersions(t *testing.T) {
-	setUpLabels(t)
-
-	// expect trac accessor to return each of our trac items as version names
-	mockTracAccessor.
-		EXPECT().
-		GetVersionNames(gomock.Any()).
-		DoAndReturn(func(handlerFn func(name string) error) error {
-			handlerFn(tracItemNoNameChange)
-			handlerFn(tracItemRenamed)
-			handlerFn(tracItemRemoved)
-			handlerFn(tracItemUnnamed)
-			return nil
-		})
-}
-
 func TestImportVersions(t *testing.T) {
-	setUpVersions(t)
+	setUpLabels(t)
 	defer tearDown(t)
 
-	expectToAddLabels(t)
+	expectToReturnTracVersions(t, tracUnchangedLabel, tracRenamedLabel, tracRemovedLabel, tracUnnamedLabel)
+	expectToAddGiteaLabels(t, giteaUnchangedLabel, giteaRenamedLabel)
 
 	dataImporter.ImportVersions(labelMap)
 }

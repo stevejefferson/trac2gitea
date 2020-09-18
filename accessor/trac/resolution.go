@@ -6,8 +6,8 @@ package trac
 
 import "github.com/pkg/errors"
 
-// GetResolutionNames retrieves all resolution names used in Trac tickets, passing each one to the provided "handler" function.
-func (accessor *DefaultAccessor) GetResolutionNames(handlerFn func(resolution string) error) error {
+// GetResolutions retrieves all resolutions used in Trac tickets, passing each one to the provided "handler" function.
+func (accessor *DefaultAccessor) GetResolutions(handlerFn func(resolution *Label) error) error {
 	rows, err := accessor.db.Query(`SELECT DISTINCT resolution FROM ticket WHERE trim(resolution) != ''`)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving Trac resolutions")
@@ -15,13 +15,14 @@ func (accessor *DefaultAccessor) GetResolutionNames(handlerFn func(resolution st
 	}
 
 	for rows.Next() {
-		var resolution string
-		if err := rows.Scan(&resolution); err != nil {
+		var resolutionName string
+		if err := rows.Scan(&resolutionName); err != nil {
 			err = errors.Wrapf(err, "retrieving Trac resolution")
 			return err
 		}
 
-		if err = handlerFn(resolution); err != nil {
+		resolution := Label{Name: resolutionName, Description: ""}
+		if err = handlerFn(&resolution); err != nil {
 			return err
 		}
 	}

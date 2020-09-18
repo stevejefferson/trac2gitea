@@ -4,6 +4,12 @@
 
 package trac
 
+// Label describes a Trac "label" - a generalisation of a component, priority, resolution, severity, type and version
+type Label struct {
+	Name        string
+	Description string
+}
+
 // Milestone describes a Trac milestone.
 type Milestone struct {
 	Name        string
@@ -124,8 +130,8 @@ type Accessor interface {
 	/*
 	 * Components
 	 */
-	// GetComponentNames retrieves all Trac component names, passing each one to the provided "handler" function.
-	GetComponentNames(handlerFn func(cmptName string) error) error
+	// GetComponents retrieves all Trac components, passing each one to the provided "handler" function.
+	GetComponents(handlerFn func(component *Label) error) error
 
 	/*
 	 * Configuration
@@ -148,20 +154,20 @@ type Accessor interface {
 	/*
 	 * Priorities
 	 */
-	// GetPriorityNames retrieves all priority names used in Trac tickets, passing each one to the provided "handler" function.
-	GetPriorityNames(handlerFn func(priorityName string) error) error
+	// GetPriorities retrieves all priorities used in Trac tickets, passing each one to the provided "handler" function.
+	GetPriorities(handlerFn func(priority *Label) error) error
 
 	/*
 	 * Resolutions
 	 */
-	// GetResolutionNames retrieves all resolution names used in Trac tickets, passing each one to the provided "handler" function.
-	GetResolutionNames(handlerFn func(resolution string) error) error
+	// GetResolutions retrieves all resolutions used in Trac tickets, passing each one to the provided "handler" function.
+	GetResolutions(handlerFn func(resolution *Label) error) error
 
 	/*
 	 * Severities
 	 */
-	// GetSeverityNames retrieves all severity names used in Trac tickets, passing each one to the provided "handler" function.
-	GetSeverityNames(handlerFn func(severityName string) error) error
+	// GetSeverities retrieves all severities used in Trac tickets, passing each one to the provided "handler" function.
+	GetSeverities(handlerFn func(severity *Label) error) error
 
 	/*
 	 * Tickets
@@ -190,8 +196,8 @@ type Accessor interface {
 	/*
 	 * Types
 	 */
-	// GetTypeNames retrieves all type names used in Trac tickets, passing each one to the provided "handler" function.
-	GetTypeNames(handlerFn func(typeName string) error) error
+	// GetTypes retrieves all types used in Trac tickets, passing each one to the provided "handler" function.
+	GetTypes(handlerFn func(tracType *Label) error) error
 
 	/*
 	 * Users
@@ -202,8 +208,8 @@ type Accessor interface {
 	/*
 	 * Versions
 	 */
-	// GetVersionNames retrieves all version names used in Trac, passing each one to the provided "handler" function.
-	GetVersionNames(handlerFn func(version string) error) error
+	// GetVersions retrieves all versions used in Trac, passing each one to the provided "handler" function.
+	GetVersions(handlerFn func(version *Label) error) error
 
 	/*
 	 * Wiki

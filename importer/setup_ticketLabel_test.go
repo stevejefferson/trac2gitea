@@ -123,13 +123,6 @@ func setUpTicketLabelChanges(t *testing.T) {
 	versionRemoveTicketChange = createLabelTicketChangeImport(versionChangeAuthor, trac.TicketVersionChange, versionLabel1, nil)
 }
 
-func expectLabelCreation(t *testing.T, label *TicketLabelImport) {
-	mockGiteaAccessor.
-		EXPECT().
-		AddLabel(gomock.Eq(label.giteaLabelName), gomock.Any()).
-		Return(label.giteaLabelID, nil)
-}
-
 func expectLabelRetrieval(t *testing.T, label *TicketLabelImport) {
 	mockGiteaAccessor.
 		EXPECT().
@@ -138,9 +131,7 @@ func expectLabelRetrieval(t *testing.T, label *TicketLabelImport) {
 }
 
 func expectIssueLabelCreation(t *testing.T, ticket *TicketImport, ticketLabel *TicketLabelImport) {
-	// expect creation of underlying label first
-	expectLabelCreation(t, ticketLabel)
-
+	expectLabelRetrieval(t, ticketLabel)
 	mockGiteaAccessor.
 		EXPECT().
 		AddIssueLabel(gomock.Eq(ticket.issueID), gomock.Eq(ticketLabel.giteaLabelID)).

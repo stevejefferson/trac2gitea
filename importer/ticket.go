@@ -77,32 +77,32 @@ func (importer *Importer) ImportTickets(
 			return nil
 		}
 
-		_, err = importer.importTicketLabel(issueID, ticket.ComponentName, componentMap, componentLabelColor)
+		_, err = importer.importTicketLabel(issueID, ticket.ComponentName, componentMap)
 		if err != nil {
 			return err
 		}
 
-		_, err = importer.importTicketLabel(issueID, ticket.PriorityName, priorityMap, priorityLabelColor)
+		_, err = importer.importTicketLabel(issueID, ticket.PriorityName, priorityMap)
 		if err != nil {
 			return err
 		}
 
-		_, err = importer.importTicketLabel(issueID, ticket.ResolutionName, resolutionMap, resolutionLabelColor)
+		_, err = importer.importTicketLabel(issueID, ticket.ResolutionName, resolutionMap)
 		if err != nil {
 			return err
 		}
 
-		_, err = importer.importTicketLabel(issueID, ticket.SeverityName, severityMap, severityLabelColor)
+		_, err = importer.importTicketLabel(issueID, ticket.SeverityName, severityMap)
 		if err != nil {
 			return err
 		}
 
-		_, err = importer.importTicketLabel(issueID, ticket.TypeName, typeMap, typeLabelColor)
+		_, err = importer.importTicketLabel(issueID, ticket.TypeName, typeMap)
 		if err != nil {
 			return err
 		}
 
-		_, err = importer.importTicketLabel(issueID, ticket.VersionName, versionMap, versionLabelColor)
+		_, err = importer.importTicketLabel(issueID, ticket.VersionName, versionMap)
 		if err != nil {
 			return err
 		}
