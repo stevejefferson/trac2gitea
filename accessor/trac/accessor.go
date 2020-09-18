@@ -113,7 +113,10 @@ type WikiAttachment struct {
 	FileName string
 }
 
-// NullID value returned for search failures etc.
+// NullID id used for Trac lookup failures
+// The Trac schema does not seem to use foreign key references so there is no specific null Trac id value
+// The value chosen here is therefore just one that will not occur in reality and is also simultaneously different from the Gitea one
+// so we are more likely to detect mis-assignments.
 const NullID = int64(-1)
 
 // Accessor is the interface through which we access all Trac data.

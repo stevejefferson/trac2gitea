@@ -78,7 +78,7 @@ type Milestone struct {
 	ClosedTime  int64
 }
 
-// NullID id for unset references in Gitea
+// NullID id for unset references in Gitea, also used for lookup failures
 const NullID = int64(0)
 
 // Accessor is the interface to all of our interactions with a Gitea project.
