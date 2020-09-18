@@ -115,7 +115,7 @@ func CreateDefaultAccessor(
 	if err != nil {
 		return nil, err
 	}
-	if giteaRepoID == -1 {
+	if giteaRepoID == NullID {
 		return nil, fmt.Errorf("cannot find repository %s for user %s", giteaRepoName, giteaUserName)
 	}
 	giteaAccessor.repoID = giteaRepoID

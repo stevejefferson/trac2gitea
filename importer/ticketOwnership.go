@@ -9,37 +9,37 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
-// importOwnershipIssueComment imports a Trac ticket ownership change as a Gitea issue assignee change, returns id of created Gitea issue comment or -1 if cannot create comment
+// importOwnershipIssueComment imports a Trac ticket ownership change as a Gitea issue assignee change, returns id of created Gitea issue comment or gitea.NullID if cannot create comment
 func (importer *Importer) importOwnershipIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string) (int64, error) {
 	issueComment, err := importer.createIssueComment(issueID, change, userMap)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	issueComment.CommentType = gitea.AssigneeIssueCommentType
 
-	prevOwnerID := int64(0)
+	prevOwnerID := gitea.NullID
 	prevOwnerName := change.OldValue
 	if prevOwnerName != "" {
 		prevOwnerID, err = importer.getUserID(prevOwnerName, userMap)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
-		if prevOwnerID == -1 {
-			return -1, nil // cannot map user onto Gitea
+		if prevOwnerID == gitea.NullID {
+			return gitea.NullID, nil // cannot map user onto Gitea
 		}
 	}
 
-	assigneeID := int64(0)
-	removedAssigneeID := int64(0)
+	assigneeID := gitea.NullID
+	removedAssigneeID := gitea.NullID
 	ownerName := change.NewValue
 	if ownerName != "" {
 		assigneeID, err = importer.getUserID(ownerName, userMap)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
-		if assigneeID == -1 {
-			return -1, nil // cannot map user onto Gitea
+		if assigneeID == gitea.NullID {
+			return gitea.NullID, nil // cannot map user onto Gitea
 		}
 	} else {
 		removedAssigneeID = prevOwnerID
@@ -49,7 +49,7 @@ func (importer *Importer) importOwnershipIssueComment(issueID int64, change *tra
 	issueComment.RemovedAssigneeID = removedAssigneeID
 	issueCommentID, err := importer.giteaAccessor.AddIssueComment(issueID, issueComment)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	return issueCommentID, nil

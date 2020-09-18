@@ -9,25 +9,25 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
-// importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or -1 if the issue was not created.
+// importTicket imports a Trac ticket as a Gitea issue, returning the id of the created issue or gitea.NullID if the issue was not created.
 func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap map[string]string) (int64, error) {
 	reporterID, err := importer.getUserID(ticket.Reporter, userMap)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
-	if reporterID == -1 {
+	if reporterID == gitea.NullID {
 		reporterID = importer.defaultAuthorID
 	}
 
 	// record Trac owner as original author if it cannot be mapped onto a Gitea user
-	ownerID := int64(-1)
+	ownerID := gitea.NullID
 	originalAuthorName := ticket.Owner
 	if ticket.Owner != "" {
 		ownerID, err = importer.getUserID(ticket.Owner, userMap)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
-		if ownerID != -1 {
+		if ownerID != gitea.NullID {
 			originalAuthorName = ""
 		}
 	}
@@ -38,26 +38,26 @@ func (importer *Importer) importTicket(ticket *trac.Ticket, closed bool, userMap
 		Closed: closed, Description: convertedDescription, Created: ticket.Created, Updated: ticket.Updated}
 	issueID, err := importer.giteaAccessor.AddIssue(&issue)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	// if we have a Gitea user for the Trac ticket owner then assign the Gitea issue to that user
-	if ownerID != -1 {
+	if ownerID != gitea.NullID {
 		err = importer.giteaAccessor.AddIssueAssignee(issueID, ownerID)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 	}
 
 	// issue reporter (and issue assignee if different) are now participants in the issue
 	err = importer.giteaAccessor.AddIssueParticipant(issueID, reporterID)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
-	if ownerID != -1 && ownerID != reporterID {
+	if ownerID != gitea.NullID && ownerID != reporterID {
 		err = importer.giteaAccessor.AddIssueParticipant(issueID, ownerID)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 	}
 
@@ -73,7 +73,7 @@ func (importer *Importer) ImportTickets(
 		if err != nil {
 			return err
 		}
-		if issueID == -1 {
+		if issueID == gitea.NullID {
 			return nil
 		}
 

@@ -12,15 +12,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetLabelID retrieves the id of the given label, returns -1 if no such label
+// GetLabelID retrieves the id of the given label, returns NullID if no such label
 func (accessor *DefaultAccessor) GetLabelID(labelName string) (int64, error) {
-	var labelID int64 = -1
+	var labelID int64 = NullID
 	err := accessor.db.QueryRow(`
 		SELECT id FROM label WHERE repo_id = $1 AND name = $2
 		`, accessor.repoID, labelName).Scan(&labelID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id of label %s", labelName)
-		return -1, err
+		return NullID, err
 	}
 
 	return labelID, nil
@@ -47,14 +47,14 @@ func (accessor *DefaultAccessor) insertLabel(labelName string, labelColor string
 		accessor.repoID, labelName, labelColor)
 	if err != nil {
 		err = errors.Wrapf(err, "adding label %s", labelName)
-		return -1, err
+		return NullID, err
 	}
 
 	var labelID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&labelID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new label %s", labelName)
-		return -1, err
+		return NullID, err
 	}
 
 	log.Debug("added label %s, color %s (id %d)", labelName, labelColor, labelID)
@@ -66,17 +66,17 @@ func (accessor *DefaultAccessor) insertLabel(labelName string, labelColor string
 func (accessor *DefaultAccessor) AddLabel(labelName string, labelColor string) (int64, error) {
 	labelID, err := accessor.GetLabelID(labelName)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
-	if labelID == -1 {
+	if labelID == NullID {
 		return accessor.insertLabel(labelName, labelColor)
 	}
 
 	if accessor.overwrite {
 		err = accessor.updateLabel(labelID, labelName, labelColor)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 	} else {
 		log.Debug("label %s already exists - ignored", labelName)

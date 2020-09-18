@@ -9,49 +9,43 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
-// importMilestoneIssueComment imports a Trac ticket milestone change into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
+// importMilestoneIssueComment imports a Trac ticket milestone change into Gitea, returns id of created Gitea issue comment or gitea.NullID if cannot create comment
 func (importer *Importer) importMilestoneIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string) (int64, error) {
 	issueComment, err := importer.createIssueComment(issueID, change, userMap)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
-	var prevMilestoneID = int64(0)
-	prevMilestone := change.OldValue
-	if prevMilestone != "" {
-		prevMilestoneID, err = importer.giteaAccessor.GetMilestoneID(prevMilestone)
+	var oldMilestoneID = gitea.NullID
+	oldMilestone := change.OldValue
+	if oldMilestone != "" {
+		oldMilestoneID, err = importer.giteaAccessor.GetMilestoneID(oldMilestone)
 		if err != nil {
-			return -1, err
-		}
-
-		if prevMilestoneID == -1 {
-			// unrecognised milestone - e.g. milestone deleted from Trac for which no definition remains
-			// - best solution is just to pretend it did not exist
-			prevMilestoneID = 0
+			return gitea.NullID, err
 		}
 	}
 
-	var milestoneID = int64(0)
+	var milestoneID = gitea.NullID
 	milestone := change.NewValue
 	if milestone != "" {
 		milestoneID, err = importer.giteaAccessor.GetMilestoneID(milestone)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 
-		if milestoneID == -1 {
+		if milestoneID == gitea.NullID {
 			// unrecognised milestone - e.g. milestone deleted from Trac for which no definition remains
 			// - cannot cope with this so ignore entire milestone change
-			return -1, nil
+			return gitea.NullID, nil
 		}
 	}
 
 	issueComment.CommentType = gitea.MilestoneIssueCommentType
-	issueComment.OldMilestoneID = prevMilestoneID
+	issueComment.OldMilestoneID = oldMilestoneID
 	issueComment.MilestoneID = milestoneID
 	issueCommentID, err := importer.giteaAccessor.AddIssueComment(issueID, issueComment)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 	return issueCommentID, nil
 }

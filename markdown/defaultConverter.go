@@ -17,8 +17,8 @@ func CreateDefaultConverter(tracAccessor trac.Accessor, giteaAccessor gitea.Acce
 
 // DefaultConverter is the default implementation of the Trac markdown to Gitea markdown converter.
 // This is used in two circumstances:
-// 1. for ticket comments - in which case ticketID != -1 and wikiAccessor == nil
-// 2. for wiki imports - in which case ticketID == -1 and wikiAccessor != nil
+// 1. for ticket comments - in which case ticketID != NullID and wikiAccessor == nil
+// 2. for wiki imports - in which case ticketID == NullID and wikiAccessor != nil
 type DefaultConverter struct {
 	tracAccessor  trac.Accessor
 	giteaAccessor gitea.Accessor
@@ -77,5 +77,5 @@ func (converter *DefaultConverter) TicketConvert(ticketID int64, in string) stri
 
 // WikiConvert converts a comment/description string associated with a Trac wiki page to Gitea markdown
 func (converter *DefaultConverter) WikiConvert(wikiPage string, in string) string {
-	return converter.convert(-1, wikiPage, in)
+	return converter.convert(trac.NullID, wikiPage, in)
 }

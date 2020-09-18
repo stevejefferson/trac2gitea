@@ -279,7 +279,7 @@ func expectIssueCreation(t *testing.T, ticket *TicketImport) {
 			assertEquals(t, issue.Index, ticket.ticketID)
 			assertEquals(t, issue.Summary, ticket.summary)
 			assertEquals(t, issue.Description, ticket.descriptionMarkdown)
-			assertEquals(t, issue.OriginalAuthorID, int64(0))
+			assertEquals(t, issue.OriginalAuthorID, gitea.NullID)
 			assertEquals(t, issue.OriginalAuthorName, originalAuthorName)
 			assertEquals(t, issue.ReporterID, ticket.reporter.giteaUserID)
 			assertEquals(t, issue.Milestone, ticket.milestoneName)

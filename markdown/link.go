@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
+	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
@@ -106,7 +108,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(ticketID int64, link
 		}
 	} else {
 		// comment on current ticket
-		if ticketID == -1 {
+		if ticketID == trac.NullID {
 			log.Warn("found Trac reference to comment %d of unknown ticket", commentNum)
 			return link
 		}
@@ -117,7 +119,7 @@ func (converter *DefaultConverter) resolveTicketCommentLink(ticketID int64, link
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
-	if issueID == -1 {
+	if issueID == gitea.NullID {
 		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", commentTicketID, link)
 		return link // not a recognised link - do not mark
 	}
@@ -142,7 +144,7 @@ func (converter *DefaultConverter) resolveMilestoneLink(link string) string {
 	if err != nil {
 		return link // not a recognised link - do not mark (error should already be logged)
 	}
-	if milestoneID == -1 {
+	if milestoneID == gitea.NullID {
 		log.Warn("cannot find milestone \"%s\" referenced by Trac link \"%s\"", milestoneName, link)
 		return link // not a recognised link - do not mark
 	}
@@ -156,7 +158,7 @@ func (converter *DefaultConverter) resolveTicketAttachmentLink(ticketID int64, a
 	if err != nil {
 		return link // not a recognised link - do not mark
 	}
-	if issueID == -1 {
+	if issueID == gitea.NullID {
 		log.Warn("cannot find Gitea issue for ticket %d for Trac link \"%s\"", ticketID, link)
 		return link // not a recognised link - do not mark
 	}
@@ -200,7 +202,7 @@ func (converter *DefaultConverter) resolveAttachmentLink(ticketID int64, wikiPag
 	}
 
 	// no explicit ticket or wiki provided for attachment - use whichever of `ticketID` and `wiki` has been provided
-	if ticketID != -1 {
+	if ticketID != trac.NullID {
 		return converter.resolveTicketAttachmentLink(ticketID, attachmentName, link)
 	} else if wikiPage != "" {
 		return converter.resolveWikiAttachmentLink(wikiPage, attachmentName, link)
@@ -235,7 +237,7 @@ func (converter *DefaultConverter) resolveTicketLink(link string) string {
 	if err != nil {
 		return link // not a recognised link - do not mark (error already logged)
 	}
-	if issueID == -1 {
+	if issueID == gitea.NullID {
 		log.Warn("cannot find Gitea issue for ticket %d referenced by Trac link \"%s\"", ticketID, link)
 		return link // not a recognised link - do not mark
 	}

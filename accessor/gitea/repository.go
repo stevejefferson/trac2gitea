@@ -12,12 +12,12 @@ import (
 )
 
 func (accessor *DefaultAccessor) getRepoID(userName string, repoName string) (int64, error) {
-	var id int64 = -1
+	var id int64 = NullID
 	err := accessor.db.QueryRow(`SELECT r.id FROM repository r, user u WHERE r.owner_id =
 			u.id AND u.name = $1 AND r.name = $2`, userName, repoName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id of repository %s for user %s", repoName, userName)
-		return -1, err
+		return NullID, err
 	}
 
 	return id, nil

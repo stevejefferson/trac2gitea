@@ -5,6 +5,7 @@
 package importer
 
 import (
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 	"github.com/stevejefferson/trac2gitea/log"
 )
@@ -71,12 +72,12 @@ func (importer *Importer) DefaultVersionLabelMap() (map[string]string, error) {
 func (importer *Importer) getLabelID(tracLabel string, labelMap map[string]string) (int64, error) {
 	giteaLabelName := labelMap[tracLabel]
 	if giteaLabelName == "" {
-		return -1, nil
+		return gitea.NullID, nil
 	}
 
 	labelID, err := importer.giteaAccessor.GetLabelID(giteaLabelName)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	log.Debug("mapped Trac label %s onto Gitea label %s", tracLabel, giteaLabelName)
@@ -87,17 +88,17 @@ func (importer *Importer) getLabelID(tracLabel string, labelMap map[string]strin
 // Returns ID of Gitea label.
 func (importer *Importer) importLabel(tracName string, labelMap map[string]string, labelColor string) (int64, error) {
 	if tracName == "" {
-		return -1, nil // ignore unnamed trac items
+		return gitea.NullID, nil // ignore unnamed trac items
 	}
 
 	labelName := labelMap[tracName]
 	if labelName == "" {
-		return -1, nil // if no mapping provided, do not create a label
+		return gitea.NullID, nil // if no mapping provided, do not create a label
 	}
 
 	labelID, err := importer.giteaAccessor.AddLabel(labelName, labelColor)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	return labelID, nil

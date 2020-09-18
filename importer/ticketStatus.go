@@ -9,11 +9,11 @@ import (
 	"github.com/stevejefferson/trac2gitea/accessor/trac"
 )
 
-// importStatusChangeIssueComment imports a Trac ticket status change into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
+// importStatusChangeIssueComment imports a Trac ticket status change into Gitea, returns id of created Gitea issue comment or NullID if cannot create comment
 func (importer *Importer) importStatusChangeIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string) (int64, error) {
 	issueComment, err := importer.createIssueComment(issueID, change, userMap)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	var giteaCommentType gitea.IssueCommentType
@@ -23,13 +23,13 @@ func (importer *Importer) importStatusChangeIssueComment(issueID int64, change *
 	case trac.TicketStatusReopened:
 		giteaCommentType = gitea.ReopenIssueCommentType
 	default:
-		return -1, nil
+		return gitea.NullID, nil
 	}
 
 	issueComment.CommentType = giteaCommentType
 	issueCommentID, err := importer.giteaAccessor.AddIssueComment(issueID, issueComment)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 	return issueCommentID, nil
 }

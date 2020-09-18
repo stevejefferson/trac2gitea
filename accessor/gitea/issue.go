@@ -12,15 +12,15 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// GetIssueID retrieves the id of the Gitea issue corresponding to a given issue index - returns -1 if no such issue.
+// GetIssueID retrieves the id of the Gitea issue corresponding to a given issue index - returns NullID if no such issue.
 func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
-	var issueID int64 = -1
+	var issueID int64 = NullID
 	err := accessor.db.QueryRow(`
 		SELECT id FROM issue WHERE repo_id = $1 AND "index" = $2
 		`, accessor.repoID, issueIndex).Scan(&issueID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving issue with index %d", issueIndex)
-		return -1, err
+		return NullID, err
 	}
 
 	return issueID, nil
@@ -28,7 +28,7 @@ func (accessor *DefaultAccessor) GetIssueID(issueIndex int64) (int64, error) {
 
 func toNullInt64(value int64) sql.NullInt64 {
 	var nullValue sql.NullInt64
-	nullValue.Valid = (value != -1)
+	nullValue.Valid = (value != NullID)
 	nullValue.Int64 = value
 	return nullValue
 }
@@ -65,7 +65,7 @@ func (accessor *DefaultAccessor) insertIssue(issue *Issue) (int64, error) {
 	nullOwnerID := toNullInt64(issue.OriginalAuthorID)
 	milestoneID, err := accessor.GetMilestoneID(issue.Milestone)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
 	_, err = accessor.db.Exec(`
@@ -74,14 +74,14 @@ func (accessor *DefaultAccessor) insertIssue(issue *Issue) (int64, error) {
 		issue.Index, accessor.repoID, issue.Summary, issue.ReporterID, milestoneID, nullOwnerID, issue.OriginalAuthorName, issue.Closed, issue.Description, issue.Created)
 	if err != nil {
 		err = errors.Wrapf(err, "adding issue with index %d", issue.Index)
-		return -1, err
+		return NullID, err
 	}
 
 	var issueID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new issue with index %d", issue.Index)
-		return -1, err
+		return NullID, err
 	}
 
 	log.Info("created issue %d: %s", issue.Index, issue.Summary)
@@ -93,17 +93,17 @@ func (accessor *DefaultAccessor) insertIssue(issue *Issue) (int64, error) {
 func (accessor *DefaultAccessor) AddIssue(issue *Issue) (int64, error) {
 	issueID, err := accessor.GetIssueID(issue.Index)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
-	if issueID == -1 {
+	if issueID == NullID {
 		return accessor.insertIssue(issue)
 	}
 
 	if accessor.overwrite {
 		err = accessor.updateIssue(issueID, issue)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 	} else {
 		log.Info("issue %d already exists - ignored", issue.Index)

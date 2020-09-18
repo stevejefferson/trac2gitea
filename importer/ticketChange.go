@@ -16,7 +16,7 @@ func (importer *Importer) createIssueComment(issueID int64, change *trac.TicketC
 	if err != nil {
 		return nil, err
 	}
-	if authorID != -1 {
+	if authorID != gitea.NullID {
 		// change author has a Gitea mapping: make this user  a participant in issue
 		err = importer.giteaAccessor.AddIssueParticipant(issueID, authorID)
 		if err != nil {
@@ -47,7 +47,7 @@ func (importer *Importer) createIssueComment(issueID int64, change *trac.TicketC
 	return &issueComment, nil
 }
 
-// importTicketChange imports a single ticket change from Trac to Gitea, returns ID of created Gitea comment or -1 if comment already exists
+// importTicketChange imports a single ticket change from Trac to Gitea, returns ID of created Gitea comment or NullID if comment already exists
 func (importer *Importer) importTicketChange(
 	issueID int64,
 	change *trac.TicketChange,
@@ -80,7 +80,7 @@ func (importer *Importer) importTicketChange(
 		issueCommentID, err = importer.importLabelChangeIssueComment(issueID, change, userMap, versionMap)
 	}
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	return issueCommentID, nil
@@ -97,7 +97,7 @@ func (importer *Importer) importTicketChanges(
 		if err != nil {
 			return err
 		}
-		if commentID != -1 && commentLastUpdate < change.Time {
+		if commentID != gitea.NullID && commentLastUpdate < change.Time {
 			commentLastUpdate = change.Time
 		}
 		return nil

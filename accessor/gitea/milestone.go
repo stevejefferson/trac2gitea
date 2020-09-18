@@ -12,13 +12,13 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
+// GetMilestoneID gets the ID of a named milestone - returns NullID if no such milestone
 func (accessor *DefaultAccessor) GetMilestoneID(milestoneName string) (int64, error) {
-	var milestoneID int64 = -1
+	var milestoneID int64 = NullID
 	err := accessor.db.QueryRow(`SELECT id FROM milestone WHERE name = $1 AND repo_id = $2`, milestoneName, accessor.repoID).Scan(&milestoneID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id of milestone %s", milestoneName)
-		return -1, err
+		return NullID, err
 	}
 
 	return milestoneID, nil
@@ -46,14 +46,14 @@ func (accessor *DefaultAccessor) insertMilestone(milestone *Milestone) (int64, e
 		accessor.repoID, milestone.Name, milestone.Description, milestone.Closed, milestone.DueTime, milestone.ClosedTime)
 	if err != nil {
 		err = errors.Wrapf(err, "adding milestone %s", milestone.Name)
-		return -1, err
+		return NullID, err
 	}
 
 	var milestoneID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&milestoneID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new milestone %s", milestone.Name)
-		return -1, err
+		return NullID, err
 	}
 
 	log.Debug("added milestone %s (id %d)", milestone.Name, milestoneID)
@@ -65,17 +65,17 @@ func (accessor *DefaultAccessor) insertMilestone(milestone *Milestone) (int64, e
 func (accessor *DefaultAccessor) AddMilestone(milestone *Milestone) (int64, error) {
 	milestoneID, err := accessor.GetMilestoneID(milestone.Name)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
-	if milestoneID == -1 {
+	if milestoneID == NullID {
 		return accessor.insertMilestone(milestone)
 	}
 
 	if accessor.overwrite {
 		err = accessor.updateMilestone(milestoneID, milestone)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 	} else {
 		log.Debug("milestone %s already exists - ignored", milestone.Name)

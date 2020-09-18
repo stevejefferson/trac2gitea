@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/stevejefferson/trac2gitea/accessor/gitea"
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
@@ -44,12 +45,12 @@ func (importer *Importer) DefaultUserMap() (map[string]string, error) {
 func (importer *Importer) getUserID(tracUser string, userMap map[string]string) (int64, error) {
 	giteaUserName := userMap[tracUser]
 	if giteaUserName == "" {
-		return -1, nil
+		return gitea.NullID, nil
 	}
 
 	userID, err := importer.giteaAccessor.GetUserID(giteaUserName)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	log.Debug("mapped Trac user %s onto Gitea user %s", tracUser, giteaUserName)

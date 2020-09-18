@@ -113,6 +113,9 @@ type WikiAttachment struct {
 	FileName string
 }
 
+// NullID value returned for search failures etc.
+const NullID = int64(-1)
+
 // Accessor is the interface through which we access all Trac data.
 type Accessor interface {
 	/*

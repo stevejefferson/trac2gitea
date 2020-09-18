@@ -23,7 +23,7 @@ func (accessor *DefaultAccessor) GetIssueCommentIDsByTime(issueID int64, created
 
 	var issueCommentIDs = []int64{}
 	for rows.Next() {
-		var issueCommentID int64 = -1
+		var issueCommentID = NullID
 		if err := rows.Scan(&issueCommentID); err != nil {
 			err = errors.Wrapf(err, "retrieving id of comment created at \"%s\" for issue %d", time.Unix(createdTime, 0), issueID)
 			return []int64{}, err
@@ -90,14 +90,14 @@ func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *Issu
 		comment.Time, comment.Time)
 	if err != nil {
 		err = errors.Wrapf(err, "adding comment \"%s\" for issue %d", comment.Text, issueID)
-		return -1, err
+		return NullID, err
 	}
 
 	var issueCommentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueCommentID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new comment \"%s\" for issue %d", comment.Text, issueID)
-		return -1, err
+		return NullID, err
 	}
 
 	log.Debug("added issue comment at %s for issue %d (id %d)", time.Unix(comment.Time, 0), issueID, issueCommentID)
@@ -105,7 +105,7 @@ func (accessor *DefaultAccessor) insertIssueComment(issueID int64, comment *Issu
 	return issueCommentID, nil
 }
 
-var prevIssueID = int64(0)
+var prevIssueID = NullID
 var prevCommentTime = int64(0)
 var issueCommentIDIndex = 0
 var issueCommentIDs = []int64{}
@@ -127,7 +127,7 @@ func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueCo
 		issueCommentIDIndex = 0
 		issueCommentIDs, err = accessor.GetIssueCommentIDsByTime(issueID, comment.Time)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 	}
 
@@ -142,7 +142,7 @@ func (accessor *DefaultAccessor) AddIssueComment(issueID int64, comment *IssueCo
 	if accessor.overwrite {
 		err := accessor.updateIssueComment(issueCommentID, issueID, comment)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 	} else {
 		log.Debug("issue %d already has comment timed at %s - ignored", issueID, time.Unix(comment.Time, 0))

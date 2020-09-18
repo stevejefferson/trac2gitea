@@ -13,16 +13,16 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// getIssueAttachmentIDandUUID retrieves the id and UUID of the given issue attachment, returns id of -1 if no such attachment
+// getIssueAttachmentIDandUUID retrieves the id and UUID of the given issue attachment, returns id of gitea.NullID if no such attachment
 func (accessor *DefaultAccessor) getIssueAttachmentIDandUUID(issueID int64, fileName string) (int64, string, error) {
-	var issueAttachmentID int64 = -1
+	var issueAttachmentID = NullID
 	var issueAttachmentUUID string
 	err := accessor.db.QueryRow(`
 		SELECT id, uuid FROM attachment WHERE issue_id = $1 AND name = $2
 		`, issueID, fileName).Scan(&issueAttachmentID, &issueAttachmentUUID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id for attachment %s for issue %d", fileName, issueID)
-		return -1, "", err
+		return NullID, "", err
 	}
 
 	return issueAttachmentID, issueAttachmentUUID, nil
@@ -86,14 +86,14 @@ func (accessor *DefaultAccessor) insertIssueAttachment(issueID int64, attachment
 			VALUES ($1, $2, $3, $4, $5)`, attachment.UUID, issueID, attachment.CommentID, attachment.FileName, attachment.Time)
 	if err != nil {
 		err = errors.Wrapf(err, "adding attachment %s for issue %d", attachment.FileName, issueID)
-		return -1, err
+		return NullID, err
 	}
 
 	var issueAttachmentID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueAttachmentID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new attachment %s for issue %d", attachment.FileName, issueID)
-		return -1, err
+		return NullID, err
 	}
 
 	log.Debug("added attachment %s for issue %d", attachment.FileName, issueID)
@@ -105,18 +105,18 @@ func (accessor *DefaultAccessor) insertIssueAttachment(issueID int64, attachment
 func (accessor *DefaultAccessor) AddIssueAttachment(issueID int64, attachment *IssueAttachment, filePath string) (int64, error) {
 	issueAttachmentID, issueAttachmentUUID, err := accessor.getIssueAttachmentIDandUUID(issueID, attachment.FileName)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
-	if issueAttachmentID == -1 {
+	if issueAttachmentID == NullID {
 		issueAttachmentID, err = accessor.insertIssueAttachment(issueID, attachment, filePath)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 	} else if accessor.overwrite {
 		err = accessor.updateIssueAttachment(issueAttachmentID, issueID, attachment, filePath)
 		if err != nil {
-			return -1, err
+			return NullID, err
 		}
 
 		err = accessor.deleteAttachment(issueAttachmentUUID)
@@ -131,7 +131,7 @@ func (accessor *DefaultAccessor) AddIssueAttachment(issueID int64, attachment *I
 
 	err = accessor.copyAttachment(filePath, attachment.UUID)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
 	return issueAttachmentID, nil

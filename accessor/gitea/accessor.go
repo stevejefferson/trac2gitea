@@ -78,6 +78,9 @@ type Milestone struct {
 	ClosedTime  int64
 }
 
+// NullID id for unset references in Gitea
+const NullID = int64(0)
+
 // Accessor is the interface to all of our interactions with a Gitea project.
 type Accessor interface {
 	/*
@@ -89,7 +92,7 @@ type Accessor interface {
 	/*
 	 * Issues
 	 */
-	// GetIssueID retrieves the id of the Gitea issue corresponding to a given index - returns -1 if no such issue.
+	// GetIssueID retrieves the id of the Gitea issue corresponding to a given index - returns NullID if no such issue.
 	GetIssueID(issueIndex int64) (int64, error)
 
 	// AddIssue adds a new issue to Gitea - returns id of created issue.
@@ -149,7 +152,7 @@ type Accessor interface {
 	/*
 	 * Labels
 	 */
-	// GetLabelID retrieves the id of the given label, returns -1 if no such label
+	// GetLabelID retrieves the id of the given label, returns NullID if no such label
 	GetLabelID(labelName string) (int64, error)
 
 	// AddLabel adds a label to Gitea, returns label id.
@@ -158,7 +161,7 @@ type Accessor interface {
 	/*
 	 * Milestones
 	 */
-	// GetMilestoneID gets the ID of a named milestone - returns -1 if no such milestone
+	// GetMilestoneID gets the ID of a named milestone - returns NullID if no such milestone
 	GetMilestoneID(name string) (int64, error)
 
 	// AddMilestone adds a milestone to Gitea,  returns id of created milestone
@@ -185,7 +188,7 @@ type Accessor interface {
 	/*
 	 * Users
 	 */
-	// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
+	// GetUserID retrieves the id of a named Gitea user - returns NullID if no such user.
 	GetUserID(userName string) (int64, error)
 
 	// GetUserEMailAddress retrieves the email address of a given user

@@ -11,15 +11,15 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// getIssueParticipantID retrieves the id of the given issue participant, returns -1 if no such participant
+// getIssueParticipantID retrieves the id of the given issue participant, returns NullID if no such participant
 func (accessor *DefaultAccessor) getIssueParticipantID(issueID int64, userID int64) (int64, error) {
-	var issueParticipantID int64 = -1
+	var issueParticipantID = NullID
 	err := accessor.db.QueryRow(`
 		SELECT id FROM issue_user WHERE issue_id = $1 AND uid = $2
 		`, issueID, userID).Scan(&issueParticipantID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id for participant %d in issue %d", userID, issueID)
-		return -1, err
+		return NullID, err
 	}
 
 	return issueParticipantID, nil
@@ -61,7 +61,7 @@ func (accessor *DefaultAccessor) AddIssueParticipant(issueID int64, userID int64
 		return err
 	}
 
-	if issueParticipantID == -1 {
+	if issueParticipantID == NullID {
 		return accessor.insertIssueParticipant(issueID, userID)
 	}
 

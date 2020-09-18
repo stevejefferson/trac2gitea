@@ -12,17 +12,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetUserID retrieves the id of a named Gitea user - returns -1 if no such user.
+// GetUserID retrieves the id of a named Gitea user - returns NullID if no such user.
 func (accessor *DefaultAccessor) GetUserID(userName string) (int64, error) {
 	if strings.Trim(userName, " ") == "" {
-		return -1, nil
+		return NullID, nil
 	}
 
-	var id int64 = -1
+	var id int64 = NullID
 	err := accessor.db.QueryRow(`SELECT id FROM user WHERE lower_name = $1 or email = $1`, userName).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id of user %s", userName)
-		return -1, err
+		return NullID, err
 	}
 
 	return id, nil

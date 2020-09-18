@@ -11,15 +11,15 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// getIssueLabelID retrieves the id of the given Gitea issue label - returns -1 if no such issue label.
+// getIssueLabelID retrieves the id of the given Gitea issue label - returns NullID if no such issue label.
 func (accessor *DefaultAccessor) getIssueLabelID(issueID int64, labelID int64) (int64, error) {
-	var issueLabelID int64 = -1
+	var issueLabelID int64 = NullID
 	err := accessor.db.QueryRow(`
 		SELECT id FROM issue_label WHERE issue_id=$1 AND label_id=$2
 		`, issueID, labelID).Scan(&issueLabelID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id of issue label for issue %d, label %d", issueID, labelID)
-		return -1, err
+		return NullID, err
 	}
 
 	return issueLabelID, nil
@@ -32,14 +32,14 @@ func (accessor *DefaultAccessor) insertIssueLabel(issueID int64, labelID int64) 
 		issueID, labelID)
 	if err != nil {
 		err = errors.Wrapf(err, "adding issue label for issue %d, label %d", issueID, labelID)
-		return -1, err
+		return NullID, err
 	}
 
 	var issueLabelID int64
 	err = accessor.db.QueryRow(`SELECT last_insert_rowid()`).Scan(&issueLabelID)
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving id of new issue label for issue %d, label %d", issueID, labelID)
-		return -1, err
+		return NullID, err
 	}
 
 	log.Debug("added label %d for issue %d (id %d)", labelID, issueID, issueLabelID)
@@ -51,10 +51,10 @@ func (accessor *DefaultAccessor) insertIssueLabel(issueID int64, labelID int64) 
 func (accessor *DefaultAccessor) AddIssueLabel(issueID int64, labelID int64) (int64, error) {
 	issueLabelID, err := accessor.getIssueLabelID(issueID, labelID)
 	if err != nil {
-		return -1, err
+		return NullID, err
 	}
 
-	if issueLabelID == -1 {
+	if issueLabelID == NullID {
 		return accessor.insertIssueLabel(issueID, labelID)
 	}
 

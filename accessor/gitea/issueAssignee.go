@@ -11,15 +11,15 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// getIssueAssigneeID retrieves the id of the given issue/assignee association, returns -1 if no such association
+// getIssueAssigneeID retrieves the id of the given issue/assignee association, returns gitea.NullID if no such association
 func (accessor *DefaultAccessor) getIssueAssigneeID(issueID int64, assigneeID int64) (int64, error) {
-	var issueAssigneeID int64 = -1
+	var issueAssigneeID int64 = NullID
 	err := accessor.db.QueryRow(`
 		SELECT id FROM issue_assignees WHERE issue_id = $1 AND assignee_id = $2
 		`, issueID, assigneeID).Scan(&issueAssigneeID)
 	if err != nil && err != sql.ErrNoRows {
 		err = errors.Wrapf(err, "retrieving id for issue %d/assignee %d", issueID, assigneeID)
-		return -1, err
+		return NullID, err
 	}
 
 	return issueAssigneeID, nil
@@ -60,7 +60,7 @@ func (accessor *DefaultAccessor) AddIssueAssignee(issueID int64, assigneeID int6
 		return err
 	}
 
-	if issueAssigneeID == -1 {
+	if issueAssigneeID == NullID {
 		return accessor.insertIssueAssignee(issueID, assigneeID)
 	}
 

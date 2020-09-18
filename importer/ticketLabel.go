@@ -10,19 +10,19 @@ import (
 	"github.com/stevejefferson/trac2gitea/log"
 )
 
-// importTicketLabel imports a single issue label from Trac into Gitea, returns id of created issue label or -1 if issue label already exists
+// importTicketLabel imports a single issue label from Trac into Gitea, returns id of created issue label or gitea.NullID if issue label already exists
 func (importer *Importer) importTicketLabel(issueID int64, tracName string, labelMap map[string]string, labelColor string) (int64, error) {
 	labelID, err := importer.importLabel(tracName, labelMap, labelColor)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
-	if labelID == -1 {
-		return -1, nil
+	if labelID == gitea.NullID {
+		return gitea.NullID, nil
 	}
 
 	issueLabelID, err := importer.giteaAccessor.AddIssueLabel(issueID, labelID)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
 	log.Debug("created issue label (id %d) for issue %d, label %d", issueLabelID, issueID, labelID)
@@ -30,19 +30,19 @@ func (importer *Importer) importTicketLabel(issueID int64, tracName string, labe
 	return issueLabelID, nil
 }
 
-// addLabelChangeIssueComment adds a single label change issue comment into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
+// addLabelChangeIssueComment adds a single label change issue comment into Gitea, returns id of created Gitea issue comment or gitea.NullID if cannot create comment
 func (importer *Importer) addLabelChangeIssueComment(issueID int64, change *trac.TicketChange, labelName string, isAdd bool, userMap map[string]string, labelMap map[string]string) (int64, error) {
 	var issueCommentID int64
 
 	labelID, err := importer.getLabelID(labelName, labelMap)
 	if err != nil {
-		return -1, err
+		return gitea.NullID, err
 	}
 
-	if labelID != -1 {
+	if labelID != gitea.NullID {
 		issueComment, err := importer.createIssueComment(issueID, change, userMap)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 		issueComment.CommentType = gitea.LabelIssueCommentType
 		issueComment.LabelID = labelID
@@ -51,14 +51,14 @@ func (importer *Importer) addLabelChangeIssueComment(issueID int64, change *trac
 		}
 		issueCommentID, err = importer.giteaAccessor.AddIssueComment(issueID, issueComment)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 	}
 
 	return issueCommentID, nil
 }
 
-// importLabelChangeIssueComment imports a Trac ticket label change into Gitea, returns id of created Gitea issue comment or -1 if cannot create comment
+// importLabelChangeIssueComment imports a Trac ticket label change into Gitea, returns id of created Gitea issue comment or NullID if cannot create comment
 func (importer *Importer) importLabelChangeIssueComment(issueID int64, change *trac.TicketChange, userMap map[string]string, labelMap map[string]string) (int64, error) {
 	var err error
 	var issueCommentID int64
@@ -68,7 +68,7 @@ func (importer *Importer) importLabelChangeIssueComment(issueID int64, change *t
 	if prevLabelName != "" {
 		issueCommentID, err = importer.addLabelChangeIssueComment(issueID, change, prevLabelName, false, userMap, labelMap)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 	}
 
@@ -77,7 +77,7 @@ func (importer *Importer) importLabelChangeIssueComment(issueID int64, change *t
 	if labelName != "" {
 		issueCommentID, err = importer.addLabelChangeIssueComment(issueID, change, labelName, true, userMap, labelMap)
 		if err != nil {
-			return -1, err
+			return gitea.NullID, err
 		}
 	}
 
