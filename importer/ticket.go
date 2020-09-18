@@ -131,5 +131,10 @@ func (importer *Importer) ImportTickets(
 		return err
 	}
 
+	err = importer.giteaAccessor.UpdateMilestoneIssueCounts()
+	if err != nil {
+		return err
+	}
+
 	return importer.giteaAccessor.UpdateRepoIssueCounts()
 }

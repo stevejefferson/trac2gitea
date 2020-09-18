@@ -324,6 +324,10 @@ func expectIssueCountUpdates(t *testing.T) {
 		Return(nil)
 	mockGiteaAccessor.
 		EXPECT().
+		UpdateMilestoneIssueCounts().
+		Return(nil)
+	mockGiteaAccessor.
+		EXPECT().
 		UpdateRepoIssueCounts().
 		Return(nil)
 }

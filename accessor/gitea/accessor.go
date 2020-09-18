@@ -154,6 +154,12 @@ type Accessor interface {
 	UpdateLabelIssueCounts() error
 
 	/*
+	 * Issue Milestones
+	 */
+	// UpdateMilestoneIssueCounts updates issue counts for all milestones.
+	UpdateMilestoneIssueCounts() error
+
+	/*
 	 * Issue Participants
 	 */
 	// AddIssueParticipant adds a user as a participant in a Gitea issue
