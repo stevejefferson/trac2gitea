@@ -13,7 +13,7 @@ At present the following Trac data is converted:
   * Trac ticket component, priority, resolution, severity, type and version changes to Gitea issue label changes
   * Trac ticket milestone changes to Gitea issue milestone changes
   * Trac ticket owner changes to Gitea issue assignee changes
-  * Trac ticket "close" status changes to Gitea issue close changes
+  * Trac ticket "close" and "reopen" status changes to Gitea issue equivalents
   * Trac ticket summary changes to Gitea issue title changes
   * Trac ticket labels to Gitea issue labels
   * Trac ticket and comment owners to Gitea issue assignees
