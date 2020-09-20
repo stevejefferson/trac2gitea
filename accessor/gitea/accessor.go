@@ -202,6 +202,16 @@ type Accessor interface {
 	GetSourceURL(branchPath string, filePath string) string
 
 	/*
+	 * Transactions
+	 * - a transaction is started on creation of the accessor
+	 */
+	// CommitTransaction commits a Gitea transaction.
+	CommitTransaction() error
+
+	// RollbackTransaction rolls back a Gitea transaction.
+	RollbackTransaction() error
+
+	/*
 	 * Users
 	 */
 	// GetUserID retrieves the id of a named Gitea user - returns NullID if no such user.
@@ -230,11 +240,8 @@ type Accessor interface {
 	// CloneWiki creates a local clone of the wiki repo.
 	CloneWiki() error
 
-	// CommitWiki commits any files added or updated since the last commit to our local wiki repo.
-	CommitWiki(author string, authorEMail string, message string) error
-
-	// PushWiki pushes all changes to the local wiki repository back to the remote.
-	PushWiki() error
+	// CommitWikiToRepo commits any files added or updated since the last commit to our local wiki repo.
+	CommitWikiToRepo(author string, authorEMail string, message string) error
 
 	// CopyFileToWiki copies an external file into the local clone of the Gitea Wiki
 	CopyFileToWiki(externalFilePath string, giteaWikiRelPath string) error

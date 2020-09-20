@@ -24,7 +24,7 @@ type DefaultAccessor struct {
 	rootDir       string
 	mainConfig    *ini.File
 	customConfig  *ini.File
-	db            *sql.DB
+	db            *sql.Tx
 	userName      string
 	repoName      string
 	repoID        int64
@@ -33,6 +33,7 @@ type DefaultAccessor struct {
 	wikiRepoDir   string
 	wikiRepo      *git.Repository
 	overwrite     bool
+	pushWiki      bool
 }
 
 func fetchConfig(configPath string) (*ini.File, error) {
@@ -59,7 +60,8 @@ func CreateDefaultAccessor(
 	giteaWikiRepoURL string,
 	giteaWikiRepoToken string,
 	giteaWikiRepoDir string,
-	overwriteData bool) (*DefaultAccessor, error) {
+	overwriteData bool,
+	pushWiki bool) (*DefaultAccessor, error) {
 	stat, err := os.Stat(giteaRootDir)
 	if err != nil {
 		err = errors.Wrapf(err, "looking for root directory %s of Gitea instance", giteaRootDir)
@@ -98,9 +100,10 @@ func CreateDefaultAccessor(
 		wikiRepoToken: "",
 		wikiRepoDir:   "",
 		wikiRepo:      nil,
-		overwrite:     overwriteData}
+		overwrite:     overwriteData,
+		pushWiki:      pushWiki}
 
-	// extract path to gitea DB - currently sqlite-specific...
+	// open gitea DB - currently sqlite-specific...
 	giteaDbPath := giteaAccessor.GetStringConfig("database", "PATH")
 	giteaDb, err := sql.Open("sqlite3", giteaDbPath)
 	if err != nil {
@@ -108,8 +111,13 @@ func CreateDefaultAccessor(
 		return nil, err
 	}
 
+	// start transaction
 	log.Info("using Gitea database %s", giteaDbPath)
-	giteaAccessor.db = giteaDb
+	giteaAccessor.db, err = giteaDb.Begin()
+	if err != nil {
+		err = errors.Wrapf(err, "creating database transaction")
+		return nil, err
+	}
 
 	giteaRepoID, err := giteaAccessor.getRepoID(giteaUserName, giteaRepoName)
 	if err != nil {

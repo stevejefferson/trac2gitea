@@ -43,7 +43,7 @@ func (accessor *DefaultAccessor) updateLabel(labelID int64, label *Label) error 
 // insertLabel inserts a new label, returns label id.
 func (accessor *DefaultAccessor) insertLabel(label *Label) (int64, error) {
 	_, err := accessor.db.Exec(`
-		INSERT INTO label(repo_id, name, description, color) VALUES($1, $2, $3)`,
+		INSERT INTO label(repo_id, name, description, color) VALUES($1, $2, $3, $4)`,
 		accessor.repoID, label.Name, label.Description, label.Color)
 	if err != nil {
 		err = errors.Wrapf(err, "adding label %s", label.Name)

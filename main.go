@@ -36,6 +36,7 @@ var giteaWikiRepoURL string
 var giteaWikiRepoToken string
 var giteaWikiRepoDir string
 
+// parseArgs parses the command line arguments, populating the variables above.
 func parseArgs() {
 	wikiURLParam := pflag.String("wiki-url", "",
 		"URL of wiki repository - defaults to <server-root-url>/<gitea-user>/<gitea-repo>.wiki.git")
@@ -112,6 +113,7 @@ func parseArgs() {
 	}
 }
 
+// importData imports the non-wiki Trac data.
 func importData(dataImporter *importer.Importer, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
 	var err error
 	if err = dataImporter.ImportComponents(componentMap); err != nil {
@@ -142,6 +144,52 @@ func importData(dataImporter *importer.Importer, userMap, componentMap, priority
 	return nil
 }
 
+// performImport performs the actual import
+func performImport(dataImporter *importer.Importer) error {
+	userMap, err := readUserMap(userMapInputFile, dataImporter)
+	if err != nil {
+		return err
+	}
+
+	componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap, err := readLabelMaps(labelMapInputFile, dataImporter)
+	if err != nil {
+		return err
+	}
+
+	if generateMaps {
+		if userMapOutputFile != "" {
+			if err = writeUserMapToFile(userMapOutputFile, userMap); err != nil {
+				return err
+			}
+			log.Info("wrote user map to %s", userMapOutputFile)
+		}
+		if labelMapOutputFile != "" {
+			if err = writeLabelMapsToFile(labelMapOutputFile, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+				return err
+			}
+			log.Info("wrote label map to %s", labelMapOutputFile)
+		}
+
+		return nil
+	}
+
+	if !wikiOnly {
+		if err = importData(dataImporter, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+			return err
+		}
+	}
+
+	if !dbOnly {
+		if err = dataImporter.ImportWiki(userMap); err != nil {
+			return err
+		}
+	}
+
+	return fmt.Errorf("fail")
+
+	// return nil
+}
+
 func main() {
 	parseArgs()
 
@@ -154,54 +202,31 @@ func main() {
 	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
 	if err != nil {
 		log.Fatal("%+v", err)
+		return
 	}
 	giteaAccessor, err := gitea.CreateDefaultAccessor(
-		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, overwrite)
+		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, overwrite, wikiPush)
 	if err != nil {
 		log.Fatal("%+v", err)
+		return
 	}
 	markdownConverter := markdown.CreateDefaultConverter(tracAccessor, giteaAccessor)
 
 	dataImporter, err := importer.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, giteaUser, wikiConvertPredefineds)
 	if err != nil {
 		log.Fatal("%+v", err)
-	}
-
-	userMap, err := readUserMap(userMapInputFile, dataImporter)
-	if err != nil {
-		log.Fatal("%+v", err)
-	}
-
-	componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap, err := readLabelMaps(labelMapInputFile, dataImporter)
-	if err != nil {
-		log.Fatal("%+v", err)
-	}
-
-	if generateMaps {
-		if userMapOutputFile != "" {
-			if err = writeUserMapToFile(userMapOutputFile, userMap); err != nil {
-				log.Fatal("%+v", err)
-			}
-			log.Info("wrote user map to %s", userMapOutputFile)
-		}
-		if labelMapOutputFile != "" {
-			if err = writeLabelMapsToFile(labelMapOutputFile, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
-				log.Fatal("%+v", err)
-			}
-			log.Info("wrote label map to %s", labelMapOutputFile)
-		}
 		return
 	}
 
-	if !wikiOnly {
-		if err = importData(dataImporter, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
-			log.Fatal("%+v", err)
-		}
+	err = performImport(dataImporter)
+	if err != nil {
+		dataImporter.RollbackImport()
+		log.Fatal("%+v", err)
+		return
 	}
 
-	if !dbOnly {
-		if err = dataImporter.ImportWiki(userMap, wikiPush); err != nil {
-			log.Fatal("%+v", err)
-		}
+	err = dataImporter.CommitImport()
+	if err != nil {
+		log.Fatal("%+v", err)
 	}
 }

@@ -65,10 +65,10 @@ func (accessor *DefaultAccessor) CloneWiki() error {
 	return nil
 }
 
-// CommitWiki stages any files added or updated since the last commit then commits them to our cloned wiki repo.
+// CommitWikiToRepo stages any files added or updated since the last commit then commits them to our cloned wiki repo.
 // We package the staging and commit together here because it is easier than embedding hooks to do the git staging
 // deep into the wiki parsing process where files from the Trac worksapce can get copied over on-the-fly.
-func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, message string) error {
+func (accessor *DefaultAccessor) CommitWikiToRepo(author string, authorEMail string, message string) error {
 	worktree, err := accessor.wikiRepo.Worktree()
 	if err != nil {
 		err = errors.Wrapf(err, "retrieving git work tree for cloned wiki")
@@ -100,27 +100,6 @@ func (accessor *DefaultAccessor) CommitWiki(author string, authorEMail string, m
 	}
 
 	return nil
-}
-
-// PushWiki pushes all changes to the local wiki repository back to the remote.
-func (accessor *DefaultAccessor) PushWiki() error {
-	auth := &http.BasicAuth{
-		Username: accessor.userName,
-		Password: accessor.wikiRepoToken,
-	}
-
-	log.Debug("pushing wiki to remote")
-	err := accessor.wikiRepo.Push(&git.PushOptions{
-		RemoteName: "origin",
-		Auth:       auth,
-	})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		err = errors.Wrapf(err, "pushing cloned wiki to remote")
-		return err
-	}
-
-	log.Debug("deleting cloned wiki directory %s", accessor.wikiRepoDir)
-	return os.RemoveAll(accessor.wikiRepoDir)
 }
 
 // CopyFileToWiki copies an external file into the Gitea Wiki, returning a URL through which the file can be viewed/
@@ -236,4 +215,37 @@ func (accessor *DefaultAccessor) TranslateWikiPageName(pageName string) string {
 	}
 
 	return pageName
+}
+
+// commitWikiRepo commits all wiki repository changes by pushing all changes to the local wiki repository back to the remote.
+// (Ff pushing the wiki is disabled, the local repository is left and a message is output)
+func (accessor *DefaultAccessor) commitWikiRepo() error {
+	if !accessor.pushWiki {
+		log.Info("wiki updates have been committed to cloned repository %s; please review changes and push back to remote when done.", accessor.wikiRepoDir)
+		return nil
+	}
+
+	auth := &http.BasicAuth{
+		Username: accessor.userName,
+		Password: accessor.wikiRepoToken,
+	}
+
+	log.Debug("pushing wiki to remote")
+	err := accessor.wikiRepo.Push(&git.PushOptions{
+		RemoteName: "origin",
+		Auth:       auth,
+	})
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		err = errors.Wrapf(err, "pushing cloned wiki to remote")
+		return err
+	}
+
+	log.Debug("deleting cloned wiki directory %s after pushing it", accessor.wikiRepoDir)
+	return os.RemoveAll(accessor.wikiRepoDir)
+}
+
+// rollbackWikiRepo rolls back all changes to the wiki repository by deleting the local cloned repository without pushing it.
+func (accessor *DefaultAccessor) rollbackWikiRepo() error {
+	log.Debug("rolling back all wiki repo changes by deleting cloned wiki directory %s", accessor.wikiRepoDir)
+	return os.RemoveAll(accessor.wikiRepoDir)
 }

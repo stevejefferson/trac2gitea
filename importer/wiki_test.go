@@ -207,7 +207,7 @@ func expectToCommitGiteaWikiPage(
 	// expect to commit Gitea wiki page including Trac page name, version and commit comment in Gitea comment
 	mockGiteaAccessor.
 		EXPECT().
-		CommitWiki(giteaPageAuthor, giteaAuthorEmail, gomock.Any()).
+		CommitWikiToRepo(giteaPageAuthor, giteaAuthorEmail, gomock.Any()).
 		DoAndReturn(func(author string, email string, comment string) error {
 			assertTrue(t, strings.Contains(comment, tracWikiPage.Name))
 			assertTrue(t, strings.Contains(comment, fmt.Sprintf("%d", tracWikiPage.Version)))
@@ -216,14 +216,7 @@ func expectToCommitGiteaWikiPage(
 		})
 }
 
-func expectToPushGiteaWiki(t *testing.T) {
-	mockGiteaAccessor.
-		EXPECT().
-		PushWiki().
-		Return(nil)
-}
-
-func TestImportWithoutPushOfPredefinedSingleVersionWikiPage(t *testing.T) {
+func TestImportOfPredefinedSingleVersionWikiPage(t *testing.T) {
 	setUpWiki(t)
 	defer tearDown(t)
 
@@ -237,12 +230,10 @@ func TestImportWithoutPushOfPredefinedSingleVersionWikiPage(t *testing.T) {
 	// trac wiki page is a predefined one
 	expectToTestForPredefinedWikiPage(t, tracWikiPage1v1, true)
 
-	// ...do not expect any other actions
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
-func TestImportWithoutPushOfPredefinedSingleVersionWikiPageWhenConvertingPredefinedPages(t *testing.T) {
+func TestImportOfPredefinedSingleVersionWikiPageWhenConvertingPredefinedPages(t *testing.T) {
 	setUpWiki(t)
 	defer tearDown(t)
 
@@ -262,12 +253,10 @@ func TestImportWithoutPushOfPredefinedSingleVersionWikiPageWhenConvertingPredefi
 	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
 	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
 
-	// ...do not expect wiki to be pushed
-
-	predefinedPageDataImporter.ImportWiki(userMap, false)
+	predefinedPageDataImporter.ImportWiki(userMap)
 }
 
-func TestImportWithoutPushOfSingleVersionWikiPage(t *testing.T) {
+func TestImportOfSingleVersionWikiPage(t *testing.T) {
 	setUpWiki(t)
 	defer tearDown(t)
 
@@ -288,36 +277,7 @@ func TestImportWithoutPushOfSingleVersionWikiPage(t *testing.T) {
 	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
 	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
-}
-
-func TestImportWithPushOfSingleVersionWikiPage(t *testing.T) {
-	setUpWiki(t)
-	defer tearDown(t)
-
-	// clone existing Gitea wiki
-	expectCloneWiki(t)
-
-	// trac should return us a single wiki page and no attachments
-	expectTracToReturnWikiPages(t, tracWikiPage1v1)
-	expectTracToReturnWikiAttachments(t)
-
-	// trac wiki page is not a predefined one
-	expectToTestForPredefinedWikiPage(t, tracWikiPage1v1, false)
-
-	// translate to markdown
-	expectToTranslateWikiPageName(t, tracWikiPage1v1, giteaWikiPage1)
-
-	// write and commit wiki page
-	expectToWriteGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1, true)
-	expectToCommitGiteaWikiPage(t, tracWikiPage1v1, giteaWikiPage1v1Author, giteaWikiPage1v1Author)
-
-	// push wiki page
-	expectToPushGiteaWiki(t)
-
-	dataImporter.ImportWiki(userMap, true)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfMultiVersionWikiPage(t *testing.T) {
@@ -345,9 +305,7 @@ func TestImportOfMultiVersionWikiPage(t *testing.T) {
 	expectToWriteGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, true)
 	expectToCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfMultipleMultiVersionWikiPages(t *testing.T) {
@@ -383,9 +341,7 @@ func TestImportOfMultipleMultiVersionWikiPages(t *testing.T) {
 	expectToWriteGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2, true)
 	expectToCommitGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2v2Author, giteaWikiPage2v2Author)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfAlreadyImportedWikiPage(t *testing.T) {
@@ -410,9 +366,7 @@ func TestImportOfAlreadyImportedWikiPage(t *testing.T) {
 
 	// ...do not expect to commit wiki page
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfMultiVersionWikiPageWithOneAlreadyImportedVersion(t *testing.T) {
@@ -441,9 +395,7 @@ func TestImportOfMultiVersionWikiPageWithOneAlreadyImportedVersion(t *testing.T)
 	expectToWriteGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1, true)
 	expectToCommitGiteaWikiPage(t, tracWikiPage1v2, giteaWikiPage1v2Author, giteaWikiPage1v2Author)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfSingleAttachmentToSingleWikiPage(t *testing.T) {
@@ -459,9 +411,7 @@ func TestImportOfSingleAttachmentToSingleWikiPage(t *testing.T) {
 
 	expectToCopyTracWikiAttachmentToGitea(t, tracWikiPage1Attachment1, tracWikiPage1Attachment1Path, giteaWikiPage1Attachment1Path)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfMultipleAttachmentsToSingleWikiPage(t *testing.T) {
@@ -478,9 +428,7 @@ func TestImportOfMultipleAttachmentsToSingleWikiPage(t *testing.T) {
 	expectToCopyTracWikiAttachmentToGitea(t, tracWikiPage1Attachment1, tracWikiPage1Attachment1Path, giteaWikiPage1Attachment1Path)
 	expectToCopyTracWikiAttachmentToGitea(t, tracWikiPage1Attachment2, tracWikiPage1Attachment2Path, giteaWikiPage1Attachment2Path)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
 func TestImportOfMultipleAttachmentsToMultipleWikiPages(t *testing.T) {
@@ -499,12 +447,10 @@ func TestImportOfMultipleAttachmentsToMultipleWikiPages(t *testing.T) {
 	expectToCopyTracWikiAttachmentToGitea(t, tracWikiPage2Attachment1, tracWikiPage2Attachment1Path, giteaWikiPage2Attachment1Path)
 	expectToCopyTracWikiAttachmentToGitea(t, tracWikiPage2Attachment2, tracWikiPage2Attachment2Path, giteaWikiPage2Attachment2Path)
 
-	// ...do not expect wiki to be pushed
-
-	dataImporter.ImportWiki(userMap, false)
+	dataImporter.ImportWiki(userMap)
 }
 
-func TestImportAndPushOfMultipleVersionsOfMultipleWikiPagesWithMultipleAttachments(t *testing.T) {
+func TestImportOfMultipleVersionsOfMultipleWikiPagesWithMultipleAttachments(t *testing.T) {
 	setUpWiki(t)
 	defer tearDown(t)
 
@@ -543,8 +489,5 @@ func TestImportAndPushOfMultipleVersionsOfMultipleWikiPagesWithMultipleAttachmen
 	expectToWriteGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2, true)
 	expectToCommitGiteaWikiPage(t, tracWikiPage2v2, giteaWikiPage2v2Author, giteaWikiPage2v2Author)
 
-	// push changes
-	expectToPushGiteaWiki(t)
-
-	dataImporter.ImportWiki(userMap, true)
+	dataImporter.ImportWiki(userMap)
 }

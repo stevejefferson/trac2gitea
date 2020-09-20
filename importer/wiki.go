@@ -61,14 +61,14 @@ func (importer *Importer) importWikiPages(userMap map[string]string) {
 
 		// commit version of wiki page to local repository
 		fullComment := tracPageVersionIdentifier + "\n\n" + page.Comment
-		err = importer.giteaAccessor.CommitWiki(author, authorEmail, fullComment)
+		err = importer.giteaAccessor.CommitWikiToRepo(author, authorEmail, fullComment)
 		log.Info("wiki page %s: converted from Trac page %s, version %d", translatedPageName, page.Name, page.Version)
 		return err
 	})
 }
 
 // ImportWiki imports a Trac wiki into a Gitea wiki repository.
-func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error {
+func (importer *Importer) ImportWiki(userMap map[string]string) error {
 	err := importer.giteaAccessor.CloneWiki()
 	if err != nil {
 		return err
@@ -77,10 +77,5 @@ func (importer *Importer) ImportWiki(userMap map[string]string, push bool) error
 	importer.importWikiAttachments()
 	importer.importWikiPages(userMap)
 
-	if push {
-		return importer.giteaAccessor.PushWiki()
-	}
-
-	log.Info("trac wiki has been imported into cloned wiki repository. Please review changes and push back to remote when done.")
 	return nil
 }
