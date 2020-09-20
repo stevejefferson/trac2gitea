@@ -185,9 +185,7 @@ func performImport(dataImporter *importer.Importer) error {
 		}
 	}
 
-	return fmt.Errorf("fail")
-
-	// return nil
+	return nil
 }
 
 func main() {
