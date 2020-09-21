@@ -66,7 +66,7 @@ Options:
       --db-only                   convert database only
       --generate-maps             generate default user/label mappings into provided map files (note: no conversion will be performed in this case)
       --no-wiki-push              do not push wiki on completion
-      --overwrite                 overwrite existing data
+      --overwrite                 overwrite existing data (by default previously-imported issues, labels, wiki pages etc are skipped)
       --verbose                   verbose output
       --wiki-convert-predefined   convert Trac predefined wiki pages - by default we skip these
       --wiki-dir string           directory into which to checkout (clone) wiki repository - defaults to cwd

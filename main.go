@@ -56,7 +56,7 @@ func parseArgs() {
 	wikiNoPushParam := pflag.Bool("no-wiki-push", false,
 		"do not push wiki on completion")
 	overwriteParam := pflag.Bool("overwrite", false,
-		"overwrite existing data")
+		"overwrite existing data (by default previously-imported issues, labels, wiki pages etc are skipped)")
 	verboseParam := pflag.Bool("verbose", false,
 		"verbose output")
 
@@ -145,47 +145,43 @@ func importData(dataImporter *importer.Importer, userMap, componentMap, priority
 }
 
 // performImport performs the actual import
-func performImport(dataImporter *importer.Importer) error {
-	userMap, err := readUserMap(userMapInputFile, dataImporter)
-	if err != nil {
-		return err
-	}
-
-	componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap, err := readLabelMaps(labelMapInputFile, dataImporter)
-	if err != nil {
-		return err
-	}
-
-	if generateMaps {
-		if userMapOutputFile != "" {
-			if err = writeUserMapToFile(userMapOutputFile, userMap); err != nil {
-				return err
-			}
-			log.Info("wrote user map to %s", userMapOutputFile)
-		}
-		if labelMapOutputFile != "" {
-			if err = writeLabelMapsToFile(labelMapOutputFile, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
-				return err
-			}
-			log.Info("wrote label map to %s", labelMapOutputFile)
-		}
-
-		return nil
-	}
-
+func performImport(dataImporter *importer.Importer, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap map[string]string) error {
 	if !wikiOnly {
-		if err = importData(dataImporter, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+		if err := importData(dataImporter, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+			dataImporter.RollbackImport()
 			return err
 		}
 	}
 
 	if !dbOnly {
-		if err = dataImporter.ImportWiki(userMap); err != nil {
+		if err := dataImporter.ImportWiki(userMap); err != nil {
+			dataImporter.RollbackImport()
 			return err
 		}
 	}
 
-	return nil
+	return dataImporter.CommitImport()
+}
+
+// createImporter creates and configures the importer
+func createImporter() (*importer.Importer, error) {
+	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
+	if err != nil {
+		return nil, err
+	}
+	giteaAccessor, err := gitea.CreateDefaultAccessor(
+		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, overwrite, wikiPush)
+	if err != nil {
+		return nil, err
+	}
+	markdownConverter := markdown.CreateDefaultConverter(tracAccessor, giteaAccessor)
+
+	dataImporter, err := importer.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, giteaUser, wikiConvertPredefineds)
+	if err != nil {
+		return nil, err
+	}
+
+	return dataImporter, nil
 }
 
 func main() {
@@ -197,34 +193,47 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
-	tracAccessor, err := trac.CreateDefaultAccessor(tracRootDir)
-	if err != nil {
-		log.Fatal("%+v", err)
-		return
-	}
-	giteaAccessor, err := gitea.CreateDefaultAccessor(
-		giteaRootDir, giteaUser, giteaRepo, giteaWikiRepoURL, giteaWikiRepoToken, giteaWikiRepoDir, overwrite, wikiPush)
-	if err != nil {
-		log.Fatal("%+v", err)
-		return
-	}
-	markdownConverter := markdown.CreateDefaultConverter(tracAccessor, giteaAccessor)
-
-	dataImporter, err := importer.CreateImporter(tracAccessor, giteaAccessor, markdownConverter, giteaUser, wikiConvertPredefineds)
+	dataImporter, err := createImporter()
 	if err != nil {
 		log.Fatal("%+v", err)
 		return
 	}
 
-	err = performImport(dataImporter)
+	userMap, err := readUserMap(userMapInputFile, dataImporter)
 	if err != nil {
-		dataImporter.RollbackImport()
 		log.Fatal("%+v", err)
 		return
 	}
 
-	err = dataImporter.CommitImport()
+	componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap, err := readLabelMaps(labelMapInputFile, dataImporter)
 	if err != nil {
 		log.Fatal("%+v", err)
+		return
+	}
+
+	if generateMaps {
+		// note: no need to commit or rollback transaction here - nothing has been imported yet
+		if userMapOutputFile != "" {
+			if err = writeUserMapToFile(userMapOutputFile, userMap); err != nil {
+				log.Fatal("%+v", err)
+				return
+			}
+			log.Info("wrote user map to %s", userMapOutputFile)
+		}
+		if labelMapOutputFile != "" {
+			if err = writeLabelMapsToFile(labelMapOutputFile, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap); err != nil {
+				log.Fatal("%+v", err)
+				return
+			}
+			log.Info("wrote label map to %s", labelMapOutputFile)
+		}
+
+		return
+	}
+
+	err = performImport(dataImporter, userMap, componentMap, priorityMap, resolutionMap, severityMap, typeMap, versionMap)
+	if err != nil {
+		log.Fatal("%+v", err)
+		return
 	}
 }
