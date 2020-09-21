@@ -54,7 +54,7 @@ At present the following Trac data is converted:
 
 The utility requires access to both the Trac and Gitea filestore.
 It retrieves data directly from the Trac database and writes into the Gitea database.
-Access to the Gitea project wiki is via by checking out the wiki git repository.
+Access to the Gitea project wiki is by checking out the wiki git repository.
 
 The Gitea project must have been created prior to the migration as must the Gitea project wiki if a Trac wiki is to be converted (this can however just consist of an empty `Home.md` welcome page).
 
